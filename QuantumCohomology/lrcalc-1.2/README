@@ -1,0 +1,205 @@
+Littlewood-Richardson Calculator version 1.2
+Copyright (C) 1999- Anders S. Buch (asbuch at math rutgers edu)
+
+
+INSTALLATION
+============
+
+This file explains how to install and use the programs.  See the file
+ChangeLog for a list of bug-fixes, enhancements, and contributors.
+
+This project uses the standard installation procedure:
+
+    ./configure
+    make
+    sudo make install
+
+The last step is optional and installs the programs 
+
+    lrcalc  and  schubmult
+
+in the directory /usr/local/bin, as well as the maple interface
+lrcalc.maple in /usr/local/share/lrcalc.  It also installs the lrcalc
+library and header files.  (The directory /usr/local can be changed,
+see the file INSTALL for details.)
+
+You may want to further run the test suite:
+
+    make check
+
+Notice also that the Littlewood-Richardson Calculator is now
+integrated in the SAGE open-source mathematics system.  You may prefer
+to use lrcalc from SAGE to take advantage of the additional functions
+in this system.
+
+
+USAGE
+=====
+
+We give a very brief description of the programs.
+
+The program lrcalc can perform various operations on symmetric
+functions, and its first argument must specify the operation to be
+used.  There are five of these operations:
+
+
+lrcalc coef:  Compute a single Littlewood-Richardson coefficient.
+-----------
+
+The command "lrcalc coef z - x - y" computes the Littlewood-Richardson
+coefficient c^z_{x,y} which is the coefficient of the Schur function
+s_z in the product s_x * s_y.
+
+Example:
+
+% lrcalc coef 3 2 1 - 2 1 - 2 1
+2
+
+
+lrcalc skew:  Expand a skew Schur function in the basis of Schur
+-----------   functions.
+
+The command "lrcalc skew z / x" lists all partitions y for which the
+Littlewood-Richardson coefficient c^z_{x,y} is non-zero, with that
+coefficient in front.
+
+Example:
+
+% lrcalc skew 3 2 1 / 2 1
+1  (3)
+2  (2, 1)
+1  (1, 1, 1)
+
+
+lrcalc mult:  Expand a product of two Schur functions in the basis of
+-----------   Schur functions.
+
+The command "lrcalc mult x - y" lists all partitions z for which the
+Littlewood-Richardson coefficient c^z_{x,y} is non-zero, with that
+coefficient in front.
+
+Example:
+
+% lrcalc mult 2 1 - 2 1
+1  (3, 3)
+1  (4, 2)
+1  (2, 2, 1, 1)
+1  (2, 2, 2)
+2  (3, 2, 1)
+1  (4, 1, 1)
+1  (3, 1, 1, 1)
+
+
+The option -r <rows> can be used to limit the partitions in the output
+to a given number of rows.
+
+
+The command Lrcalc mult can also compute products in the small quantum
+cohomology ring of a Grassmann variety.  The option "-q m,k" will use
+the quantum ring of the Grassmannian Gr(m,m+k).  If -q is replaced
+with -f, then the same product is computed, but the output is given in
+fusion ring notation.
+
+Example:
+
+% lrcalc mult -q 3,2 3 2 1 - 3 2 1
+1  (2)
+1  (1, 1)
+
+% lrcalc mult -f 3,2 3 2 1 - 3 2 1
+1  (4, 4, 4)
+1  (5, 4, 3)
+
+
+lrcalc coprod:  Calculate coproducts in the ring of symmetric
+-------------   functions.  
+
+The command "lrcalc coprod z" lists all pairs of partitions x and y
+for which the Littlewood-Richardson coefficient c^z_{x,y} is non-zero,
+with that coefficient in front.
+
+Example:
+
+% lrcalc coprod 3 2 1
+
+1  (3, 1)  (2)
+1  (2, 2)  (1, 1)
+1  (3, 1)  (1, 1)
+1  (2, 1)  (3)
+2  (2, 1)  (2, 1)
+1  (2, 2, 1)  (1)
+1  (3, 2, 1)  ()
+1  (3, 2)  (1)
+1  (2, 1, 1)  (2)
+1  (3, 1, 1)  (1)
+1  (1, 1, 1)  (2, 1)
+1  (2, 1, 1)  (1, 1)
+1  (2, 2)  (2)
+
+
+schubmult:  Expand a product of two Schubert polynomials in the basis
+---------   of Schubert polynomials.
+
+Example:
+
+% schubmult 1 3 2 - 1 3 2
+1  (1, 4, 2, 3)
+1  (2, 3, 1)
+
+
+MAPLE INTERFACE
+===============
+
+The file lrcalc.maple in the directory /usr/local/share/lrcalc
+provides an interface between the above C programs and Maple.  It
+allows you to combine the notational convenience of Maple with the
+speed of C programs.
+
+To use the interface, simply type 
+
+    read "/usr/local/share/lrcalc/lrcalc.maple";
+
+after starting Maple.
+
+You can copy the file lrcalc.maple to a more convenient directory to
+avoid typing the full path every time you wish to load it.
+
+The notation used by the Maple interface is the same as in John
+Stembridge's "SF" Maple package for computing with symmetric
+functions.  I hope this will make it easier to use SF with the Maple
+interface.
+
+The Maple interface defines three Maple functions:
+
+    tos, skew, lrcoef
+
+The following Maple session gives an example of how to use them:
+
+
+% maple
+    |\^/|     Maple V Release 4 (WMI Campus Wide License)
+._|\|   |/|_. Copyright (c) 1981-1996 by Waterloo Maple Inc. All rights
+ \  MAPLE  /  reserved. Maple and Maple V are registered trademarks of
+ <____ ____>  Waterloo Maple Inc.
+      |       Type ? for help.
+> read "/usr/local/share/lrcalc/lrcalc.maple";
+> lrcoef([3,2,1], [2,1], [2,1]);
+                                       2
+
+> skew(s[3,2,1], s[2,1]);
+                         s[3] + 2 s[2, 1] + s[1, 1, 1]
+
+> tos(s[2,1] * s[2,1]);
+s[3, 3] + s[4, 2] + s[2, 2, 1, 1] + s[2, 2, 2] + 2 s[3, 2, 1] + s[4, 1, 1]
+
+     + s[3, 1, 1, 1]
+
+> lrcoef( s[12,11,10,9,8,7,6,5,4,3,2,1],\
+>  s[8,7,6,5,4,3,2,1], s[8,7,6,6,5,4,3,2,1]);
+                                    7869992
+
+
+Enjoy!
+
+Anders S. Buch  (July 16, 2014)
+
