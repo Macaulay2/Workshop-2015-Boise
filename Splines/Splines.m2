@@ -45,8 +45,36 @@ export {
 -- Methods
 ------------------------------------------
 ------------------------------------------
+isHereditary= method()
+------------------------------------------
+------------------------------------------
+-- This method checks if the polyhedral
+-- complex with facets and edges (F,E)
+-- is hereditary.
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = ordered lists of facets
+--E = list of edges
+------------------------------------------
+isHereditary(List,List) := Boolean => (F,E) -> (
+    V := unique flatten join F;
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e===2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
+-----------------------------------------
+-----------------------------------------
 
 splineMatrix = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
+
 ------------------------------------------
 ------------------------------------------
 --Inputs: 
@@ -57,7 +85,13 @@ splineMatrix = method(Options => {symbol InputType => "ByFacets", symbol CheckHe
 --r = degree of desired continuity
 ------------------------------------------
 
-splineMatrix(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
+splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
+    if opts.InputType === "ByFacets" then (
+	splineMatrix(L_0,L_1,L_2,r)
+	)
+)
+
+splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,f,r) -> (
     if opts.InputType === "ByFacets" then (
 	if opts.CheckHereditary === true then (
 	    --put hereditary check here.
@@ -89,7 +123,10 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
 splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
-	print "Need list of vertices, facets and edges, along with continuity r."
+	--Function should compute E automatically, pretending it's simplicial or polytopal
+	--Write function to compute E (given S or P complexes) here.
+	--splineMatrix(B,L,E,r)
+	print "'ByFacets' option not implemented yet for inputs (V,F,r)."
 	);
     --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
