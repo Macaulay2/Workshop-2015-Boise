@@ -45,8 +45,36 @@ export {
 -- Methods
 ------------------------------------------
 ------------------------------------------
+isHereditary= method()
+------------------------------------------
+------------------------------------------
+-- This method checks if the polyhedral
+-- complex with facets and edges (F,E)
+-- is hereditary.
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = ordered lists of facets
+--E = list of edges
+------------------------------------------
+isHereditary(List,List) := Boolean => (F,E) -> (
+    V := unique flatten join F;
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e===2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
+-----------------------------------------
+-----------------------------------------
 
 splineMatrix = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
+
 ------------------------------------------
 ------------------------------------------
 --Inputs: 
