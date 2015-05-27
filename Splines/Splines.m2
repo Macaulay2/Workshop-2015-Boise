@@ -63,6 +63,9 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
 	    --put hereditary check here.
 	    )
 	--put remainder of code for ByFacets Here
+	);
+    if opts.InputType === "ByLinearForms" then (
+	 print "Wrong inputs, put in lists of adjacent facets and linear forms and continuity r."
 	)
     )
 
@@ -96,6 +99,11 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     A|D
     )
 )
+
+splineModule = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
+
+splineModule(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
+    )
 
 ------------------------------------------
 ------------------------------------------
