@@ -9,18 +9,10 @@ makeIdentifiabilitySystem (List) := (somemap) -> (
   -- IN: a list of polynomials that represent some map
   -- OUT: the map evaluated at random values for the parameters, and
   --      the random values generated for the parameters.
-  R := ring ideal somemap; 
-	VarList = R.gens;
-	ValueLists = new MutableList;
-	for i from 0 to length VarList - 1 do 
-		ValueLists#i = VarList#i => random(CC);
-	ValueLists = new List from ValueLists;
-	-- Substitute values and make list of equations for PHC
-	EquationList = new MutableList;
-	for i from 0 to length somemap - 1 do 
-		EquationList#i = somemap#i - sub(somemap#i, ValueLists);
-	EquationList = new List from EquationList;
-	return (EquationList, ValueList)
+  R := ring ideal somemap;
+  ValueList = for v in R.gens list (v => random(CC));
+  phi := map(CC, R, ValueList);
+  return (somemap/(f-> f - phi f), ValueList)
 )
 
 R = CC[a11,a12,a13,a21,a32];
