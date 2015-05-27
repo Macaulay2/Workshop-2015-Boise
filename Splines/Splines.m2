@@ -99,12 +99,8 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 	)
 )
 
-<<<<<<< HEAD
-splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,f,r) -> (
-    print "here"
-=======
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
->>>>>>> origin/master
+
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary === true then (
 	    --put hereditary check here.
