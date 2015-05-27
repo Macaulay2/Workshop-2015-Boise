@@ -18,7 +18,7 @@ newPackage select((
         Version => "0.1.0", 
         Date => "27. May 2015",
         Authors => {
-            {Name => "Mike DiPasquale", Email => "midipasq@gmail.com", HomePage => "http://illinois.edu/~dipasqu1"},
+            {Name => "Mike DiPasquale", Email => "midipasq@gmail.com"},
             {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://www.hood.edu/Academics/Departments/Mathematics/Faculty/Gwyneth-Whieldon.html"}
         },
         Headline => "Package for computing topological boundary maps and piecewise continuous splines on polyhedral complexes.",
