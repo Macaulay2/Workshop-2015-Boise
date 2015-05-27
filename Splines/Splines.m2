@@ -92,8 +92,9 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 )
 
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,f,r) -> (
+    print "here"
     if opts.InputType === "ByFacets" then (
-	if opts.CheckHereditary === true then (
+		if opts.CheckHereditary === true then (
 	    --put hereditary check here.
 	    )
 	--put remainder of code for ByFacets Here
@@ -123,12 +124,20 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,f,r) -> (
 splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
+	if INTisSimplicial(B,L) then(
+	  E=INTgetCodim1Intersections(List);
+	  splineMatrix(B,L,E,r,InputType=>"ByFacets")  
+	    )
+	else(
+	    print "Polyhedral complex is not simplicial."
+	    )
+	
 	--Function should compute E automatically, pretending it's simplicial or polytopal
 	
 	--Write function to compute E (given S or P complexes) here.
 	--splineMatrix(B,L,E,r)
 	print "'ByFacets' option not implemented yet for inputs (V,F,r)."
-	);
+	)
     --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
     m := max flatten B;
