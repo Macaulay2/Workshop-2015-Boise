@@ -68,6 +68,12 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
 
 ------------------------------------------
 ------------------------------------------
+-- splineMatrix "ByLinearForms"
+------------------------------------------
+-- This method (essentially) inputs your
+-- simplicial complex by the dual graph
+-- (with edges labeled by linear forms
+-- separating regions.)
 --Inputs: 
 ------------------------------------------
 --B = list of regions that are adjacent
@@ -78,9 +84,11 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
 
 
 splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
+    --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
 	print "Need list of vertices, facets and edges, along with continuity r."
 	);
+    --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
     m := max flatten B;
     A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
@@ -88,6 +96,59 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     A|D
     )
 )
+
+------------------------------------------
+------------------------------------------
+-- Documentation
+------------------------------------------
+------------------------------------------
+
+beginDocumentation()
+
+-- Front Page
+doc ///
+    Key
+        Splines
+    Headline
+        a package for building splines and computing bases
+    Description
+        Text
+            This package computing topological boundary maps and piecewise 
+	    continuous splines on polyhedral complexes.
+        Text
+            @SUBSECTION "Other acknowledgements"@
+            --
+            Methods in this package are put together from code written by Hal Schenck
+	    and Mike DiPasquale.
+///
+
+------------------------------------------
+-- Data type & constructor
+------------------------------------------
+
+-- Spline Matrix Constructor
+doc ///
+    Key
+        splineMatrix
+	InputType
+	ByFacets
+	ByLinearForms
+	CheckHereditary
+    Headline
+        compute matrix giving adjacent regions and continuity level
+    Description
+        Text
+            This creates the basic spline matrix that has splines as
+	    its kernel.
+        Example
+            vert = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
+            facetlist = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
+            edgelist = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
+    	    splineMatrix(vert,facetlist,edgelist,1)
+    SeeAlso
+        --splineModule
+///
+
 
 end
 
