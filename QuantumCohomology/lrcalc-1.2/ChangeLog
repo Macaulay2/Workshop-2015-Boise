@@ -1,0 +1,93 @@
+Littlewood-Richardson Calculator
+Copyright (C) 1999- Anders S. Buch (asbuch at math rutgers edu)
+
+
+CHANGE LOG
+
+
+1.2:    Replaced the programs mult, skew, etc. with the single program
+	lrcalc.  This will put less files in /usr/local/bin.
+	Also changed directory structure of source code.
+
+
+1.1.8:  Linking problems on OS X reported by Volker Braun and fixed by
+	François Bissey.
+
+
+1.1.7:  Added the command line program "lrcalc" that does the same as
+	mult, skew, coprod, lrcoef, and lrskew.  The Fedora distribution
+	should just include this program in an appropriate binary
+	directory.
+
+	Got rid of exit() call in alloc.c.  In stead longjmp() is called
+	if an "out of memory" event occurs.  Any program using the
+	internal lrcalc functions is responsible for first calling
+	setjmp(lrcalc_panic_frame).
+
+	Wrote salloc.c which can replace alloc.c and cleans up all memory
+	if an "out of memory" event occurs.  This may be desirable for
+	SAGE.
+
+	NOTE: The Makefiles should use -DSAGE if salloc.c is used.
+
+
+1.1.6:  Let lrcalc build a shared library on Cygwin
+
+
+1.1.6 beta1:  Fixed segmentation fault on Open Solaris (name conflict
+	with hash_insert)
+
+        Added quantum and fusion calculations in the README and
+	testsuite
+
+
+1.1.6 beta:  Merged in the schubert code from schmult-1.1.5.tar.gz
+        Standard automake/autoconf build system (autoconfiscation)
+
+	Thanks to Nicolas M. Thiéry and Jean-Pierre Flori for their help
+	with this release.
+
+
+1.1.5:  Updated the C code so it compiles (mostly) without warnings
+        on 64 bit computers.
+
+
+1.1.4:  Updated the c code so it compiles with newer versions of gcc.
+        Also added a "-f rows,cols" option to mult which is similar to
+        the -q option, bus uses fusion product notation (large
+        partitions in place of the deformation parameter "q" to obtain
+        a Z-basis for the quantum ring of Gr(d,n), see section 8 of my
+        paper "Quantum cohomology of Grassmannians" for details.)
+        A corresponding command "fusion(rows,cols)" was added to the
+        maple interface.
+
+
+1.1.3:  Changed the quantum(rows,cols) function so it works with Maple 7.
+
+
+1.1.2:  Changed the return type of the internal function lrcoef() to
+        long long to make it possible to compute LR coefficients
+        greater than 2^32.  (Thanks to Anatol Kirillov for the bug
+        report.)
+
+
+1.1.1:  Fixed a bug in the communication between the maple interface
+	and mult.c.
+
+
+1.1:    Added a "-q rows,cols" option to mult which makes it possible
+	to do computations in the quantum cohomology ring of Gr(d,n)
+	where d=rows and n=rows+cols.
+	The maple interface has new function "quantum(rows,cols)" which
+	causes tos to calculate in this ring as well.
+
+
+1.0.1:	Fixed error which made the program lrcoef produce false results
+        in certain cases.  (Thanks to Alexander Yong for the bug
+        report.)
+
+
+1.0:    First version released.
+
+------------------------------------------------------------------------
+

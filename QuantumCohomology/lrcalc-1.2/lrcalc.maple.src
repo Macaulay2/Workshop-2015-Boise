@@ -1,0 +1,298 @@
+#  Littlewood-Richardson Calculator
+#  Copyright (C) 1999- Anders S. Buch (asbuch at math rutgers edu)
+#  See the file LICENSE for license information.
+
+tos := proc(expr)
+  local i, res, term, base, expo;
+
+  if _iss(expr) then
+    i := _partlen(expr);
+    if i = 0 then
+      RETURN(1);
+    else
+      RETURN(s[op(1..i, expr)]);
+    fi;
+
+  elif type(expr, `+`) then
+    res := 0;
+    for term in expr do
+      res := res + tos(term);
+    od;
+    RETURN(res);
+
+  elif type(expr, `*`) then
+    res := tos(op(1, expr));
+
+    for i from 2 to nops(expr) do
+      res := _mults2(res * tos(op(i, expr)));
+    od;
+    RETURN(res);
+
+  elif type(expr, `^`) then
+    base := tos(op(1, expr));
+    expo := expand(op(2, expr));
+
+    if type(expo, integer) then
+      if expo > 1 then
+        while expo mod 2 = 0 do
+          base := _mults2(base^2);
+          expo := expo / 2;
+        od;
+
+	res := base;
+        expo := expo - 1;
+
+        # return  res * base ^ expo
+        while expo > 0 do
+          base := _mults2(base^2);
+          expo := expo / 2;
+          if expo mod 2 = 1 then
+            res := _mults2(res * base);
+            expo := expo - 1;
+          fi;
+        od;
+
+        RETURN(res);
+      fi;
+    fi;
+    RETURN(base^expo);
+
+  elif type(expr, list) then
+    RETURN([seq(tos(expr[i]), i=1..nops(expr))]);
+
+  elif type(expr, set) then
+    RETURN({seq(tos(expr[i]), i=1..nops(expr))});
+
+  else
+    RETURN(expr);
+  fi;
+
+  0$0;
+end:
+
+
+skew := proc(expr, shape)
+  local ee, sh, res, term, tt, s_part, c_part, fac;
+
+  if not (type(shape, list) or _iss(shape)) then
+    ERROR(`second argument must be a partition`, shape);
+  fi;
+  ee := tos(expr);
+  
+  sh := _partlen(shape);
+  if sh = 0 then
+    RETURN(ee);
+  fi;
+  sh := s[op(1..sh, shape)];
+
+  if not type(ee, `+`) then
+    ee := [ee];
+  fi;
+
+  res := 0;
+  for term in ee do
+    if type(term, `*`) then
+      tt := term;
+    else
+      tt := [term];
+    fi;
+
+    s_part := 1;
+    c_part := 1;
+    for fac in tt do
+      if _iss(fac) then
+        s_part := s_part * fac;
+      else
+        c_part := c_part * fac;
+      fi;
+    od;
+
+    if _iss(s_part) then
+      if sh = s_part then
+        res := res + c_part;
+      elif _subpart(sh, s_part) then
+        res := res + expand(c_part * _call_lrskew(s_part, sh));
+      fi;
+    fi;
+  od;
+
+  RETURN(res);
+end:
+
+
+lrcoef := proc(outer, inner1, inner2)
+  local cmd, fd, res, i;
+
+  cmd := cat(LRCALC_BIN_PATH, ` coef `,
+             seq(cat(` `, op(i,outer)), i=1..nops(outer)), ` -`,
+             seq(cat(` `, op(i,inner1)), i=1..nops(inner1)), ` -`,
+             seq(cat(` `, op(i,inner2)), i=1..nops(inner2)));
+
+  fd := process[popen](cmd, READ);
+  res := readline(fd);
+  process[pclose](fd);
+
+  RETURN(parse(res));
+end:
+
+
+_iss := proc(expr)
+  if not type(expr, indexed) then
+    RETURN(false);
+  fi;
+  RETURN(evalb(op(0, expr) = `s`));
+end:
+
+
+_mults2 := proc(expr)
+  local ee, res, term, tt, s_part, c_part, fac, base, expo;
+
+  ee := expand(expr);
+  if not type(ee, `+`) then
+    ee := [ee];
+  fi;
+
+  res := 0;
+  for term in ee do
+    if type(term, `*`) then
+      tt := term;
+    else
+      tt := [term];
+    fi;
+
+    s_part := 1;
+    c_part := 1;
+    for fac in tt do
+      if _iss(fac) then
+        if type(s_part, integer) then
+          s_part := fac;
+        elif _cmppart(s_part, fac) <= 0 then
+          s_part := _call_lrmult(s_part, fac);
+        else
+          s_part := _call_lrmult(fac, s_part);
+        fi;
+
+      elif type(fac, `^`) then
+        base := op(1, fac);
+        expo := op(2, fac);
+        if _iss(base) and expo = 2 then
+          s_part := s_part * _call_lrmult(base, base);
+        else
+          c_part := c_part * fac;
+        fi;
+
+      else
+        c_part := c_part * fac;
+      fi;
+    od;
+
+    res := res + expand(c_part * s_part);
+  od;
+
+  RETURN(res);
+end:
+
+
+# quantum(rows, cols) and QUANTUM_OPTS are for doing calculations in 
+# the quantum cohomology ring of Gr(d,n) where d=rows and n=rows+cols, 
+# rather than the ring of symmetric functions.
+
+quantum := proc(rows, cols)
+  global QUANTUM_OPTS;
+  if rows <= 0 or cols <= 0 then
+    QUANTUM_OPTS := ``;
+  else
+    QUANTUM_OPTS := cat(` -q`, rows, `,`, cols);
+  fi;
+  readlib(forget);
+  forget(_call_lrmult);
+  0$0;
+end:
+
+fusion := proc(rows, cols)
+  global QUANTUM_OPTS;
+  if rows <= 0 or cols <= 0 then
+    QUANTUM_OPTS := ``;
+  else
+    QUANTUM_OPTS := cat(` -f`, rows, `,`, cols);
+  fi;
+  readlib(forget);
+  forget(_call_lrmult);
+  0$0;
+end:
+
+QUANTUM_OPTS := ``:
+
+_call_lrmult := proc(fac1, fac2)
+  option remember;
+  local cmd, fd, res, i;
+  global QUANTUM_OPTS;
+
+  cmd := cat(LRCALC_BIN_PATH, ` mult -m`, QUANTUM_OPTS,
+             seq(cat(` `, op(i,fac1)), i=1..nops(fac1)), ` -`, 
+             seq(cat(` `, op(i,fac2)), i=1..nops(fac2)));
+
+  fd := process[popen](cmd, READ);
+  res := readline(fd);
+  process[pclose](fd);
+
+  RETURN(parse(res));
+end:
+
+
+_call_lrskew := proc(outer, inner)
+  option remember;
+  local cmd, fd, res, i;
+
+  cmd := cat(LRCALC_BIN_PATH, ` skew -m`,
+             seq(cat(` `, op(i,outer)), i=1..nops(outer)), ` /`,
+             seq(cat(` `, op(i,inner)), i=1..nops(inner)));
+
+  fd := process[popen](cmd, READ);
+  res := readline(fd);
+  process[pclose](fd);
+
+  RETURN(parse(res));
+end:
+
+
+_partlen := proc(lambda)
+  local n;
+  n := nops(lambda);
+  while n > 0 and op(n,lambda) = 0 do n := n - 1; od;
+  RETURN(n);
+end:
+
+
+_cmppart := proc(p1, p2)
+  local n;
+  n := nops(p1);
+  if n <> nops(p2) then
+    RETURN(n - nops(p2));
+  fi;
+  while n > 0 do
+    if op(n, p1) <> op(n, p2) then
+      RETURN(op(n, p1) - op(n, p2));
+    fi;
+    n := n - 1;
+  od;
+  RETURN(0);
+end:
+
+
+_subpart := proc(p1, p2)
+  local n;
+  n := _partlen(p1);
+  if n > nops(p2) then
+    RETURN(false);
+  fi;
+  while n > 0 do
+    if op(n, p1) > op(n, p2) then
+      RETURN(false);
+    fi;
+    n := n - 1;
+  od;
+  RETURN(true);
+end:
+
+
