@@ -1,0 +1,32 @@
+
+R = CC[a11,a12,a13,a21,a22,a23,a31,a32,a33][x]--define the ring
+
+getSimpleCoefficients=(M) ->(
+   n=numgens source M;   II=mutableIdentity(R,n);   I1=matrix(II);   II=mutableIdentity(R,n-1);   I2=matrix(II);
+   B=submatrix'(M,{0},{0});
+   D1=det(M-x*I1);--Gets characteristic polynomials
+   D2=det(B-x*I2);
+   print(D1,D2);
+   Equations1:=new MutableList  from {};--pulls coefficients from D1 and stores them in a list
+   k:=0;
+   while k<degree(x,D1) do
+       (
+	   Equations1#k=coefficient(x^k,D1);
+	   k=k+1;
+       );
+   k:=0;
+   Equations2:=new MutableList  from {};--Does the same thing for D2
+   while k<degree(x,D2) do
+       (
+	   Equations2#k=coefficient(x^k,D2);
+	   k=k+1;
+       );
+   Equations=join(Equations1,Equations2);--joins them and spitsthem out
+   return(Equations);
+  )
+
+-----------Example-----------
+G=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}}
+peek getPoly(G)
+
+----------------------------
