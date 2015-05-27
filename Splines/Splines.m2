@@ -75,17 +75,14 @@ isHereditary(List,List) := Boolean => (F,E) -> (
 -----------------------------------------
 -----------------------------------------
 
-<<<<<<< Updated upstream
-splineMatrix = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 
-=======
 splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ})
->>>>>>> Stashed changes
+
 ------------------------------------------
 ------------------------------------------
 --Inputs: 
