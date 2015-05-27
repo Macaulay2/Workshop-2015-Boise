@@ -159,9 +159,19 @@ doc ///
 	  resulting spline module
     Description
         Text
-            This creates the basic spline matrix that has splines as
+	    This creates the basic spline matrix that has splines as
 	    its kernel. Note that the ambient ring of the appropriate
 	    dimension needs to be defined.
+
+///
+
+
+end
+
+    K := ker AD;
+    b := max flatten B;
+    submatrix(gens K, toList(0..b),)
+
 	Example
             R = QQ[x,y,z]
 	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
@@ -176,11 +186,3 @@ doc ///
 	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}
 	    L = {x-y,y,x,y-2*x,x+y}
 	    splineMatrix(B,L,1,InputType=>"ByLinearForms")
-///
-
-
-end
-
-    K := ker AD;
-    b := max flatten B;
-    submatrix(gens K, toList(0..b),)
