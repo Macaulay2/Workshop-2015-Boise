@@ -1,0 +1,59 @@
+#!/bin/sh
+
+failed=0
+check () {
+    command="$1"
+    expected="$2"
+    result=`$command`
+    echo -n "testing $command ... "
+    if [ "$result" != "$expected" ]; then
+        echo "failed:"
+        echo "  Expected: $expected"
+        echo "  Got: $result"
+	failed=1
+    else
+	echo "ok"
+    fi
+}
+
+check "src/lrcalc lrcoef 3 2 1 - 2 1 - 2 1 " "2"
+
+check "src/lrcalc skew 3 2 1 - 2 1         " "1  (3)
+2  (2, 1)
+1  (1, 1, 1)"
+
+check "src/lrcalc skew -r 2 3 2 1 / 2 1    " "1  (3)
+2  (2, 1)"
+
+check "src/lrcalc mult 2 1 - 2 1           " "1  (3, 3)
+1  (4, 2)
+1  (2, 2, 1, 1)
+1  (2, 2, 2)
+2  (3, 2, 1)
+1  (4, 1, 1)
+1  (3, 1, 1, 1)"
+
+check "src/lrcalc mult -f 3,2 3 2 1 - 3 2 1       " "1  (4, 4, 4)
+1  (5, 4, 3)"
+
+check "src/lrcalc mult -q 3,2 3 2 1 - 3 2 1       " "1  (2)
+1  (1, 1)"
+
+check "src/lrcalc coprod 3 2 1             " "1  (3, 1)  (2)
+1  (2, 2)  (1, 1)
+1  (3, 1)  (1, 1)
+1  (2, 1)  (3)
+2  (2, 1)  (2, 1)
+1  (2, 2, 1)  (1)
+1  (3, 2, 1)  ()
+1  (3, 2)  (1)
+1  (2, 1, 1)  (2)
+1  (3, 1, 1)  (1)
+1  (1, 1, 1)  (2, 1)
+1  (2, 1, 1)  (1, 1)
+1  (2, 2)  (2)"
+
+check "src/schubmult 1 3 2 - 1 3 2" "1  (1, 4, 2, 3)
+1  (2, 3, 1)"
+
+exit $failed
