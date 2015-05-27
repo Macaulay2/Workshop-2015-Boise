@@ -76,7 +76,7 @@ splineMatrix(List,List,List,ZZ) := (verts,facets,edges,r) -> (
 splineMatrix(List,List,ZZ) := (B,L,r) ->(
     if opts.InputType === "ByFacets" then (
 	"Need list of vertices, facets and edges, along with continuity r."
-	)
+	);
     if opts.InputType === "ByLinearForms" then (
     m := max flatten B;
     A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
