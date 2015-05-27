@@ -37,7 +37,9 @@ export {
    "InputType",
    "ByFacets",
    "ByLinearForms",
-   "CheckHereditary"
+   "CheckHereditary",
+   "Homogenize",
+   "VariableName"
     }
 
 ------------------------------------------
@@ -73,8 +75,17 @@ isHereditary(List,List) := Boolean => (F,E) -> (
 -----------------------------------------
 -----------------------------------------
 
+<<<<<<< Updated upstream
 splineMatrix = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 
+=======
+splineMatrix = method(Options => {
+	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ})
+>>>>>>> Stashed changes
 ------------------------------------------
 ------------------------------------------
 --Inputs: 
@@ -91,18 +102,51 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 	)
 )
 
+<<<<<<< HEAD
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,f,r) -> (
     print "here"
+=======
+splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+>>>>>>> origin/master
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary === true then (
 	    --put hereditary check here.
-	    )
-	--put remainder of code for ByFacets Here
-	);
-    if opts.InputType === "ByLinearForms" then (
+	    );
+	d := # (first V);
+	--Compute which facets are adjacent to each edge:
+	facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+	--Compute indices of interior edges, and replace edge list and 
+	--facet adjacencies to only include these interior edges:
+	indx := positions(facetEdgeH, i-> #i === 2);
+	E = E_indx;
+	facetEdgeH = facetEdgeH_indx;
+	--Compute top boundary map for complex:
+	BM := matrix apply(facetEdgeH, i-> apply(#F, j-> if (j === first i) then 1 else if (j===last i) then -1 else 0));
+	--To homogenize, we append a 1 as the final coordinate of each vertex coord in list V.
+	--If not homogenizing, leave vertex coordinates V as is.
+	t := opts.VariableName;
+	V = apply(V, v-> append(v,1));
+	if opts.Homogenize === true then (
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    varlist := (vars S)_(append(toList(1..d),0));
+	    ) else (
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    varlist = (vars S)|(matrix {{sub(1,S)}});
+	    );
+	varCol := transpose varlist;
+	M := (transpose(matrix(S,V)));
+	mM := numrows M;
+	minorList := apply(E, e-> gens gb minors(mM,M_e|varCol));
+	if any(minorList, I-> ideal I === ideal 1) then (
+	    error return "Some vertices on entered face are not in codimension 1 face."
+	    );
+	T := diagonalMatrix(flatten apply(minorList, m -> (m_(0,0))^(r+1)));
+	splineM := BM|T;
+	) else if opts.InputType === "ByLinearForms" then (
 	 print "Wrong inputs, put in lists of adjacent facets and linear forms and continuity r."
-	)
-    )
+    	 );
+    splineM
+)
 
 ------------------------------------------
 ------------------------------------------

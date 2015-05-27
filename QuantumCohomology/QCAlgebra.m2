@@ -21,15 +21,16 @@ newPackage("QCAlgebra",
      )
 
 
-export { NCRing, NCQuotientRing, NCPolynomialRing,
-         NCRingMap, NCRingElement,
-         NCGroebnerBasis, ncGroebnerBasis
+export { QCRing, QCQuotientRing, QCPolynomialRing,
+         QCRingMap, QCRingElement,
+         QCGroebnerBasis, ncGroebnerBasis
 }
 
 MAXDEG = 40
 MAXSIZE = 1000
 
 QCRing = new Type of Ring
+QCPolynomialRing = new Type of QCRing
 QCRingElement = new Type of HashTable
 QCMonomial = new Type of HashTable
 QCRingMap = new Type of HashTable
@@ -112,7 +113,7 @@ setWeights (QCRing,List) := (A,weightList) -> (
 )
 
 promoteHash = (termHash,A) -> (
-   hashTable apply(pairs termHash, p -> (ncMonomial(p#0#monList,A),p#1))
+   hashTable apply(pairs termHash, p -> (qcMonomial(p#0#monList,A),p#1))
 )
 
 -------------------------------------------
@@ -131,11 +132,9 @@ Ring List := (R, varList) -> (
                                    (symbol degreesRing) => degreesRing 1,
 				   (symbol CoefficientRing) => R,
                                    (symbol cache) => new CacheTable from {},
-				   (symbol baseRings) => {ZZ},
-                                   BergmanRing => false};
+				   (symbol baseRings) => {ZZ}
+                                   };
    newGens := apply(varList, v -> v <- putInRing({v},A,1));
-
-   if R === QQ or R === ZZ/(char R) then A#BergmanRing = true;
 
    A#(symbol generators) = newGens;
    
@@ -149,17 +148,6 @@ Ring List := (R, varList) -> (
         
    promote (R,A) := (n,A) -> putInRing({},A,n);
       
-   promote (QCMatrix,A) := (M,A) -> (
-       if M.source == {} or M.target == {} then
-          ncMatrix(A,M.target,M.source)
-       else (
-          prom := ncMatrix apply(M.matrix, row -> apply(row, entry -> promote(entry,A)));
-          if isHomogeneous M then
-             assignDegrees(prom,M.target,M.source);
-          prom
-       )
-   );
-
    promote (A,A) := (f,A) -> f;
    
    addVals := (c,d) -> (
@@ -172,15 +160,7 @@ Ring List := (R, varList) -> (
    multKeys := (m,n) -> m | n;
 
    A + A := (f,g) -> (
-      -- new way
       newHash := removeZeroes merge(f.terms,g.terms,addVals);
-      -- old way
-      --newHash := new MutableHashTable from pairs f.terms;
-      --for s in pairs g.terms do (
-      --   newMon := s#0;
-      --   if newHash#?newMon then newHash#newMon = newHash#newMon + s#1 else newHash#newMon = s#1;
-      --);
-      --newHash = removeZeroes hashTable pairs newHash;
       if newHash === hashTable {} then newHash = (promote(0,f.ring)).terms;
       new A from hashTable {(symbol ring, f.ring),
                             (symbol cache, new CacheTable from {("isReduced",false)}),
@@ -251,13 +231,6 @@ net QCRing := A -> (
     if hasAttribute(A,ReverseDictionary) then toString getAttribute(A,ReverseDictionary)
     else net A.CoefficientRing | net A.generators
 )
-
-ideal QCPolynomialRing := QCIdeal => A ->
-   new QCIdeal from new HashTable from {(symbol ring) => A,
-                                        (symbol generators) => {promote(0,A)},
-                                        (symbol cache) => new CacheTable from {}}
-
-
 
 -------------------------------------------
 --- QCMonomial functions ------------------
