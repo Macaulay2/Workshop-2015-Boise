@@ -23,7 +23,8 @@ newPackage("QCAlgebra",
 
 export { QCRing, QCQuotientRing, QCPolynomialRing,
          QCRingMap, QCRingElement,
-         QCGroebnerBasis, ncGroebnerBasis
+         QCGroebnerBasis, ncGroebnerBasis,
+	 Basis, qcMap, qcIdeal, qcGroebnerBasis, CheckPrefixOnly, weights, monList, qcMatrix, generatorSymbols
 }
 
 MAXDEG = 40
@@ -236,17 +237,17 @@ net QCRing := A -> (
 --- QCMonomial functions ------------------
 -------------------------------------------
 
-ncMonomial = method()
-ncMonomial (List,QCRing) := (monL,B) -> (
+qcMonomial = method()
+qcMonomial (List,QCRing) := (monL,B) -> (
    newMon := new QCMonomial from {(symbol monList) => monL,
                                   (symbol ring) => B};
    newMon
 )
 
-QCMonomial | List := (mon,symList) -> ncMonomial(mon#monList | symList, mon.ring)
-List | QCMonomial := (symList,mon) -> ncMonomial(symList | mon#monList, mon.ring)
+QCMonomial | List := (mon,symList) -> qcMonomial(mon#monList | symList, mon.ring)
+List | QCMonomial := (symList,mon) -> qcMonomial(symList | mon#monList, mon.ring)
 
-QCMonomial | QCMonomial := (mon1,mon2) -> ncMonomial(mon1#monList | mon2#monList, mon1.ring)
+QCMonomial | QCMonomial := (mon1,mon2) -> qcMonomial(mon1#monList | mon2#monList, mon1.ring)
 
 net QCMonomial := mon -> (
    mon = mon#monList;
@@ -297,13 +298,13 @@ putInRing (QCMonomial, RingElement) := (mon,coeff) ->
 putInRing (List, QCRing, ZZ) := 
 putInRing (List, QCRing, QQ) :=
 putInRing (List, QCRing, RingElement) := (monList,A,coeff) -> (
-    mon := ncMonomial(monList,A);
+    mon := qcMonomial(monList,A);
     new A from {(symbol ring) => A,
                 (symbol cache) => new CacheTable from {("isReduced",false)},
                 (symbol terms) => new HashTable from {(mon,promote(coeff,coefficientRing A))}}
 )
 
-QCMonomial _ List := (mon,substr) -> ncMonomial((mon#monList)_substr,mon.ring)
+QCMonomial _ List := (mon,substr) -> qcMonomial((mon#monList)_substr,mon.ring)
 
 findSubstring = method(Options => {CheckPrefixOnly => false})
 findSubstring (QCMonomial,QCMonomial) := opts -> (lt, mon) -> (
@@ -493,7 +494,7 @@ sparseCoeffs List := opts -> L -> (
 )
 
 monomials QCRingElement := opts -> f -> (
-    ncMatrix {apply(sort keys f.terms, mon -> putInRing(mon,1))}
+    qcMatrix {apply(sort keys f.terms, mon -> putInRing(mon,1))}
 )
 toString QCRingElement := f -> toStringMaybeSort(f,Sort=>true)
 degree QCRingElement := f -> (
@@ -524,7 +525,7 @@ leadMonomialForGB = f -> (
       (leadQCMonomial f, leadMonomial leadCoefficient f)
 )
 leadCoefficient QCRingElement := f -> if size f == 0 then 0 else (pairs (leadTerm f).terms)#0#1;
-isConstant QCRingElement := f -> f.terms === hashTable {} or (#(f.terms) == 1 and f.terms#?(ncMonomial({},ring f)))
+isConstant QCRingElement := f -> f.terms === hashTable {} or (#(f.terms) == 1 and f.terms#?(qcMonomial({},ring f)))
 isHomogeneous QCRingElement := f -> (
     B := ring f;
     if f == promote(0,B) then true
@@ -546,27 +547,6 @@ support QCRingElement := f -> (
 QCRingElement * List := List => (f,xs) -> apply(xs, x -> f*x);
 List * QCRingElement := List => (xs,f) -> apply(xs, x -> x*f);
 
-isCentral = method()
-isCentral (QCRingElement, QCGroebnerBasis) := (f,ncgb) -> (
-   varsList := gens f.ring;
-   all(varsList, x -> (f*x - x*f) % ncgb == 0)
-)
-
-isCentral QCRingElement := f -> (
-   varsList := gens f.ring;
-   all(varsList, x -> (f*x - x*f) == 0)   
-)
-
-isCommutative QCRing := A -> all(gens A, x -> isCentral x)
-
-isExterior = method()
-isExterior QCRing := 
-isExterior Ring := A -> (
-   sc := apply(subsets(gens A,2), s-> s_0*s_1+s_1*s_0);
-   sq := apply(gens A, g->g^2);
-   all(sc|sq, x-> x==0)
-)
-
 toM2Ring = method(Options => {SkewCommutative => false})
 toM2Ring QCRing := opts -> B -> (
    gensB := gens B;
@@ -576,7 +556,7 @@ toM2Ring QCRing := opts -> B -> (
    if gensI == {} then
       abB
    else (
-      phi := ambient ncMap(abB,B,gens abB);
+      phi := ambient qcMap(abB,B,gens abB);
       abI := ideal flatten entries mingens ideal ((gensI) / phi);
       if abI == 0 then
          abB
@@ -585,24 +565,26 @@ toM2Ring QCRing := opts -> B -> (
    )
 )
 
+{*
 toQCRing = method()
 toQCRing Ring := R -> (
-   isComm := isCommutative R;
-   isExter := isExterior R;
-   if not isComm and not isExter then error "Input ring must be either strictly (-1)-skew commutative or commutative.";
+   --isComm := isCommutative R;
+   --isExter := isExterior R;
+   --if not isComm and not isExter then error "Input ring must be either strictly (-1)-skew commutative or commutative.";
    --- generate the (skew)commutivity relations
    Q := coefficientRing R;
    A := Q (gens R);
-   phi := ncMap(A,ambient R,gens A);
-   commRelations := apply(subsets(gens A,2), s-> s_0*s_1+(-1)^(if isComm then -1 else 0)*s_1*s_0);
+   phi := qcMap(A,ambient R,gens A);
+   --commRelations := apply(subsets(gens A,2), s-> s_0*s_1+(-1)^(if isComm then -1 else 0)*s_1*s_0);
    extRelations := if isExter then apply(gens A, s -> s^2) else {};
    --- here is the defining ideal of the commutative algebra, inside the tensor algebra
-   I := ncIdeal (commRelations | extRelations | ((flatten entries gens ideal R) / phi));
+   I := qcIdeal (commRelations | extRelations | ((flatten entries gens ideal R) / phi));
    commIgb := gb ideal R;
    maxDeg := (((flatten entries gens commIgb) / degree) | {{0}}) / sum // max;
-   Igb := ncGroebnerBasis(I, DegreeLimit => 2*maxDeg);
+   Igb := qcGroebnerBasis(I, DegreeLimit => 2*maxDeg);
    A/I
 )
+*}
 
 isNormal QCRingElement := f -> (
    if not isHomogeneous f then error "Expected a homogeneous element.";
@@ -614,7 +596,7 @@ normalAutomorphism QCRingElement := f -> (
    B := ring f;
    normalComplements := apply(gens B, x -> findNormalComplement(f,x));
    if any(normalComplements, f -> f === null) then error "Expected a normal element.";
-   ncMap(B, B, normalComplements)
+   qcMap(B, B, normalComplements)
 )
 
 findNormalComplement = method()
@@ -691,7 +673,7 @@ TEST ///
 restart
 needsPackage "QCAlgebra"
 A = QQ{a,b}
-I = ncIdeal {a*a*a,a*a*b,a*b*a,a*b*b,b*a*a,b*a*b,b*b*a,b*b*b}
+I = qcIdeal {a*a*a,a*a*b,a*b*a,a*b*b,b*a*a,b*a*b,b*b*a,b*b*b}
 B = A/I
 basis(0,B)
 basis(1,B)
@@ -748,15 +730,15 @@ rightMultiplicationMap(QCRingElement,List,List) := (f,fromBasis,toBasis) -> (
 ----QCRingMap Commands -----------------
 ---------------------------------------
 
-ncMap = method(Options => {Derivation=>false})
---- ncMap from Ring to QCRing not implemented.
-ncMap (Ring,QCRing,List) := 
-ncMap (QCRing,Ring,List) := 
-ncMap (QCRing,QCRing,List) := opts -> (B,C,imageList) -> (
+qcMap = method(Options => {Derivation=>false})
+--- qcMap from Ring to QCRing not implemented.
+qcMap (Ring,QCRing,List) := 
+qcMap (QCRing,Ring,List) := 
+qcMap (QCRing,QCRing,List) := opts -> (B,C,imageList) -> (
    genCSymbols := (gens C) / baseName;
    if opts#Derivation and B=!=C then error "Source and target of a derivation must be the same.";
    if not all(imageList / class, r -> r === B) then error "Expected a list of entries in the target ring.";
-   new QCRingMap from hashTable {(symbol functionHash) => hashTable apply(#genCSymbols, i -> (genCSymbols#i,imageList#i)),
+   new QCRingMap from hashTable {(symbol fuqctionHash) => hashTable apply(#genCSymbols, i -> (genCSymbols#i,imageList#i)),
                                  (symbol source) => C,
                                  (symbol target) => B,
 				 (symbol Derivation) => opts#Derivation,
@@ -766,12 +748,12 @@ ncMap (QCRing,QCRing,List) := opts -> (B,C,imageList) -> (
 source QCRingMap := f -> f.source
 target QCRingMap := f -> f.target
 matrix QCRingMap := opts -> f -> (
-     if member(QCRing, ancestors class f.target) then
-        ncMatrix {(gens source f) / f}
+     if member(QCRing, aqcestors class f.target) then
+        qcMatrix {(gens source f) / f}
      else
         matrix {(gens source f) / f}
 )
---id _ QCRing := B -> ncMap(B,B,gens B)
+--id _ QCRing := B -> qcMap(B,B,gens B)
 
 QCRingMap QCRingElement := (f,x) -> (
    if x == 0 then return promote(0, target f);
@@ -781,7 +763,7 @@ QCRingMap QCRingElement := (f,x) -> (
       sum for t in pairs x.terms list(   
          mon := t#0#monList;
          monImage := sum apply(# mon, j-> 
-	  product apply(replace(j,f.functionHash#(mon_j),mon), s-> 
+	  product apply(replace(j,f.fuqctionHash#(mon_j),mon), s-> 
 		 if class s===Symbol or class s===IndexedVariable then putInRing({s},C,1) else s
 		 )
 	    );
@@ -789,7 +771,7 @@ QCRingMap QCRingElement := (f,x) -> (
       )
    else
       sum for t in pairs x.terms list (
-         monImage := promote(product apply(t#0#monList, v -> f.functionHash#v),target f);
+         monImage := promote(product apply(t#0#monList, v -> f.fuqctionHash#v),target f);
          sub(t#1,coefficientRing target f)*monImage
       )
 )
@@ -810,7 +792,7 @@ QCRingMap RingElement := (f,x) -> (
 		    product apply(# supp, k-> 
 			 if k==j then  
 			 -- chain rule
-                            d*(f.functionHash#(baseName supp_k))^(d-1)
+                            d*(f.fuqctionHash#(baseName supp_k))^(d-1)
 		      	 else (supp_k)^(degree(supp_k,mon))))
 	            );
          promote(coeff*monImage,C) -- an empty sum is 0, which we need to promote
@@ -819,14 +801,14 @@ QCRingMap RingElement := (f,x) -> (
       sum for t in terms x list (
          coeff := leadCoefficient t;
          mon := leadMonomial t;
-         monImage := promote(product apply(support mon, y -> (f.functionHash#(baseName y))^(degree(y,mon))),target f);
+         monImage := promote(product apply(support mon, y -> (f.fuqctionHash#(baseName y))^(degree(y,mon))),target f);
          coeff*monImage
       )
 )
 
 QCRingMap QCMatrix := (f,M) -> (
    newMatr := applyTable(M.matrix, x -> f x);
-   newM := ncMatrix newMatr;
+   newM := qcMatrix newMatr;
    if isHomogeneous M and isHomogeneous f then
       assignDegrees(newM,M.target,M.source)
    else
@@ -845,7 +827,7 @@ ambient QCRingMap := f -> (
    C := source f;
    ambC := ambient C;
    genCSymbols := (gens C) / baseName;
-   ncMap(target f, ambC, apply(genCSymbols, c -> f.functionHash#c))
+   qcMap(target f, ambC, apply(genCSymbols, c -> f.fuqctionHash#c))
 )
 
 isWellDefined QCRingMap := f -> (
@@ -882,27 +864,27 @@ QCRingMap ? QCRingMap := (f,g) -> (matrix f) ? (matrix g)
 
 QCRingMap @@ QCRingMap := (f,g) -> (
    if target g =!= source f then error "Expected composable maps.";
-   ncMap(target f, source g, apply(gens source g, x -> f g x))
+   qcMap(target f, source g, apply(gens source g, x -> f g x))
 )
 
-QCRingMap QCIdeal := (phi, I) -> ncIdeal ((gens I) / phi)
+QCRingMap QCIdeal := (phi, I) -> qcIdeal ((gens I) / phi)
 
 QCRingMap QCGroebnerBasis := (phi,Igb) -> (
-   I := ncIdeal gens Igb;
+   I := qcIdeal gens Igb;
    Iphi := phi I;
-   ncGroebnerBasis(Iphi, InstallGB => true)
+   qcGroebnerBasis(Iphi, InstallGB => true)
 )
 
 QCRingMap + QCRingMap := (f,g) -> (
     if source f =!= source g and target f =!= target g then
        error "Expected maps between the same source and target.";
-    ncMap(target f, source f, apply(gens source f, x -> f x + g x))
+    qcMap(target f, source f, apply(gens source f, x -> f x + g x))
 )
 
 ZZ * QCRingMap := 
 QQ * QCRingMap := 
 RingElement * QCRingMap := (a,f) -> (
-    ncMap(target f, source f, apply(gens source f, x -> a*(f x)))
+    qcMap(target f, source f, apply(gens source f, x -> a*(f x)))
 )
 
 QCRingMap ^ ZZ := (f,n) -> (
@@ -913,11 +895,11 @@ QCRingMap ^ ZZ := (f,n) -> (
       M := f_1;
       if (rank M != numgens A) then 
          error "Expected an invertible ring map.";
-      gensA := ncMatrix {gens A};
-      g := ncMap(A, A, flatten entries (gensA*(M^(-1))));
+      gensA := qcMatrix {gens A};
+      g := qcMap(A, A, flatten entries (gensA*(M^(-1))));
       fold(abs(n):g, (a,b) -> a @@ b)
    )
-   else if n == 0 then ncMap(A, A, gens A)
+   else if n == 0 then qcMap(A, A, gens A)
    else fold(n:f, (a,b) -> a @@ b)
 )
 
@@ -928,7 +910,7 @@ kernelComponent (ZZ,QCRingMap) := (d,f) -> (
    R := source f;
    bas := basis(d,R);
    K := mingens ker f_d;
-   if K == 0 then return ncMatrix{{promote(0,R)}} else bas*K
+   if K == 0 then return qcMatrix{{promote(0,R)}} else bas*K
 )
 
 gddKernel = method()
