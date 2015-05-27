@@ -1,6 +1,6 @@
 --To open Macaulay2, go to a terminal in SageCloud and type M2
 --In the command line of M2, type load("splinetest.m2")
-R = QQ[x,y,z]
+R = QQ[x,y]
 
 ----------------------------------------
 -- Change the B and L for your examples.

@@ -32,7 +32,11 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-  
+   "splineMatrix",
+   "splineModule",
+   "InputType",
+   "ByFacets",
+   "ByLinearForms"
     }
 
 ------------------------------------------
@@ -40,3 +44,49 @@ export {
 -- Methods
 ------------------------------------------
 ------------------------------------------
+
+splineMatrix = method(Options => {symbol InputType => "ByFacets"})
+------------------------------------------
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--verts = list of coordinates of vertices
+--facets = ordered lists of facets
+--edges = list of edges
+--r = degree of desired continuity
+------------------------------------------
+
+splineMatrix(List,List,List,ZZ) := (verts,facets,edges,r) -> (
+    if opts.InputType === "ByFacets" then (
+	--put code here
+	)
+    )
+
+------------------------------------------
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--B = list of regions that are adjacent
+--L = list of ordered linear forms that separate
+--regions, given in order of input B
+--r = degree of desired continuity
+------------------------------------------
+
+
+splineMatrix(List,List,ZZ) := (B,L,r) ->(
+    if opts.InputType === "ByFacets" then (
+	"Need list of vertices, facets and edges, along with continuity r."
+	)
+    if opts.InputType === "ByLinearForms" then (
+    m := max flatten B;
+    A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
+    D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
+    A|D
+    )
+)
+
+end
+
+    K := ker AD;
+    b := max flatten B;
+    submatrix(gens K, toList(0..b),)
