@@ -10,8 +10,12 @@ makeIdentifiabilitySystem (List) := (somemap) -> (
   -- OUT: the map evaluated at random values for the parameters, and
   --      the random values generated for the parameters.
   R := ring ideal somemap;
+  -- Create an option list of random complex values
   ValueList = for v in R.gens list (v => random(CC));
+  -- Create a map from the ring to the complex numbers
+  -- with respect to our random complex values
   phi := map(CC, R, ValueList);
+  -- Apply the map to find values
   return (somemap/(f-> f - phi f), ValueList)
 )
 
