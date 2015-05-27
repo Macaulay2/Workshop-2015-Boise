@@ -1,4 +1,5 @@
 --Package for computing topological boundary maps and piecewise continuous splines on polyhedral complexes  --
+--Making a small change
 
 newPackage("Splines",DebuggingMode => true)
 
