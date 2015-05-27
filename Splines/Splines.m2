@@ -36,7 +36,8 @@ export {
    "splineModule",
    "InputType",
    "ByFacets",
-   "ByLinearForms"
+   "ByLinearForms",
+   "CheckHereditary"
     }
 
 ------------------------------------------
@@ -45,7 +46,7 @@ export {
 ------------------------------------------
 ------------------------------------------
 
-splineMatrix = method(Options => {symbol InputType => "ByFacets"})
+splineMatrix = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 ------------------------------------------
 ------------------------------------------
 --Inputs: 
@@ -56,9 +57,12 @@ splineMatrix = method(Options => {symbol InputType => "ByFacets"})
 --r = degree of desired continuity
 ------------------------------------------
 
-splineMatrix(List,List,List,ZZ) := (verts,facets,edges,r) -> (
+splineMatrix(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
     if opts.InputType === "ByFacets" then (
-	--put code here
+	if opts.CheckHereditary === true then (
+	    --put hereditary check here.
+	    )
+	--put remainder of code for ByFacets Here
 	)
     )
 
@@ -73,7 +77,7 @@ splineMatrix(List,List,List,ZZ) := (verts,facets,edges,r) -> (
 ------------------------------------------
 
 
-splineMatrix(List,List,ZZ) := (B,L,r) ->(
+splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     if opts.InputType === "ByFacets" then (
 	"Need list of vertices, facets and edges, along with continuity r."
 	);
