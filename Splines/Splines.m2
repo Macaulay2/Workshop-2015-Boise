@@ -130,23 +130,52 @@ doc ///
 doc ///
     Key
         splineMatrix
+	(splineMatrix,List,List,ZZ)
+	(splineMatrix,List,List,List,ZZ)
 	InputType
-	ByFacets
-	ByLinearForms
 	CheckHereditary
     Headline
         compute matrix giving adjacent regions and continuity level
+    Usage
+    	S = splineMatrix(V,F,E,r)
+	S = splineMatrix(B,L,r)
+    Inputs
+    	V:List
+	    list of coordinates of vertices of Delta
+	F:List
+	    list of oriented facets of Delta
+	E:List
+	    list of edges of Delta
+	r:ZZ
+	    degree of desired continuity
+	InputType=>String
+	    either "ByFacets", or "ByLinearForms"
+	CheckHereditary=>Boolean
+	    either "true" or "false", depending on if you want
+	    to check if Delta is hereditary before attempting 
+	    to compute splines.
+    Outputs
+    	S:Matrix
+	  resulting spline module
     Description
         Text
             This creates the basic spline matrix that has splines as
-	    its kernel.
-        Example
-            vert = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
-            facetlist = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
-            edgelist = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
-    	    splineMatrix(vert,facetlist,edgelist,1)
-    SeeAlso
-        --splineModule
+	    its kernel. Note that the ambient ring of the appropriate
+	    dimension needs to be defined.
+	Example
+            R = QQ[x,y,z]
+	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
+            F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
+            E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
+    	    splineMatrix(V,F,E,1)
+        Text
+            Alternately, spline matrices can be created directly from the
+	    dual graph (with edges labeled by linear forms).
+	Example
+	    R = QQ[x,y]
+	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}
+	    L = {x-y,y,x,y-2*x,x+y}
+	    splineMatrix(B,L,1,InputType=>"ByLinearForms")
 ///
 
 
