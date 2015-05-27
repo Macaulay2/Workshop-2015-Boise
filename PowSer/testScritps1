@@ -1,6 +1,6 @@
 
 
---  some code here is simpler versions of filtered complex code
+--  some code here is modified from filtered complex code
 
 
 
@@ -22,16 +22,38 @@ FilteredVectorSpace^ ZZ := Module => (V,j) -> (
    Max := max Keys;
    Min := min Keys;
    if j >= Min and j <= Max  then return V#j else (
-       if j < Min then (return V#Min) else( return 0)
+       if j < Min then (return V#Min) else( return image(0*id_(V#Min)))
        );
     )
 
+
+gr = method()
+gr(FilteredVectorSpace,ZZ) := (V,n) -> (
+    return V^n/V^(n+1)
+    )
+ 
+
+--AssociatedGradedObject = new Type of HashTable
+
+--associatedGradedObject = method()
+
+--associatedGradedObject(FilteredVectorSpace) := HashTable =>(V) -> (
+V--spots = keys V;
+--gr := new HashTable from apply(spots, i-> i=> V^(i)/V^(i+1));
+--return gr
+--    )
+
+
+--AssociatedGradedObject^ ZZ := Module =>(Gr, j) -> (
+--    spots = keys Gr;
+--    if spots#?j then return Gr#j else return $V
+--    )
 
 --
 --
 -- scratch test
 
-
+keys V
 
 k=QQ
 V=k^4
@@ -61,6 +83,14 @@ V^(-1)
 V^(-2)
 
 V^0
+
+gr = associatedGradedObject(V)
+
+prune gr#1
+
+prune gr#2
+
+prune gr#0
 
 
 keys V
