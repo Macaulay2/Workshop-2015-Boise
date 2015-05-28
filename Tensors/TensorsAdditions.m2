@@ -13,13 +13,15 @@ newPackage(
 	AuxiliaryFiles => true,
 	PackageExports => {
 	  "Tensors"
-	}
+	},
+        DebuggingMode => true 
 )
 
 export {
   symmetrize,
   tensorEigenvectors,
-  tensorToPolynomial
+  tensorToPolynomial,
+  multiplicationTensor
 }
 
 symmetrize = method()
@@ -75,5 +77,23 @@ tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     );
 
 tensorModule Tensor := T -> class T
+
+tensor Matrix := o -> M -> makeTensor entries M
+
+multiplicationTensor = method()
+multiplicationTensor Ring := R -> (
+    Bmatrix := basis R;
+    B := flatten entries Bmatrix;
+    K := coefficientRing R;
+    V := tensorModule(K, {#B});
+    L := for i from 0 to #B-1 list (
+	for j from 0 to #B-1 list (
+	    pVect := sub(last coefficients(B#i * B#j, Monomials=>Bmatrix), K);
+	    pTens := makeTensor flatten entries pVect;
+	    V_(1:i) ** V_(1:j) ** pTens
+	    )
+	);
+    sum flatten L
+    )
 
 end
