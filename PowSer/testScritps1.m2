@@ -41,7 +41,6 @@ hfgr(FilteredVectorSpace,ZZ,ZZ):= (V,i,j) -> (
 ---
 ---
 
-<<<<<<< HEAD
 -- given ideals I,J,K with IJ < K want to construct the bilinear map I x J --> K
 multiplyIdeals = method()
 
@@ -76,7 +75,17 @@ familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
 )
 
 
-familyOfIdeals(L)
+-- the following will extend the family of ideals by a suitable power
+-- of the last ideal of the list
+powerFamilyOfIdeals = method()
+
+powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,n) -> (
+
+    
+    )
+
+
+--familyOfIdeals(L)
 
 
 --
@@ -91,8 +100,6 @@ multiplyIdeals(I,I,I^2)
 
 ----
 
-=======
->>>>>>> dd08705d036aa06df811bbadf97e08df55daf7f8
 
 R=QQ[x,y,z]
 
