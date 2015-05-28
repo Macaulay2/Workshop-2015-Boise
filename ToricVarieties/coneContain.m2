@@ -49,12 +49,19 @@ smallestContainingCone = (F,inputCone) -> (
 
 
 
-{*
---input: M, a map of lattices; X and Y, source and target fans
---output: b, a boolean value, true iff M respects the fans
+--input: M, a matrix; X and Y, source and target normal toric varieties
+--output: b, a boolean value, true iff M respects the fans of X and Y
 isCompatible = (M,X,Y) -> (
-    for C in maxCones(X) do (
-        
+    for Cx in maxCones(fan(X)) do (
+        xConeContained = false;
+        for Cy in maxCones(fan(Y)) do (
+            imCx = cone(M*rays(Cx));
+            if contains(Cy,imCx) then (
+                xConeContained = true;
+                break;
+            );
+        );
+        if not xConeContained then return false;
     );
+    return true;
 );
-*}
