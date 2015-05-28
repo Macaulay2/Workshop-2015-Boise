@@ -106,7 +106,6 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 )
 
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
-    print "here";
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary then (
 	    	    if not isHereditary(F,E) then (
@@ -171,7 +170,7 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     if opts.InputType === "ByFacets" then (
 	if INTisSimplicial(V,F) then(
 	  E := INTgetCodim1Intersections(F);
-	  splineMatrix(V,F,E,r,InputType=>"ByFacets")  
+	  SM := splineMatrix(V,F,E,r,InputType=>"ByFacets")  
 	    )
 	else(
 	    print "Polyhedral complex is not simplicial."
@@ -184,13 +183,19 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     m := max flatten B;
     A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
     D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
-    A|D
+    SM := A|D;
     )
+    SM
 )
 
 splineModule = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 
-splineModule(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
+splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    if opts.
+    AD := splineMatrix(V
+    K := ker AD;
+    b := max flatten B;
+    submatrix(gens K, toList(0..b),)
     )
 
 
@@ -385,9 +390,6 @@ assert(isHereditary(F,E) === true)
 
 end
 
-    K := ker AD;
-    b := max flatten B;
-    submatrix(gens K, toList(0..b),)
 
 	Example
             R = QQ[x,y,z]
