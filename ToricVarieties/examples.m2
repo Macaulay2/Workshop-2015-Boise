@@ -1,7 +1,9 @@
 --input: Nothing
 --output: Created examples
 needsPackage("Polyhedra");
+needsPackage("NormalToricVarieties");
 
 P2 = projectiveSpace(2);
-X = normalToricVariety({{1, 0, 0},{0, 1, 0}, {-1, -1, 0}, {0, 0, 1}}, {{0,1,3},{0,2,3},{1,2,3}});
+A1 = affineSpace(1);
+X = P2**A1;
 N = matrix{{1,0},{0,1},{0,0}};
