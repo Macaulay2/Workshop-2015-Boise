@@ -1118,7 +1118,7 @@ topWitnessSet (List,ZZ) := o->(system,dimension) -> (
 --------  TRACK PATHS  -----------
 ----------------------------------
 
-trackPaths = method(TypicalValue => List, Options=>{gamma=>0, tDegree=>2,Verbose => false})
+trackPaths = method(TypicalValue => List, Options=>{gamma=>0, tDegree=>2, Verbose => false, numThreads=>0, seeProgress=>False})
 trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   -- IN: T, target system to be solved;
   --     S, start system with solutions in Ssols;
@@ -1132,13 +1132,24 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
 
   if not(class coefficientRing ring first S===ComplexField) then
     error "coefficient ring of start system is not complex";  
-  
+
   R := ring first T;
   n := #T;
   targetfile := temporaryFileName() | "PHCtarget";
-  startfile := temporaryFileName() | "PHCstart";
+  systemToFile(T,targetfile);
+
   outfile := temporaryFileName() | "PHCoutput";
-  Ssolsfile := temporaryFileName() | "PHCstartsols";
+  if not (o.numThreads > 1) then (
+    startfile := temporaryFileName() | "PHCstart";
+    systemToFile(S,startfile);
+    Ssolsfile := temporaryFileName() | "PHCstartsols";
+    solutionsToFile(Ssols,R,Ssolsfile);
+  )
+  else (
+    startandsolutionfile := temporaryFileName() | "PHCstartandsols";
+    systemToFile(S,startandsolutionfile);
+    solutionsToFile(Ssols, R, startandsolutionfile, Append=>true);
+  );
   Tsolsfile := temporaryFileName() | "PHCtargetsols";
   batchfile := temporaryFileName() | "PHCbat";
   if o.Verbose then
@@ -1149,30 +1160,48 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   if n> numgens R then error "the system is overdetermined"; 
   
   -- writing data to the corresponding files
-  systemToFile(T,targetfile);
-  systemToFile(S,startfile);
-  solutionsToFile(Ssols,R,Ssolsfile);	  
+
   
   -- making batch file
   bat := openOut batchfile;
-  bat << targetfile << endl << outfile << endl <<"n"<< endl 
-  << startfile << endl << Ssolsfile << endl;
+  if not (o.numThreads > 0) then (
+    bat << targetfile << endl << outfile << endl <<"n"<< endl 
+    << startfile << endl << Ssolsfile << endl;
   
-  -- first menu with settings of the construction of the homotopy
-     bat << "k" << endl << o.tDegree << endl; 
-  if o.gamma != 0 then (
-    bat << "a" << endl << realPart o.gamma << endl;
-    bat << imaginaryPart o.gamma << endl;
+    -- first menu with settings of the construction of the homotopy
+    bat << "k" << endl << o.tDegree << endl;
+    if o.gamma != 0 then (
+      bat << "a" << endl << realPart o.gamma << endl;
+      bat << imaginaryPart o.gamma << endl;
+    );
+    bat << "0" << endl;
+    -- second menu 
+    bat << "0" << endl; -- exit for now
+    -- third menu
+    bat << "0" << endl; -- exit for now
+    -- fourth menu
+    bat << "0" << endl; -- exit for now
+    close bat;
   );
-  bat << "0" << endl;
-  -- second menu 
-  bat << "0" << endl; -- exit for now
-  -- third menu
-  bat << "0" << endl; -- exit for now
-  -- fourth menu
-  bat << "0" << endl; -- exit for now
-  close bat;
-  run(PHCexe|" -p <"|batchfile|" >phc_session.log");
+  if o.numThreads > 0 then (
+    bat << targetfile << endl << outfile << endl 
+    << startandsolutionfile << endl;
+  
+    -- first menu with settings of the construction of the homotopy
+    bat << "k" << endl << o.tDegree << endl;
+    if o.gamma != 0 then (
+      bat << "a" << endl << realPart o.gamma << endl;
+      bat << imaginaryPart o.gamma << endl;
+    );
+    bat << "0" << endl;
+    -- second menu 
+    bat << "0" << endl; -- exit for now
+    -- third menu
+    if o.seeProgress then (bat << "y" << endl) else (bat << "n" << endl);
+    close bat;
+  );
+
+  run(PHCexe|" -p "|(if o.numThreads > 1 then ("-t"|o.numThreads) else ""|<"|batchfile|" >phc_session.log");
   run(PHCexe|" -z "|outfile|" "|Tsolsfile);
   
   -- parse and output the solutions
@@ -1495,5 +1524,4 @@ w#IsIrreducible
 R = ring rationalSystem_0
 PD = primaryDecomposition ideal rationalSystem
 for I in PD list << "(dim=" << dim I << ", deg=" << degree I << ") " 
-
 
