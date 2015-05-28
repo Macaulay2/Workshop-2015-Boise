@@ -106,11 +106,10 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 )
 
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
-    print "here";
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary then (
 	    	    if not isHereditary(F,E) then (
-			error "Not hereditary."
+			"Warning: Complex is not hereditary, so differentiability of splines may fail at certain points."
 			);
 	    	    );
 	d := # (first V);
