@@ -41,30 +41,6 @@ hfgr(FilteredVectorSpace,ZZ,ZZ):= (V,i,j) -> (
 ---
 ---
 
--- given ideals I,J,K with IJ < K want to construct the bilinear map I x J --> K
-multiplyIdeals = method()
-
-multiplyIdeals(Ideal,Ideal,Ideal) :=(I,J,K) ->(
-    if isSubset(I*J,K)==false then error"IJ not in K" 
-    else(
-    i :=  module I;
-    j := module J;
-    k := module K;
-    r := I.ring; -- assum I,J,K are ideals in the same ring
-    f := inducedMap(r^1, k, id_k);
-    g := inducedMap(r^1,i,id_i) ** inducedMap(r^1,j,id_j);  
-    return g//f);    
-)
-
-
-----
-----
-
-multiplyIdeals(I,I,I)
-multiplyIdeals(I,I,I^2)
-
-----
-
 
 R=QQ[x,y,z]
 

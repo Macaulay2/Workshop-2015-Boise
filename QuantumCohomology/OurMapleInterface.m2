@@ -7,7 +7,7 @@ runMaple = (runMaplePrefix,script) -> (
 getTerms = s -> (
      f := replace(" ","",first select(";\n *(.*)","\\1",s));
      h := for t in select(///S\[([0-9,]*)\]///,"\\1",f) list (
-     	 value("{"|t|"}") => first select(///([0-9]*q?)S\[///|t|///\]///,"\\1",f)
+     	 value("{"|t|"}") => select(///([0-9]*q?)S\[///|t|///\]///,"\\1",f)
      );
      new HashTable from h
 )
@@ -21,4 +21,4 @@ callqcalc = (r,n,expr) -> (
     getTerms(runMaple(maple,mapleScript))   
 )
 
--- try something like : callqcalc(3,7,"qtoS(S[2,1]^4")
+-- try something like : callqcalc(3,7,"S[2,1]^4")
