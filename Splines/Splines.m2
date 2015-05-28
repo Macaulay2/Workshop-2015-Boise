@@ -275,6 +275,8 @@ doc ///
 	(splineMatrix,List,List,List,ZZ)
 	InputType
 	CheckHereditary
+	ByFacets
+	ByLinearForms
     Headline
         compute matrix giving adjacent regions and continuity level
     Usage
