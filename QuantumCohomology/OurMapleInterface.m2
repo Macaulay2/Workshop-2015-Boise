@@ -17,8 +17,8 @@ qcalclib="/Users/corey/Dropbox/Maple/qcalc.mpl";
 mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|r|","|n|"): qtoS("|expr|");"
 
 callqcalc = (r,n,expr) -> (
-    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|r|","|n|"): qtoS("|expr|");";
+    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|r|","|n|"): "|expr|";";
     getTerms(runMaple(maple,mapleScript))   
 )
 
--- try something like : callqcalc(3,7,"S[2,1]^4")
+-- try something like : callqcalc(3,7,"qtoS(S[2,1]^4")
