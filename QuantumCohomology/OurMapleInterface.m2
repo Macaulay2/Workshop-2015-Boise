@@ -7,7 +7,7 @@ runMaple = (runMaplePrefix,script) -> (
 getTerms = s -> (
      f := replace(" ","",first select(";\n *(.*)","\\1",s));
      h := for t in select(///S\[([0-9,]*)\]///,"\\1",f) list (
-     	 value("{"|t|"}") => select(///([0-9]*q?)S\[///|t|///\]///,"\\1",f)
+     	 value("{"|t|"}") => first select(///([0-9]*q?)S\[///|t|///\]///,"\\1",f)
      );
      new HashTable from h
 )
@@ -17,7 +17,7 @@ qcalclib="/Users/corey/Dropbox/Maple/qcalc.mpl";
 mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|r|","|n|"): qtoS("|expr|");"
 
 callqcalc = (r,n,expr) -> (
-    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|r|","|n|"): "|expr|";";
+    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|r|","|n|"): qtoS("|expr|");";
     getTerms(runMaple(maple,mapleScript))   
 )
 
