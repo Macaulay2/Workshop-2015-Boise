@@ -216,12 +216,12 @@ INTgetCodim1Intersections(List) := List => F ->(
 INTgetSize = method();
 INTgetSize(List) := ZZ => vectors ->(
     --Alternately, you could replace this code with line:
-    -- if all(vectors, v-> #v == #(vectors_0)) then #vectors_0 else null
-    n := #(vectors_0);
-    if instance(position(vectors,v->#v != n),Nothing) then return n
-    else(
-	return null
-    )
+    if all(vectors, v-> #v == #(vectors_0)) then #vectors_0 else null
+    --n := #(vectors_0);
+    --if instance(position(vectors,v->#v != n),Nothing) then return n
+    --else(
+	--return null
+    --)
 )
 
 
