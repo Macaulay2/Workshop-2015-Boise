@@ -1027,6 +1027,8 @@ doc ///
   SeeAlso
     tDegree
     gamma
+    numThreads
+    seeProgress
 ///;
 
 -- options for trackPaths
@@ -1072,18 +1074,6 @@ doc ///
     trackPaths(...,gamma=>CC)
 ///;
 
-
-doc ///
-  Key
-    [trackPaths,tDegree]
-  Headline
-    Option to specify the degree of the continuation parameter
-  Usage
-    trackPaths(...,tDegree=>ZZ)
-///;
-
-
-
 doc ///
   Key
     tDegree
@@ -1111,10 +1101,63 @@ doc ///
       fsols = trackPaths(f,q,qsols,tDegree => 1)      
 ///;
 
+doc ///
+  Key
+    [trackPaths,tDegree]
+  Headline
+    Option to specify the degree of the continuation parameter
+  Usage
+    trackPaths(...,tDegree=>ZZ)
+///;
 
+doc ///
+  Key
+    numThreads
+  Headline
+    the number of threads in the path tracker
+  Description
+    Text
+      Tracking many solution paths is a pleasingly parallel computation.
+      A multithreaded path tracker has a number of threads working on
+      a queue of path tracking jobs.  Every path tracking job can be
+      computed without communication overhead.  For sufficiently large
+      problems, the speedup can as large as the number of threads.
+///;
 
+doc ///
+  Key
+    [trackPaths,numThreads]
+  Headline
+    Option to define the number of threads in the path tracker.
+  Usage
+    trackPaths(...,numThreads=>ZZ)
+///;
 
+doc ///
+  Key
+    seeProgress
+  Headline
+    flag to monitor the progress of the multithreaded path tracker
+  Description
+    Text
+      For a long path tracking job, one could check the progress of the
+      computation by checking the end of the output file.
+      A multithreaded path tracker no longer writes the solutions to the
+      output file as soon as they are computed.  For path tracking jobs
+      that take a very long time, the lack of information on the progress
+      can be annoying.  With seeProgess turned on, every thread will write
+      a message to screen for each path tracking job.
+///;
 
+doc ///
+  Key
+    [trackPaths,seeProgress]
+  Headline
+    Option to follow the progress of the multithreaded path tracker.
+    This option only applies when the option numThreads >= 1.
+  Usage
+    trackPaths(...,seeProgress=>Boolean)
+///;
 
 
 -----------------------------------
