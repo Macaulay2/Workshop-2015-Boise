@@ -202,17 +202,17 @@ splineModule(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
 INTgetCodim1Intersections = method();
 -- Input: facets of a pure simplicial complex (as lists of vertices)
 -- Output: the codimension-1 intersections
-INTgetCodim1Intersections(List) := List => facets ->(
-    G := {};
-    for i from 0 to #facets-2 do(
-    	f := facets_i;
-    	for j from 0 to #f-1 do(
-            g := drop(f,{j,j});
-            if not instance(position(drop(facets,i+1),B ->
-		    isSubset(g,B)),Nothing) then G = append(G,g);
-    	    ) -- end for
-	); -- end for
-    G
+INTgetCodim1Intersections(List) := List => F ->(
+    n := #F;
+    d := #(F_0);
+    --For each non-final facet, construct all codimension 1 subsets.
+    codim1faces := apply(n-1, i -> subsets(F_i,d-1));
+    --Check if a codimension 1 subset is contained in another facet,
+    --store it as a codim 1 intersection.
+    sort flatten apply(#codim1faces, i -> 
+	select(codim1faces_i, 
+	    s -> any(F_{i+1..n-1}, 
+		f-> all(s, v-> member(v,f)))))
 )
 
 INTgetSize = method();
