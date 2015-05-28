@@ -21,6 +21,7 @@ export {
   symmetrize,
   tensorEigenvectors,
   tensorToPolynomial,
+  tensorToMultilinearForm,
   multiplicationTensor
 }
 
@@ -78,26 +79,39 @@ tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
     R := ring T;
     D := tensorDims T;
     n := D#0;
-    f := 0_S;
     xpos := position(gens S, y->y==x);
+    f := 0_S;
     for ind in (#D:0)..(#D:n-1) do (
 	mon := product toList apply(#ind, j->S_(xpos + ind#j));
 	f = f + sub(T_ind,S)*mon;
 	);
     f
     );
-tensorToPolynomial (Tensor,List) := (T,X) -> (
-    R := ring T;
+
+tensorToMultilinearForm = method()
+tensorToMultilinearForm (Tensor,Ring) := (T,S) -> tensorToMultilinearForm(T,S,S_0)
+tensorToMultilinearForm (Tensor,Ring,RingElement) := (T,S,x) -> (
     D := tensorDims T;
-    n := D#0;
-    S := R[flatten apply(#D,i->(apply(D#i,j -> (X#i)_j)))];
+    vs := gens S;
+    xpos := position(vs, y->y==x);
+    varLists := for n in D list (
+	take(vs, {xpos, xpos + n -1})) do (
+	xpos = xpos + n;
+	);
     f := 0_S;
-    for ind in (#D:0)..(#D:n-1) do (
-	mon := product toList apply(#ind, j->S_(ind#j));
+    for ind in (#D:0)..<(toSequence D) do (
+	mon := product toList apply(#ind, j->varLists#j#(ind#j));
 	f = f + sub(T_ind,S)*mon;
 	);
     f
     );
+tensorToMultilinearForm (Tensor,Symbol) := (T,x) -> (
+    R := ring T;
+    D := tensorDims T;
+    varList := flatten apply(#D, i->apply(D#i, j->x_(i,j)));
+    S := R[varList];
+    tensorToMultilinearForm(T,S)
+    )
     
 
 tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
