@@ -27,6 +27,10 @@ server = () -> (
 	       s = first select("^GET /fcn2/(.*) ", "\\1", r);
 	       fun = fcn2;
 	       )
+	  else if match("^POST /eval/(.*) ",r) then (
+	       s = first select("^POST /eval/(.*) ", "\\1", r);
+	       fun = ev;
+	       )
 	  else if match("^HEAD /(.*) ",r) then (
 	       s = first select("^HEAD /(.*) ", "\\1", r);
 	       fun = identity;
@@ -42,5 +46,6 @@ server = () -> (
 	  )
      )
 
+ev = x -> "called POST ev on " | x
 fcn1 = x -> "called fcn1 on " | x
 fcn2 = x -> "called fcn2 on " | x
