@@ -54,8 +54,8 @@ smallestContainingCone = (F,inputCone) -> (
 isCompatible = (M,X,Y) -> (
     for Cx in maxCones(fan(X)) do (
         xConeContained = false;
+        imCx = posHull(M*rays(Cx));
         for Cy in maxCones(fan(Y)) do (
-            imCx = cone(M*rays(Cx));
             if contains(Cy,imCx) then (
                 xConeContained = true;
                 break;
