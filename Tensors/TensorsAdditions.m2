@@ -69,12 +69,19 @@ tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
 tensorToPolynomial = method()
 tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     R := ring T;
+    n := (tensorDims T)#0;
+    S := R[apply(n,i->x_i)];
+    tensorToPolynomial(T,S,S_0)
+    );
+tensorToPolynomial (Tensor,Ring) := (T,S) -> tensorToPolynomial(T,S,S_0)
+tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
+    R := ring T;
     D := tensorDims T;
     n := D#0;
-    S := R[apply(n,i->x_i)];
     f := 0_S;
+    xpos := position(gens S, y->y==x);
     for ind in (#D:0)..(#D:n-1) do (
-	mon := product toList apply(#ind, j->S_(ind#j));
+	mon := product toList apply(#ind, j->S_(xpos + ind#j));
 	f = f + sub(T_ind,S)*mon;
 	);
     f
