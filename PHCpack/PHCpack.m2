@@ -1163,7 +1163,7 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   
   -- making batch file
   bat := openOut batchfile;
-  if not (o.numThreads > 0) then (
+  if not (o.numThreads > 1) then (
     bat << targetfile << endl << outfile << endl <<"n"<< endl 
     << startfile << endl << Ssolsfile << endl;
   
@@ -1182,7 +1182,7 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
     bat << "0" << endl; -- exit for now
     close bat;
   );
-  if o.numThreads > 0 then (
+  if o.numThreads > 1 then (
     bat << targetfile << endl << outfile << endl 
     << startandsolutionfile << endl;
   
