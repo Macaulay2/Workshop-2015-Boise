@@ -45,7 +45,10 @@ export {
    "isHereditary",
    "CheckHereditary",
    "Homogenize",
-   "VariableName"
+   "VariableName",
+   "getCodimIFacesPolytope",
+   "getCodimIFacesSimplicial",
+   "interiorFaces"
     }
 
 ------------------------------------------
@@ -78,10 +81,59 @@ isHereditary(List,List) := Boolean => (F,E) -> (
       all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
       )
 )
+
 -----------------------------------------
 -----------------------------------------
+--Inputs: 
+-----------------------------------------
+--F = list of facets
+--E = list of codimension 1 faces
+-- (possibly including non-interior)
+-----------------------------------------
+-----------------------------------------
+--Outputs:
+-----------------------------------------
+--E' = list of interior edges
+-----------------------------------------
+interiorFaces = method()
+interiorFaces(List,List) := List => (F,E) -> (
+    --Compute which facets are adjacent to each edge:
+    facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    --Compute indices of interior edges, and replace edge list and 
+    --facet adjacencies to only include these interior edges:
+    indx := positions(facetEdgeH, i-> #i === 2);
+    E_indx
+    )
 
 
+getCodim1FacesPolytope = method()
+getCodim1FacesPolytope(List) := List => F ->(
+    --This function ASSUMES that the polytopal complex 
+    --considered is hereditary.
+    n := #F;
+    --For each pair of facets, take their intersection:
+    intersectFacets := unique flatten apply(#F-1, i-> apply(toList(i+1..#F-1), j-> sort select(F_i, v-> member(v,F_j))));
+    --Remove any non-maximal faces in this intersections:
+    select(intersectFacets, f -> (
+    	(number(intersectFacets, g-> all(f, j-> member(j,g)))) === 1
+    ))
+)
+
+getCodimIFacesPolytope = method()
+getCodimIFacesPolytope(List,ZZ) := List => (F,d) ->(
+    Fcodim := F;
+    apply(d, i-> Fcodim = getCodim1FacesPolytope(Fcodim));
+    Fcodim
+    )
+
+getCodimIFacesSimplicial = method()
+getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
+    d := getSize(F);
+    unique flatten apply(F, f-> subsets(f,d-i))
+    )
+
+-----------------------------------------
+-----------------------------------------
 splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol CheckHereditary => false, 
@@ -168,8 +220,8 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
-	if INTisSimplicial(V,F) then(
-	  E := INTgetCodim1Intersections(F);
+	if isSimplicial(V,F) then(
+	  E := getCodim1Intersections(F);
 	  SM := splineMatrix(V,F,E,r,InputType=>"ByFacets")  
 	    )
 	else(
@@ -183,7 +235,7 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     m := max flatten B;
     A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
     D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
-    SM := A|D;
+    SM = A|D;
     );
     SM
 )
@@ -191,20 +243,21 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
 splineModule = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 
 splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
-    if opts.
-    AD := splineMatrix(V
-    K := ker AD;
-    b := max flatten B;
-    submatrix(gens K, toList(0..b),)
+    if opts.InputType === "ByFacets" then (
+    	AD := splineMatrix(V,F,E,r);
+	K := ker AD;
+	b := #F;
+    	submatrix(gens K, toList(0..b-1),)
     )
+)
 
 
 --Interior Methods used in SplineMatrix--
 
-INTgetCodim1Intersections = method();
+getCodim1Intersections = method();
 -- Input: facets of a pure simplicial complex (as lists of vertices)
 -- Output: the codimension-1 intersections
-INTgetCodim1Intersections(List) := List => F ->(
+getCodim1Intersections(List) := List => F ->(
     n := #F;
     d := #(F_0);
     --For each non-final facet, construct all codimension 1 subsets.
@@ -218,8 +271,8 @@ INTgetCodim1Intersections(List) := List => F ->(
 )
 
 
-INTgetSize = method();
-INTgetSize(List) := ZZ => vectors ->(
+getSize = method();
+getSize(List) := ZZ => vectors ->(
     --Alternately, you could replace this code with line:
     if all(vectors, v-> #v == #(vectors_0)) then #vectors_0 else null
     --n := #(vectors_0);
@@ -231,11 +284,11 @@ INTgetSize(List) := ZZ => vectors ->(
 
 
 
-INTisSimplicial = method();
+issimplicial = method();
 -- Assumes that the inputted complex is pure
-INTisSimplicial(List,List) := Boolean => (vertices, facets) ->(
-    n := INTgetSize(vertices);
-    f := INTgetSize(facets);
+issimplicial(List,List) := Boolean => (vertices, facets) ->(
+    n := getSize(vertices);
+    f := getSize(facets);
     if not instance(n, Nothing) and not instance(f,Nothing) and n + 1 == f then true
     else(
 	if instance(n, Nothing) then print "Vertices have inconsistent dimension."
