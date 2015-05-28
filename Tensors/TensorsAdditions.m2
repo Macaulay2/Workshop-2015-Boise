@@ -30,17 +30,20 @@ symmetrize (Tensor) := (T) -> (
     (1_R/(d!))*(sum L)
 );
 
-contract (Tensor,Number,Number) := (T,k,l) -> (
-    d := #(tensorDims T);
-    n := (tensorDims T)#k;
-    m := (tensorDims T)#l;
-    assert(n == m);
-    Tslices := apply((0,0)..(n-1,n-1), ij-> (
-	sliceList := toList apply(d, p->(if p==k then ij#0 else if p==l then ij#1 else null));
-	T_sliceList
-	));
+contract (Tensor,List,List) := (T,K,L) -> (
+    D := tensorDims T;
+    KD := apply(K, k->D#k);
+    LD := apply(L, k->D#k);
+    if KD != LD then error "dimension mismatch";
+    Tslices := apply((#K:0)..<(toSequence KD), i-> (
+	    sliceList := new MutableList from (#D:null);
+	    scan(#K, j->(sliceList#(K#j) = i#j; sliceList#(L#j) = i#j));
+	    print T_(toList sliceList);
+	    T_(toList sliceList)
+	    ));
     sum toList Tslices
     );
+contract (Tensor,Number,Number) := (T,k,l) -> contract(T,{k},{l})
 
 tensorEigenvectors = method()
 tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
@@ -71,6 +74,6 @@ tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     f
     );
 
-tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
+tensorModule Tensor := T -> class T
 
 end
