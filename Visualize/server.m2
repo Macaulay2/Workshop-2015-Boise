@@ -1,4 +1,4 @@
-listener = openListener "$:8088"
+listener = openListener "$:8000"
 verbose = true
 
 hexdigits := "0123456789ABCDEF"
@@ -17,7 +17,7 @@ server = () -> (
         r := read g;
 --	<< "r0 " << r << endl;	
         if verbose then stderr << "request: " << stack lines r << endl;
-	<< "------------------------" << endl;
+--	<< "------------------------" << endl;
 --	<< "r1 " << r << endl;
         r = lines r;
 --	<< "r2 " << r << endl;	
@@ -37,8 +37,17 @@ server = () -> (
 	  else if match("^GET /end/(.*) ",r) then (
     	       return;
 	       )
+	  else if match("^GET / ",r) then (
+    	       s = getJSfile; 
+	       fun = identity;
+	       )
+	  else if match("^GET /js/(.*) ",r) then (
+--    	       s = getJSfile; 
+	       fun = identity;
+	       )
 	  else if match("^POST /eval/(.*) ",r) then (
-	       s = data; -- first select("^POST /eval/(.*) ", "\\1", r);
+	       s = data; 
+	       -- s = first select("^POST /eval/(.*) ", "\\1", r);
 	       fun = ev;
 	       )
 	  else if match("^HEAD /(.*) ",r) then (
@@ -50,15 +59,16 @@ server = () -> (
 	       fun = identity;
 	       );
 --	<< "s " << s << endl;	
-	  t := select(".|%[0-9A-F]{2,2}", data); --s);
+	  t := select(".|%[0-9A-F]{2,2}", s); --data);
 --	<< "t " << t << endl;		  
 	  u := apply(t, x -> if #x == 1 then x else ascii hex2(x#1, x#2));
 	  u = concatenate u;
-	  << "this is a test of functioning" << endl;
-	  << u << endl;
-	  << fun u << endl;
-	<< "------------------------" << endl;	  
+--	  << "this is a test of functioning" << endl;
+--	  << u << endl;
+--	  << fun u << endl;
+	<< "------------------------" << endl;
   	  << httpHeaders fun u << endl;
+	<< "------------------------" << endl;	  
       g << httpHeaders fun u << close;
 	  )
      )
@@ -66,11 +76,29 @@ server = () -> (
 ev = x -> "called POST ev on " | x
 fcn1 = x -> "called fcn1 on " | x
 fcn2 = x -> "called fcn2 on " | x
---test = fun u
+
+getJSfile = get "graph-test.html"
 
 end
+ 
+httpHeaders String := s -> concatenate(
+     -- for documentation of http protocol see http://www.w3.org/Protocols/rfc2616/rfc2616.html
+     "HTTP/1.1 200 OK
+     Server: Macaulay2/1.7.0.1
+     Connection: close
+     Content-Length: ", toString length s, "
+     Content-type: text/html; charset=utf-8
+     Access-Control-Allow-Origin: true
+
+     ", s) 
+
+
 
 restart
 load"server.m2"
 server()
 close listener
+
+code methods httpHeaders
+
+viewHelp openInOut
