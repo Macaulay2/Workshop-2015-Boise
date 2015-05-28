@@ -28,8 +28,9 @@ C2 = posHull matrix {{1,-1},{1,1}};
 --smallestContainingCone(F,C)
 --smallestContainingCone(F,C2)
 
-
-
+minImageCones = (fan1,fan2,M) -> (
+    return apply(maxCones(fan1),c->{c,smallestContainingCone(fan2,posHull(M*rays(c)))})
+);
 
 {* an attempt at non-recursion
 smallestContainingCone = (F,inputCone) -> (
