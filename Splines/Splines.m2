@@ -180,7 +180,6 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
 	
 	--Write function to compute E (given S or P complexes) here.
 	--splineMatrix(B,L,E,r)
-	print "'ByFacets' option not implemented yet for inputs (V,F,r)."
 	);
     --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
