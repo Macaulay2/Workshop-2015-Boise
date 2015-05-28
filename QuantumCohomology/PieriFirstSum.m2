@@ -21,13 +21,8 @@ the solutions instead of recursing
 *}
 
 {* 
-
-First try: 
-
-A recursive function for the first term in quantum Pieri
-For each allowed of mu_1, compute the possible 
-diagrams with the new bounding rectangle of width
-lambda_1 and adding p-(mu_1-lambda_1) boxes
+First try: use the Polyhedra package to enumerate
+the possible mu's
 *}
 
 
@@ -54,6 +49,13 @@ time pieriFirstSum(4,6,4,{4,2,2,1})
 -- used 0.171507 seconds
 time pieriFirstSum(10,20,10,{9,8,8,6,4,4,3,2})
 -- used 6.08612 seconds
+*}
 
 
+{*Second try: 
+
+A recursive function for the first term in quantum Pieri
+For each allowed of mu_1, compute the possible 
+diagrams with the new bounding rectangle of width
+lambda_1 and adding p-(mu_1-lambda_1) boxes
 *}
