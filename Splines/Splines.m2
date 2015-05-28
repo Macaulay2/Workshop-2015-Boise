@@ -169,8 +169,8 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
 	if INTisSimplicial(B,L) then(
-	  E := INTgetCodim1Intersections(List);
-	  splineMatrix(B,L,E,r,InputType=>"ByFacets")  
+	  E := INTgetCodim1Intersections(L);
+	  return splineMatrix(B,L,E,r,InputType=>"ByFacets")  
 	    )
 	else(
 	    print "Polyhedral complex is not simplicial."
