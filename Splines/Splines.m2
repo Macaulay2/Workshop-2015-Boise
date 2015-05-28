@@ -191,12 +191,13 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
 splineModule = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 
 splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
-    if opts.
-    AD := splineMatrix(V
-    K := ker AD;
-    b := max flatten B;
-    submatrix(gens K, toList(0..b),)
+    if opts.InputType === "ByFacets" then (
+    	AD := splineMatrix(V,F,E,r);
+	K := ker AD;
+	b := #F;
+    	submatrix(gens K, toList(0..b-1),)
     )
+)
 
 
 --Interior Methods used in SplineMatrix--
