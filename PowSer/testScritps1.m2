@@ -65,7 +65,7 @@ familyOfIdeals = method()
 
 familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
     --- assume all ideals are defined over the same ring ---
-    H := new Type of FamilyOfIdeals;
+    H := new FamilyOfIdeals;
     H.ring = (L#0).ring;
     H#0 = H.ring; -- want H#0 to be our ambient ring
     apply(#L, i-> H#(i+1) = L#i);
@@ -73,13 +73,21 @@ familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
 )
 
 
+spots = method()
+spots(HashTable) := (H) ->( 
+    select(keys H, i-> (class i) === ZZ)
+    )
+
+
 -- the following will extend the family of ideals by a suitable power
 -- of the last ideal of the list
 powerFamilyOfIdeals = method()
 
-powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,n) -> (
-
-    
+powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,i) -> (
+    L := spots(H);
+    I= H#(max L);
+    if i>=0 and L#?i then return H#i
+     else  return I^i
     )
 
 
