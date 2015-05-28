@@ -18,12 +18,16 @@ newPackage(
 
 export {
   symmetrize,
-  tensorEigenvectors
+  tensorEigenvectors,
+  tensorToPolynomial
 }
 
 symmetrize = method()
 symmetrize (Tensor) := (T) -> (
-  error "not implemented yet";
+    d := #(tensorDims T);
+    R := ring T;
+    L := apply(permutations d, p->T@p);
+    (1_R/(d!))*(sum L)
 );
 
 contract (Tensor,Number,Number) := (T,k,l) -> (
@@ -51,6 +55,20 @@ tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
 	v#(ind#k) = v#(ind#k) + sub(T_ind,S)*mon;
 	);
     minors(2, matrix{toList v, gens S})
+    );
+
+tensorToPolynomial = method()
+tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
+    R := ring T;
+    d := tensorDims T;
+    n := d#0;
+    S := R[apply(n,i->x_i)];
+    f := 0_S;
+    for ind in (#d:0)..(#d:n-1) do (
+	mon := product toList apply(#ind, j->S_(ind#j));
+	f = f + sub(T_ind,S)*mon;
+	);
+    f
     );
 
 end
