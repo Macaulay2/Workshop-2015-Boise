@@ -65,7 +65,7 @@ familyOfIdeals = method()
 
 familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
     --- assume all ideals are defined over the same ring ---
-    H := new Type of FamilyOfIdeals;
+    H := new FamilyOfIdeals;
     H.ring = (L#0).ring;
     H#0 = H.ring; -- want H#0 to be our ambient ring
     apply(#L, i-> H#(i+1) = L#i);
@@ -73,17 +73,40 @@ familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
 )
 
 
+spots = method()
+spots(HashTable) := (H) ->( 
+    select(keys H, i-> (class i) === ZZ)
+    )
+
+
 -- the following will extend the family of ideals by a suitable power
 -- of the last ideal of the list
 powerFamilyOfIdeals = method()
 
-powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,n) -> (
-
-    
+powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,i) -> (
+    L := spots(H);
+    I= H#(max L);
+    if i>=0 and L#?i then return H#i
+     else  return I^i
     )
 
 
 
+-- want to write script to check of family of ideals {I_0,..,I_l} satisfies the conditions:
+-- (a) I_i > I_(i+1)
+-- (b) I_i I_j < I_(i+j) for all i,j
 
+checkHypothesis = method()
 
+checkHypothesis(FamilyofIdeals) := Boolean => (F) -> (
+	check:= true;
+	while check==true do (
+		for i from 0 to (#F)-1
+			(if isSubset(F#(i+1),F#i)==false then check:=false;))
+	while check==true do (
+		for i from 0 to (#F)-1(
+			for j from i+1 to #F
+				(if isSubset((F#i)*(F#j),F#(i+j))==false then check:=false;)))
+	if check==false then error"List does not satisfy hypothesis"
 
+)
