@@ -45,12 +45,19 @@ export {
    "isHereditary",
    "CheckHereditary",
    "Homogenize",
-   "VariableName"
+   "VariableName",
+   "getCodimIFacesPolytope",
+   "getCodimIFacesSimplicial",
+   "interiorFaces"
     }
 
 ------------------------------------------
 ------------------------------------------
 -- Methods
+------------------------------------------
+------------------------------------------
+
+
 ------------------------------------------
 ------------------------------------------
 isHereditary= method()
@@ -65,6 +72,10 @@ isHereditary= method()
 --F = ordered lists of facets
 --E = list of edges
 ------------------------------------------
+--Outputs:
+--Boolean, if complex is hereditary
+------------------------------------------
+
 isHereditary(List,List) := Boolean => (F,E) -> (
     V := unique flatten join F;
     dualV := toList(0..#F-1);
@@ -78,33 +89,160 @@ isHereditary(List,List) := Boolean => (F,E) -> (
       all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
       )
 )
------------------------------------------
------------------------------------------
 
 
+-----------------------------------------
+-----------------------------------------
+interiorFaces = method()
+-----------------------------------------
+-----------------------------------------
+--Inputs: 
+-----------------------------------------
+--F = list of facets
+--E = list of codimension 1 faces
+-- (possibly including non-interior)
+-----------------------------------------
+-----------------------------------------
+--Outputs:
+-----------------------------------------
+--E' = list of interior edges
+-----------------------------------------
+interiorFaces(List,List) := List => (F,E) -> (
+    --Compute which facets are adjacent to each edge:
+    facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    --Compute indices of interior edges, and replace edge list and 
+    --facet adjacencies to only include these interior edges:
+    indx := positions(facetEdgeH, i-> #i === 2);
+    E_indx
+    )
+
+------------------------------------------
+------------------------------------------
+getCodim1FacesPolytope = method()
+------------------------------------------
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = list of facets of a polytope
+------------------------------------------
+--Outputs:
+-----------------------------------------
+--E = list of (interior) codim 1 faces
+-----------------------------------------
+
+getCodim1FacesPolytope(List) := List => F ->(
+    --This function ASSUMES that the polytopal 
+    --complex considered is hereditary.
+    n := #F;
+    --For each pair of facets, take their intersection:
+    intersectFacets := unique flatten apply(#F-1, i-> 
+	apply(toList(i+1..#F-1), 
+	    j-> sort select(F_i, 
+		v-> member(v,F_j))));
+    --Remove any non-maximal faces in this intersections:
+    select(intersectFacets, f -> (
+    	(number(intersectFacets, g-> all(f, j-> member(j,g)))) === 1
+    ))
+)
+
+------------------------------------------
+------------------------------------------
+getCodimIFacesPolytope = method()
+------------------------------------------
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = list of faces of a polytope
+--d = desired codimesion
+------------------------------------------
+--Outputs:
+-----------------------------------------
+--E = list of (interior) codim d faces
+-----------------------------------------
+getCodimIFacesPolytope(List,ZZ) := List => (F,d) ->(
+    Fcodim := F;
+    --Compute interior codime
+    apply(d, i-> Fcodim = getCodim1FacesPolytope(Fcodim));
+    Fcodim
+    )
+
+------------------------------------------
+------------------------------------------
+getCodimIFacesSimplicial = method()
+------------------------------------------
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = list of facets of a simplicial complex
+--d = desired codimension
+------------------------------------------
+--Outputs:
+-----------------------------------------
+--E = list of (all) codim d faces
+-----------------------------------------
+getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
+    d := getSize(F);
+    unique flatten apply(F, f-> subsets(f,d-i))
+    )
+
+
+
+-----------------------------------------
+-----------------------------------------
 splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ})
+------------------------------------------
+------------------------------------------
+
+------------------------------------------
+------------------------------------------
+-- splineMatrix "ByFacets"
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--("ByFacets")
+--L = {L_0,L_1,L_2} (i.e. {V,F,E})
+--r = degree of desired continuity 
+--
+-- OR!!!!
+--
+--("ByLinearForms")
+--L = {L_0,L_1} (i.e. {B,L})
+--r = degree of desired continuity
+------------------------------------------
+--Outputs:
+-- BM = matrix with columns corresponding
+-- to facets and linear forms separating facets.
+------------------------------------------
+splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
+    --Use this if your list L = {V,F,E} contains
+    --The inputs as a single list L.
+    if opts.InputType === "ByFacets" then (
+	splineMatrix(L_0,L_1,L_2,r)
+	);
+    if opts.InputType == "ByLinearForms" then (
+	splineMatrix(L_0,L_1,r,InputType=>"ByLinearForms")
+	)
+    )
 
 ------------------------------------------
 ------------------------------------------
 --Inputs: 
 ------------------------------------------
---verts = list of coordinates of vertices
---facets = ordered lists of facets
---edges = list of edges
+--("ByFacets")
+--V = list of coordinates of vertices
+--F = ordered lists of facets
+--E = list of edges
 --r = degree of desired continuity
 ------------------------------------------
-
-splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
-    if opts.InputType === "ByFacets" then (
-	splineMatrix(L_0,L_1,L_2,r)
-	)
-)
-
+--Outputs:
+-- BM = matrix with columns corresponding
+-- to facets and linear forms separating facets.
+------------------------------------------
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary then (
@@ -150,85 +288,171 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 
 ------------------------------------------
 ------------------------------------------
--- splineMatrix "ByLinearForms"
-------------------------------------------
--- This method (essentially) inputs your
--- simplicial complex by the dual graph
--- (with edges labeled by linear forms
--- separating regions.)
 --Inputs: 
 ------------------------------------------
---B = list of regions that are adjacent
---L = list of ordered linear forms that separate
---regions, given in order of input B
+------------------------------------------
+-- ("ByFacets")
+--V = list of vertex coordinates
+--F = list of facets
+--r = degree of desired continuity
+--
+--    OR!!!!
+--
+--("ByLinearForms")
+--B = list of adjacent facets
+--L = list of ordered linear forms
+--defining codim 1 faces, ordered as in B
 --r = degree of desired continuity
 ------------------------------------------
-
-
-splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
+--Outputs:
+-- BM = matrix with columns corresponding
+-- to facets and linear forms separating facets.
+------------------------------------------
+splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
+    --This code assumes that the polytopal complex is hereditary.
     if opts.InputType === "ByFacets" then (
-	if INTisSimplicial(B,L) then(
-	  E := INTgetCodim1Intersections(List);
-	  splineMatrix(B,L,E,r,InputType=>"ByFacets")  
+	if issimplicial(V,F) then(
+	    E := getCodim1Intersections(F);
+	    SM := splineMatrix(V,F,E,r,opts)  
 	    )
 	else(
-	    print "Polyhedral complex is not simplicial."
+	    E = getCodim1FacesPolytope(F);
+	    SM = splineMatrix(V,F,E,r,opts)
 	    );
-	
-	--Function should compute E automatically, pretending it's simplicial or polytopal
-	
-	--Write function to compute E (given S or P complexes) here.
-	--splineMatrix(B,L,E,r)
-	print "'ByFacets' option not implemented yet for inputs (V,F,r)."
 	);
     --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
-    m := max flatten B;
-    A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
-    D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
-    A|D
-    )
+	B := V;
+	L := F;
+	m := max flatten B;
+	A := matrix apply(B, i-> apply(toList(0..m), j-> 
+		if (j=== first i) then 1 
+		else if (j===last i) then -1 
+		else 0));
+	D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
+	SM = A|D;
+    );
+    SM
 )
 
-splineModule = method(Options => {symbol InputType => "ByFacets", symbol CheckHereditary => false})
 
-splineModule(List,List,List,ZZ) := Matrix => opts -> (verts,facets,edges,r) -> (
+------------------------------------------
+------------------------------------------
+splineModule = method(Options => {
+	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ}
     )
-
-
---Interior Methods used in SplineMatrix--
-
-INTgetCodim1Intersections = method();
--- Input: facets of a pure simplicial complex (as lists of vertices)
--- Output: the codimension-1 intersections
-INTgetCodim1Intersections(List) := List => facets ->(
-    G := {};
-    for i from 0 to #facets-2 do(
-    	f := facets_i;
-    	for j from 0 to #f-1 do(
-            g := drop(f,{j,j});
-            if not instance(position(drop(facets,i+1),B ->
-		    isSubset(g,B)),Nothing) then G = append(G,g);
-    	    ) -- end for
-	); -- end for
-    G
+------------------------------------------
+------------------------------------------
+-- This method computes the splineModule
+-- of a complex Delta, given by either
+-- facets, codim 1 faces, and vertex coors,
+-- or by pairs of adjacent faces and
+-- linear forms.
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--V = list of vertices
+--F = list of facets
+--E = list of edges
+--r = desired continuity of splines
+------------------------------------------
+--Outputs:
+--Spline module S^r(Delta)
+------------------------------------------
+splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    	AD := splineMatrix(V,F,E,r,opts);
+	K := ker AD;
+	b := #F;
+    	submatrix(gens K, toList(0..b-1),)
 )
 
-INTgetSize = method();
-INTgetSize(List) := ZZ => vectors ->(
-    n := #(vectors_0);
-    if instance(position(vectors,v->#v != n),Nothing) then return n
-    else(
-	return null
-    )
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--V = list of vertices
+--F = list of facets
+--r = desired continuity of splines
+--
+--    OR!!!!
+--
+--V = list of pairs of adjacent faces
+--F = list of linear forms defining codim 1 faces.
+--r = desired continuity of splines
+------------------------------------------
+--Outputs:
+--Spline module S^r(Delta)
+------------------------------------------
+splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
+    	AD := splineMatrix(V,F,r,opts);
+	K := ker AD;
+	b := #F;
+    	submatrix(gens K, toList(0..b-1),)
 )
 
-INTisSimplicial = method();
+------------------------------------------
+------------------------------------------
+getCodim1Intersections = method();
+------------------------------------------
+------------------------------------------
+--Code to Compute Codim 1 Intersections:
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = facets of a pure simplicial complex 
+--(as lists of vertices)
+------------------------------------------
+--Outputs:
+------------------------------------------
+--the codimension-1 (interior) intersections
+------------------------------------------
+getCodim1Intersections(List) := List => F ->(
+    n := #F;
+    d := #(F_0);
+    --For each non-final facet, construct all codimension 1 subsets.
+    codim1faces := apply(n-1, i -> subsets(F_i,d-1));
+    --Check if a codimension 1 subset is contained in another facet,
+    --store it as a codim 1 intersection.
+    sort flatten apply(#codim1faces, i -> 
+	select(codim1faces_i, 
+	    s -> any(F_{i+1..n-1}, 
+		f-> all(s, v-> member(v,f)))))
+)
+
+------------------------------------------
+getSize = method();
+------------------------------------------
+--Input: L = List of Lists
+------------------------------------------
+--Output: If all lists in L are same size,
+-- the length of each individial list in L
+------------------------------------------
+getSize(List) := ZZ => L ->(
+    if all(L, v-> #v == #(L_0)) then #L_0 else null
+)
+
+
+------------------------------------------
+issimplicial = method();
+------------------------------------------
 -- Assumes that the inputted complex is pure
-INTisSimplicial(List,List) := Boolean => (vertices, facets) ->(
-    n := INTgetSize(vertices);
-    f := INTgetSize(facets);
+------------------------------------------
+--Inputs:
+-- V = vertex coordinates of Delta
+-- F = list of facets of Delta
+------------------------------------------
+--Outputs:
+--Boolean, if Delta is simplicial,
+--checking that each facet is a simplex
+--of the appropriate dimension.
+------------------------------------------
+issimplicial(List,List) := Boolean => (V,F) ->(
+    n := getSize(V);
+    f := getSize(F);
     if not instance(n, Nothing) and not instance(f,Nothing) and n + 1 == f then true
     else(
 	if instance(n, Nothing) then print "Vertices have inconsistent dimension."
@@ -259,7 +483,7 @@ doc ///
         Text
             @SUBSECTION "Other acknowledgements"@
             --
-            Methods in this package are put together from code written by Hal Schenck
+            Methods in this package borrows heavily from code written by Hal Schenck
 	    and Mike DiPasquale.
 ///
 
@@ -275,6 +499,8 @@ doc ///
 	(splineMatrix,List,List,List,ZZ)
 	InputType
 	CheckHereditary
+	ByFacets
+	ByLinearForms
     Headline
         compute matrix giving adjacent regions and continuity level
     Usage
@@ -320,24 +546,63 @@ doc ///
 
 ///
 
+TEST ///
+V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
+F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
+E = {{0,1},{0,2},{0,3},{0,4},{0,5}}
+assert(splineMatrix(V,F,E,0) == matrix {{1, 0, 0, 0, -1, t_2, 0, 0, 0, 0}, {1, -1, 0, 0, 0, 0, t_1-t_2,
+      0, 0, 0}, {0, 1, -1, 0, 0, 0, 0, t_1+t_2, 0, 0}, {0, 0, 1, -1, 0, 0, 0,
+      0, t_1-2*t_2, 0}, {0, 0, 0, 1, -1, 0, 0, 0, 0, t_1}})
+assert(splineMatrix(V,F,E,0,Homogenize=>false) == matrix {{1, 0, 0, 0, -1, t_2, 0, 0, 0, 0}, {1, -1, 0, 0, 0, 0, t_1-t_2,
+      0, 0, 0}, {0, 1, -1, 0, 0, 0, 0, t_1+t_2, 0, 0}, {0, 0, 1, -1, 0, 0, 0,
+      0, t_1-2*t_2, 0}, {0, 0, 0, 1, -1, 0, 0, 0, 0, t_1}})
+assert(splineMatrix(V,F,E,1) == matrix {{1, 0, 0, 0, -1, t_2^2, 0, 0, 0, 0}, {1, -1, 0, 0, 0, 0,
+      t_1^2-2*t_1*t_2+t_2^2, 0, 0, 0}, {0, 1, -1, 0, 0, 0, 0,
+      t_1^2+2*t_1*t_2+t_2^2, 0, 0}, {0, 0, 1, -1, 0, 0, 0, 0,
+      t_1^2-4*t_1*t_2+4*t_2^2, 0}, {0, 0, 0, 1, -1, 0, 0, 0, 0, t_1^2}})
+assert(isHereditary(F,E) === true)
+///
+
+TEST ///
+V={{-5,0},{-3,0},{-1,-4},{-1,4},{-1,-2},{-1,2},{0,-1},{0,1},{1,-2},{1,2},{1,-4},{1,4},{3,0},{5,0}}
+F={{0, 1, 4, 2}, {0, 1, 5, 3}, {8, 10, 13, 12}, {9, 11, 13, 12}, {1, 4, 6, 7, 5}, {2, 4, 6, 8, 10}, {3, 5, 7, 9, 11}, {6, 7, 9, 12, 8}}
+E={{0, 1}, {0, 2}, {0, 3}, {1, 4}, {1, 5}, {2, 4}, {2, 10}, {3, 5}, {3, 11}, {4, 6}, {5, 7}, {6, 7}, {6, 8}, {7, 9}, {8, 10}, {8, 12}, {9, 11}, {9, 12}, {10, 13}, {11, 13}, {12, 13}}
+assert(splineMatrix(V,F,E,0) == matrix {{1, -1, 0, 0, 0, 0, 0, 0, t_2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0}, {1, 0, 0, 0, -1, 0, 0, 0, 0, 3*t_0+t_1+t_2, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 3*t_0+t_1-t_2, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0,
+      t_0+t_1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, -1, 0, 0,
+      0, 0, 0, t_0+t_1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, -1, 0,
+      0, 0, 0, 0, 0, 0, t_0-t_1+t_2, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0,
+      1, 0, -1, 0, 0, 0, 0, 0, 0, 0, t_0-t_1-t_2, 0, 0, 0, 0, 0, 0, 0, 0}, {0,
+      0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, t_1, 0, 0, 0, 0, 0, 0, 0}, {0,
+      0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, t_0+t_1+t_2, 0, 0, 0, 0, 0,
+      0}, {0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_0+t_1-t_2, 0,
+      0, 0, 0, 0}, {0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      t_0-t_1, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 3*t_0-t_1+t_2, 0, 0, 0}, {0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, t_0-t_1, 0, 0}, {0, 0, 0, 1, 0, 0, 0, -1, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3*t_0-t_1-t_2, 0}, {0, 0, 1, -1, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_2}})
+assert(splineMatrix(V,F,E,0,Homogenize=>false) == matrix {{1, -1, 0, 0, 0, 0, 0, 0, t_2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0}, {1, 0, 0, 0, -1, 0, 0, 0, 0, t_1+t_2+3, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0}, {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, t_1-t_2+3, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0}, {1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, t_1+1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, t_1+1, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0,
+      t_1-t_2-1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0,
+      0, 0, 0, t_1+t_2-1, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, -1, 0,
+      0, 0, 0, 0, 0, 0, t_1, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, -1, 0,
+      0, 0, 0, 0, 0, 0, 0, t_1+t_2+1, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 1,
+      -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_1-t_2+1, 0, 0, 0, 0, 0}, {0, 0, 1, 0, 0,
+      -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_1-1, 0, 0, 0, 0}, {0, 0, 1, 0,
+      0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_1-t_2-3, 0, 0, 0}, {0, 0,
+      0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_1-1, 0, 0}, {0,
+      0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_1+t_2-3,
+      0}, {0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      t_2}})
+assert(isHereditary(F,E) === true)
+///
+
 
 end
-
-    K := ker AD;
-    b := max flatten B;
-    submatrix(gens K, toList(0..b),)
-
-	Example
-            R = QQ[x,y,z]
-	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
-            F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
-            E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
-    	    splineMatrix(V,F,E,1)
-        Text
-            Alternately, spline matrices can be created directly from the
-	    dual graph (with edges labeled by linear forms).
-	Example
-	    R = QQ[x,y]
-	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}
-	    L = {x-y,y,x,y-2*x,x+y}
-	    splineMatrix(B,L,1,InputType=>"ByLinearForms")

@@ -28,8 +28,12 @@ C2 = posHull matrix {{1,-1},{1,1}};
 --smallestContainingCone(F,C)
 --smallestContainingCone(F,C2)
 
-
-
+--input: fan1, source fan; fan2, target fan; M, matrix map of lattices
+--output: list of tuples {c,imC} where imC is the smallest cone in fan2
+--        containing the image of c (a cone in fan1) under the map M
+minImageCones = (fan2,fan1,M) -> (
+    return apply(maxCones(fan1),c->{c,smallestContainingCone(fan2,posHull(M*rays(c)))})
+);
 
 {* an attempt at non-recursion
 smallestContainingCone = (F,inputCone) -> (
@@ -49,12 +53,19 @@ smallestContainingCone = (F,inputCone) -> (
 
 
 
-{*
---input: M, a map of lattices; X and Y, source and target fans
---output: b, a boolean value, true iff M respects the fans
-isCompatible = (M,X,Y) -> (
-    for C in maxCones(X) do (
-        
+--input: M, a matrix; X and Y, source and target normal toric varieties
+--output: b, a boolean value, true iff M respects the fans of X and Y
+isCompatible = (Y,X,M) -> (
+    for Cx in maxCones(fan(X)) do (
+        xConeContained = false;
+        imCx = posHull(M*rays(Cx));
+        for Cy in maxCones(fan(Y)) do (
+            if contains(Cy,imCx) then (
+                xConeContained = true;
+                break;
+            );
+        );
+        if not xConeContained then return false;
     );
+    return true;
 );
-*}
