@@ -106,6 +106,7 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 )
 
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    print "here";
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary then (
 	    	    if not isHereditary(F,E) then (
