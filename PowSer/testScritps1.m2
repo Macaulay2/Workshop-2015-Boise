@@ -1,7 +1,5 @@
 
-
 --  some code here is modified from filtered complex code
-
 
 
 FilteredVectorSpace = new Type of HashTable
@@ -57,190 +55,58 @@ multiplyIdeals(Ideal,Ideal,Ideal) :=(I,J,K) ->(
 )
 
 
-----
-----
+FamilyOfIdeals := new Type of GradedModule  
 
-multiplyIdeals(I,I,I)
-multiplyIdeals(I,I,I^2)
+familyOfIdeals = method()
 
-----
+-- in the following want to assume input as list of ideals
+-- {I_1,I_2,dots, I_l} where I_i > I_(i+1) and we don't assume I_1 = R}
 
 
-R=QQ[x,y,z]
+familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
+    --- assume all ideals are defined over the same ring ---
+    H := new FamilyOfIdeals;
+    H.ring = (L#0).ring;
+    H#0 = H.ring; -- want H#0 to be our ambient ring
+    apply(#L, i-> H#(i+1) = L#i);
+    return H
+)
 
 
-I = ideal(x,y,z)
+spots = method()
+spots(HashTable) := (H) ->( 
+    select(keys H, i-> (class i) === ZZ)
+    )
 
-gens I
 
-I^2
+-- the following will extend the family of ideals by a suitable power
+-- of the last ideal of the list
+powerFamilyOfIdeals = method()
 
---
--- Want to construct the R-bilinear map I x I --> I^2, defined by (a,b) \mapsto ab 
+powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,i) -> (
+    L := spots(H);
+    I= H#(max L);
+    if i>=0 and L#?i then return H#i
+     else  return I^i
+    )
 
-I_{0}
-I_{1}
 
-I_{2}
 
-I_(0)
-I_(1)
-I_(2)
+-- want to write script to check of family of ideals {I_0,..,I_l} satisfies the conditions:
+-- (a) I_i > I_(i+1)
+-- (b) I_i I_j < I_(i+j) for all i,j
 
+checkHypothesis = method()
 
-image I_{0}**I_{1}
+checkHypothesis(FamilyofIdeals) := Boolean => (F) -> (
+	check:= true;
+	while check==true do (
+		for i from 0 to (#F)-1
+			(if isSubset(F#(i+1),F#i)==false then check:=false;))
+	while check==true do (
+		for i from 0 to (#F)-1(
+			for j from i+1 to #F
+				(if isSubset((F#i)*(F#j),F#(i+j))==false then check:=false;)))
+	if check==false then error"List does not satisfy hypothesis"
 
-id_(module I)
-
-I = module ideal vars R
-
-J = module ideal vars R
-
-K = module (ideal vars R)^2
-
-
-f = inducedMap(R^1,K,id_K)
-
-a = id_I
-
-b = id_J
-
-g = inducedMap(R^1,I,a)**inducedMap(R^1,I,b)
-
-target g
-
-g//f
-
-
-
-
-
-
-
-
-I_(1)*I_(2)
-
-matrix({{I_(1)*I_(2)}})
-
-map(K,R^1,matrix({{I_(1)*I_(2)}}))
-
-
-K=I^2
-
-map(K,R^1,matrix({{I_(1)*I_(2)}}))
-
-
-
-K_{4}
-K_(4)
-
-
-
-
-K_{0}
-K_{1}
-K_(0)
-K_(3)
-K_(4)
-K_(5)
-
-gens K
-
----
----
-
---AssociatedGradedObject = new Type of HashTable
-
---associatedGradedObject = method()
-
---associatedGradedObject(FilteredVectorSpace) := HashTable =>(V) -> (
--V--spots = keys V;
---gr := new HashTable from apply(spots, i-> i=> V^(i)/V^(i+1));
---return gr
---    )
-
-
---AssociatedGradedObject^ ZZ := Module =>(Gr, j) -> (
---    spots = keys Gr;
---    if spots#?j then return Gr#j else return $V
---    )
-
---
---
--- scratch test
-
-keys V
-
-k=QQ
-V=k^4
-f0=id_V
-V0=image f0
-f1=map(V,V,matrix(k,{{0,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,0}}))
-V1=image f1
-
-L={f0,f1}
-
-
-apply(#L,i->i)
-
-V = filteredVectorSpace({f0,f1})
-l = keys V
-
-V^2
-
-V^3
-
-V^4
-
-V^1
-
-V^(-1)
-
-V^(-2)
-
-V^0
-
-gr(V,0)
-gr(V,-1)
-gr(V,3)
-hilbertFunction(3,gr(V,2))
-hilbertFunction(3,V)
-
-hilbertFunction(V)
-
-R=k[x,y]
-
-W=R^{-1}++R^{-2}
-
-hilbertFunction(3,W)
-
-g0=id_W
-W0=image g0
-g1=map(W,W,matrix(R,{{0,0},{0,1}}))
-W1=image g1
-
-L={g0,g1}
-
-WW=filteredVectorSpace({g0,g1})
-
-gr(WW,1)
-
-hilbertFunction(4,gr(WW,1))
-
-hfgr(WW,2,2)
-
-hilbertSeries(gr(WW,1))
-
-hilbertSeries(gr(WW,3))
-
-R
-vars R
-
-S=QQ[a,b]
-
-hfgr(WW,2,2)*a^2*b^2
-
-
------
-
-
+)

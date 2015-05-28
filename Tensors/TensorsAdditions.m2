@@ -13,13 +13,15 @@ newPackage(
 	AuxiliaryFiles => true,
 	PackageExports => {
 	  "Tensors"
-	}
+	},
+        DebuggingMode => true 
 )
 
 export {
   symmetrize,
   tensorEigenvectors,
-  tensorToPolynomial
+  tensorToPolynomial,
+  multiplicationTensor
 }
 
 symmetrize = method()
@@ -30,20 +32,17 @@ symmetrize (Tensor) := (T) -> (
     (1_R/(d!))*(sum L)
 );
 
-contract (Tensor,List,List) := (T,K,L) -> (
-    D := tensorDims T;
-    KD := apply(K, k->D#k);
-    LD := apply(L, k->D#k);
-    if KD != LD then error "dimension mismatch";
-    Tslices := apply((#K:0)..<(toSequence KD), i-> (
-	    sliceList := new MutableList from (#D:null);
-	    scan(#K, j->(sliceList#(K#j) = i#j; sliceList#(L#j) = i#j));
-	    print T_(toList sliceList);
-	    T_(toList sliceList)
-	    ));
+contract (Tensor,Number,Number) := (T,k,l) -> (
+    d := #(tensorDims T);
+    n := (tensorDims T)#k;
+    m := (tensorDims T)#l;
+    assert(n == m);
+    Tslices := apply((0,0)..(n-1,n-1), ij-> (
+	sliceList := toList apply(d, p->(if p==k then ij#0 else if p==l then ij#1 else null));
+	T_sliceList
+	));
     sum toList Tslices
     );
-contract (Tensor,Number,Number) := (T,k,l) -> contract(T,{k},{l})
 
 tensorEigenvectors = method()
 tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
@@ -74,6 +73,24 @@ tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     f
     );
 
-tensorModule Tensor := T -> class T
+tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
+
+tensor Matrix := o -> M -> makeTensor entries M
+
+multiplicationTensor = method()
+multiplicationTensor Ring := R -> (
+    Bmatrix := basis R;
+    B := flatten entries Bmatrix;
+    K := coefficientRing R;
+    V := tensorModule(K, {#B});
+    L := for i from 0 to #B-1 list (
+	for j from 0 to #B-1 list (
+	    pVect := sub(last coefficients(B#i * B#j, Monomials=>Bmatrix), K);
+	    pTens := makeTensor flatten entries pVect;
+	    V_(1:i) ** V_(1:j) ** pTens
+	    )
+	);
+    sum flatten L
+    )
 
 end
