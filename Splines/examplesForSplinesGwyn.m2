@@ -9,8 +9,16 @@ V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
 F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
 E = {{0,1},{0,2},{0,3},{0,4},{0,5}}
 
-splineMatrix(V,F,E,0),CoefficientRing=>QQ)
-splineMatrix(V,F,E,0,Homogenize=>false)
+
+splineMatrix(B,L,1,InputType=>"ByLinearForms")
+splineModule(B,L,1,InputType=>"ByLinearForms")
+
+
+splineModule(V,F,0,Homogenize=>false,CoefficientRing=>ZZ/3)
+
+
+splineMatrix(V,F,0,Homogenize=>true)
+
 
 toExternalString o20
 
