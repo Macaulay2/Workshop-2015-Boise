@@ -1,0 +1,9 @@
+restart
+R = QQ[x,t];
+S= QQ[A,B,C];
+
+F=map(R,S,{x,x^2*t,x^3*t^2})
+
+ker F
+
+T=S/(ker F)
