@@ -35,22 +35,24 @@ minImageCones = (fan2,fan1,M) -> (
     return apply(maxCones(fan1),c->{c,smallestContainingCone(fan2,posHull(M*rays(c)))})
 );
 
-{* an attempt at non-recursion
-smallestContainingCone = (F,inputCone) -> (
-    firstTime = true;
-    currentFan = F;
-    while true do (
-        for C in maxCones(currentFan) do (
-            if contains(C,inputCone) then (
-                currentFan = fan(C);
-                break;
-            )
-        )
-        firstTime = false
-    )
-    if firstTime then error "-- input cone is not contained in any cone of fan";
-*}
 
+maxContainingCone = (F,inputCone) -> (
+    for C in maxCones(F) do (
+        if contains(C,inputCone) then (
+            return C;
+        );
+    );
+    {*  if we've gotten this far, then inputCone isn't contained
+        in any of the maximal cones of F, i.e. bad input  *}
+    error "-- input cone is not contained in any cone of fan";
+);
+
+
+--For each maximal cone C of fan1, returns a maximal cone from fan2
+--that contains the image of C under M
+maxImageCones =  (fan2,fan1,M) -> (
+    return apply(maxCones(fan1),c->maxImageCones(fan2,posHull(M*rays(c))))
+);
 
 
 --input: M, a matrix; X and Y, source and target normal toric varieties
