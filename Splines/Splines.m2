@@ -483,7 +483,7 @@ doc ///
         Text
             @SUBSECTION "Other acknowledgements"@
             --
-            Methods in this package are put together from code written by Hal Schenck
+            Methods in this package borrows heavily from code written by Hal Schenck
 	    and Mike DiPasquale.
 ///
 
@@ -606,19 +606,3 @@ assert(isHereditary(F,E) === true)
 
 
 end
-
-
-	Example
-            R = QQ[x,y,z]
-	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
-            F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
-            E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
-    	    splineMatrix(V,F,E,1)
-        Text
-            Alternately, spline matrices can be created directly from the
-	    dual graph (with edges labeled by linear forms).
-	Example
-	    R = QQ[x,y]
-	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}
-	    L = {x-y,y,x,y-2*x,x+y}
-	    splineMatrix(B,L,1,InputType=>"ByLinearForms")
