@@ -21,4 +21,4 @@ callqcalc = (r,n,expr) -> (
     getTerms(runMaple(maple,mapleScript))   
 )
 
--- try something like : callqcalc(3,7,"qtoS(S[2,1]^4")
+-- try something like : callqcalc(3,7,"S[2,1]^4")
