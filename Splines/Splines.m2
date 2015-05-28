@@ -25,7 +25,10 @@ newPackage select((
         Headline => "Package for computing topological boundary maps and piecewise continuous splines on polyhedral complexes.",
         Configuration => {},
         DebuggingMode => true,
-        if version#"VERSION" > "1.4" then PackageExports => {}
+        if version#"VERSION" > "1.4" then PackageExports => {
+	    "Polyhedra",
+	    "Graphs"
+	    }
         ), x -> x =!= null)
 
 if version#"VERSION" <= "1.4" then (
@@ -39,14 +42,10 @@ export {
    "InputType",
    "ByFacets",
    "ByLinearForms",
+   "isHereditary",
    "CheckHereditary",
    "Homogenize",
-   "VariableName",
-   "inducedSubgraph",
-   "graph",
-   "isConnected",
-   "EntryMode",
-   "getSize"
+   "VariableName"
     }
 
 ------------------------------------------
@@ -70,7 +69,7 @@ isHereditary(List,List) := Boolean => (F,E) -> (
     V := unique flatten join F;
     dualV := toList(0..#F-1);
     dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
-    if not all(dualE,e-> #e===2) then (
+    if not all(dualE,e-> #e > 2) then (
 	false -- Checks pseudo manifold condition
       ) else (
       dualG := graph(dualE,EntryMode=>"edges");
@@ -109,7 +108,7 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary then (
-	    	    if not isHereditary(V,F) then (
+	    	    if not isHereditary(F,E) then (
 			error "Not hereditary."
 			);
 	    	    );
@@ -228,8 +227,8 @@ INTgetSize(List) := ZZ => vectors ->(
 INTisSimplicial = method();
 -- Assumes that the inputted complex is pure
 INTisSimplicial(List,List) := Boolean => (vertices, facets) ->(
-    n := getSize(vertices);
-    f := getSize(facets);
+    n := INTgetSize(vertices);
+    f := INTgetSize(facets);
     if not instance(n, Nothing) and not instance(f,Nothing) and n + 1 == f then true
     else(
 	if instance(n, Nothing) then print "Vertices have inconsistent dimension."
