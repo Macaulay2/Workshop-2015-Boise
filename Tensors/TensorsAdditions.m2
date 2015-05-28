@@ -71,4 +71,6 @@ tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     f
     );
 
+tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
+
 end
