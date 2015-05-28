@@ -69,7 +69,7 @@ isHereditary(List,List) := Boolean => (F,E) -> (
     V := unique flatten join F;
     dualV := toList(0..#F-1);
     dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
-    if not all(dualE,e-> #e > 2) then (
+    if not all(dualE,e-> #e <= 2) then (
 	false -- Checks pseudo manifold condition
       ) else (
       dualG := graph(dualE,EntryMode=>"edges");
@@ -106,6 +106,7 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 )
 
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    print "here";
     if opts.InputType === "ByFacets" then (
 		if opts.CheckHereditary then (
 	    	    if not isHereditary(F,E) then (
