@@ -45,7 +45,10 @@ export {
    "isHereditary",
    "CheckHereditary",
    "Homogenize",
-   "VariableName"
+   "VariableName",
+   "getCodimIFacesPolytope",
+   "getCodimIFacesSimplicial",
+   "interiorFaces"
     }
 
 ------------------------------------------
@@ -102,6 +105,32 @@ interiorFaces(List,List) := List => (F,E) -> (
     E_indx
     )
 
+
+getCodim1FacesPolytope = method()
+getCodim1FacesPolytope(List) := List => F ->(
+    --This function ASSUMES that the polytopal complex 
+    --considered is hereditary.
+    n := #F;
+    --For each pair of facets, take their intersection:
+    intersectFacets := unique flatten apply(#F-1, i-> apply(toList(i+1..#F-1), j-> sort select(F_i, v-> member(v,F_j))));
+    --Remove any non-maximal faces in this intersections:
+    select(intersectFacets, f -> (
+    	(number(intersectFacets, g-> all(f, j-> member(j,g)))) === 1
+    ))
+)
+
+getCodimIFacesPolytope = method()
+getCodimIFacesPolytope(List,ZZ) := List => (F,d) ->(
+    Fcodim := F;
+    apply(d, i-> Fcodim = getCodim1FacesPolytope(Fcodim));
+    Fcodim
+    )
+
+getCodimIFacesSimplicial = method()
+getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
+    d := getSize(F);
+    unique flatten apply(F, f-> subsets(f,d-i))
+    )
 
 -----------------------------------------
 -----------------------------------------
@@ -191,8 +220,8 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
-	if INTisSimplicial(V,F) then(
-	  E := INTgetCodim1Intersections(F);
+	if isSimplicial(V,F) then(
+	  E := getCodim1Intersections(F);
 	  SM := splineMatrix(V,F,E,r,InputType=>"ByFacets")  
 	    )
 	else(
@@ -206,7 +235,7 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     m := max flatten B;
     A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
     D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
-    SM := A|D;
+    SM = A|D;
     );
     SM
 )
@@ -225,10 +254,10 @@ splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 
 --Interior Methods used in SplineMatrix--
 
-INTgetCodim1Intersections = method();
+getCodim1Intersections = method();
 -- Input: facets of a pure simplicial complex (as lists of vertices)
 -- Output: the codimension-1 intersections
-INTgetCodim1Intersections(List) := List => F ->(
+getCodim1Intersections(List) := List => F ->(
     n := #F;
     d := #(F_0);
     --For each non-final facet, construct all codimension 1 subsets.
@@ -242,8 +271,8 @@ INTgetCodim1Intersections(List) := List => F ->(
 )
 
 
-INTgetSize = method();
-INTgetSize(List) := ZZ => vectors ->(
+getSize = method();
+getSize(List) := ZZ => vectors ->(
     --Alternately, you could replace this code with line:
     if all(vectors, v-> #v == #(vectors_0)) then #vectors_0 else null
     --n := #(vectors_0);
@@ -255,11 +284,11 @@ INTgetSize(List) := ZZ => vectors ->(
 
 
 
-INTisSimplicial = method();
+issimplicial = method();
 -- Assumes that the inputted complex is pure
-INTisSimplicial(List,List) := Boolean => (vertices, facets) ->(
-    n := INTgetSize(vertices);
-    f := INTgetSize(facets);
+issimplicial(List,List) := Boolean => (vertices, facets) ->(
+    n := getSize(vertices);
+    f := getSize(facets);
     if not instance(n, Nothing) and not instance(f,Nothing) and n + 1 == f then true
     else(
 	if instance(n, Nothing) then print "Vertices have inconsistent dimension."
