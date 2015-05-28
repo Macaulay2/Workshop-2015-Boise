@@ -10,7 +10,8 @@
 ------------------------------------------
 
 if version#"VERSION" <= "1.4" then (
-    needsPackage "Polyhedra"
+    needsPackage "Polyhedra",
+    needsPackage "Graphs"
     )
 
 newPackage select((
@@ -28,7 +29,8 @@ newPackage select((
         ), x -> x =!= null)
 
 if version#"VERSION" <= "1.4" then (
-    needsPackage "Polyhedra"
+    needsPackage "Polyhedra",
+    needsPackage "Graphs"
     )
 
 export {
@@ -39,7 +41,12 @@ export {
    "ByLinearForms",
    "CheckHereditary",
    "Homogenize",
-   "VariableName"
+   "VariableName",
+   "inducedSubgraph",
+   "graph",
+   "isConnected",
+   "EntryMode",
+   "getSize"
     }
 
 ------------------------------------------
@@ -132,7 +139,7 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 	mM := numrows M;
 	minorList := apply(E, e-> gens gb minors(mM,M_e|varCol));
 	if any(minorList, I-> ideal I === ideal 1) then (
-	    error return "Some vertices on entered face are not in codimension 1 face."
+	    error "Some vertices on entered face are not in codimension 1 face."
 	    );
 	T := diagonalMatrix(flatten apply(minorList, m -> (m_(0,0))^(r+1)));
 	splineM := BM|T;
@@ -163,19 +170,19 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
 	if INTisSimplicial(B,L) then(
-	  E=INTgetCodim1Intersections(List);
+	  E := INTgetCodim1Intersections(List);
 	  splineMatrix(B,L,E,r,InputType=>"ByFacets")  
 	    )
 	else(
 	    print "Polyhedral complex is not simplicial."
-	    )
+	    );
 	
 	--Function should compute E automatically, pretending it's simplicial or polytopal
 	
 	--Write function to compute E (given S or P complexes) here.
 	--splineMatrix(B,L,E,r)
 	print "'ByFacets' option not implemented yet for inputs (V,F,r)."
-	)
+	);
     --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
     m := max flatten B;
@@ -197,11 +204,11 @@ INTgetCodim1Intersections = method();
 -- Input: facets of a pure simplicial complex (as lists of vertices)
 -- Output: the codimension-1 intersections
 INTgetCodim1Intersections(List) := List => facets ->(
-    G = {};
+    G := {};
     for i from 0 to #facets-2 do(
-    	f = facets_i;
+    	f := facets_i;
     	for j from 0 to #f-1 do(
-            g = drop(f,{j,j});
+            g := drop(f,{j,j});
             if not instance(position(drop(facets,i+1),B ->
 		    isSubset(g,B)),Nothing) then G = append(G,g);
     	    ) -- end for

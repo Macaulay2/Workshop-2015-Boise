@@ -1,5 +1,6 @@
 restart
 --Put your own Splines address here before running.
+loadPackage("Graphs",FileName=>"/Users/whieldon/Macaulay2/Workshop-2015-Boise/Splines/Graphs.m2")
 installPackage("Splines",FileName=>"/Users/whieldon/Macaulay2/Workshop-2015-Boise/Splines/Splines.m2")
 
 
