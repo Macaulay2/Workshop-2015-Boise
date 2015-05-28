@@ -99,16 +99,13 @@ splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
 	)
 )
 
-<<<<<<< HEAD
-splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,f,r) -> (
-    print "here"
-=======
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
->>>>>>> origin/master
     if opts.InputType === "ByFacets" then (
-		if opts.CheckHereditary === true then (
-	    --put hereditary check here.
-	    );
+		if opts.CheckHereditary then (
+	    	    if not isHereditary(V,F) then (
+			error "Not hereditary."
+			);
+	    	    );
 	d := # (first V);
 	--Compute which facets are adjacent to each edge:
 	facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
@@ -123,7 +120,7 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 	--If not homogenizing, leave vertex coordinates V as is.
 	t := opts.VariableName;
 	V = apply(V, v-> append(v,1));
-	if opts.Homogenize === true then (
+	if opts.Homogenize then (
 	    S := (opts.CoefficientRing)[t_0..t_d];
 	    varlist := (vars S)_(append(toList(1..d),0));
 	    ) else (
