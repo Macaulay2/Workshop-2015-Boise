@@ -57,6 +57,31 @@ multiplyIdeals(Ideal,Ideal,Ideal) :=(I,J,K) ->(
 )
 
 
+FamilyOfIdeals := new Type of GradedModule  
+
+familyOfIdeals = method()
+
+-- in the following want to assume input as list of ideals
+-- {I_1,I_2,dots, I_l} where I_i > I_(i+1) and we don't assume I_1 = R}
+
+
+familyOfIdeals(List) := FamilyOfIdeals => (L) -> (
+    --- assume all ideals are defined over the same ring ---
+    H := new Type of FamilyOfIdeals;
+    H.ring = (L#0).ring;
+    H#0 = H.ring; -- want H#0 to be our ambient ring
+    apply(#L, i-> H#(i+1) = L#i);
+    return H
+)
+
+
+familyOfIdeals(L)
+
+
+--
+--
+L={I,I^2,I^3}
+
 ----
 ----
 
