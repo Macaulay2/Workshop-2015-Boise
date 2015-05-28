@@ -78,10 +78,33 @@ isHereditary(List,List) := Boolean => (F,E) -> (
       all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
       )
 )
+
 -----------------------------------------
 -----------------------------------------
+--Inputs: 
+-----------------------------------------
+--F = list of facets
+--E = list of codimension 1 faces
+-- (possibly including non-interior)
+-----------------------------------------
+-----------------------------------------
+--Outputs:
+-----------------------------------------
+--E' = list of interior edges
+-----------------------------------------
+interiorFaces = method()
+interiorFaces(List,List) := List => (F,E) -> (
+    --Compute which facets are adjacent to each edge:
+    facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    --Compute indices of interior edges, and replace edge list and 
+    --facet adjacencies to only include these interior edges:
+    indx := positions(facetEdgeH, i-> #i === 2);
+    E_indx
+    )
 
 
+-----------------------------------------
+-----------------------------------------
 splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol CheckHereditary => false, 
