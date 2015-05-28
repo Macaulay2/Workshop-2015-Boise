@@ -77,7 +77,9 @@ pieritest = (p, l, r, yt) -> (
     if r == 0 then (
         return {{yt#0+p}}	
     );
-    ilist := reverse(toList(max(0,p-yt#0+yt#r)..min(p,l-yt#0)));
+    b:=0;
+    if #yt==r+1 then b=yt#r;
+    ilist := reverse(toList(max(0,p-yt#0+b)..min(p,l-yt#0)));
     --<< "our ilist: " << toString ilist << endl;
     sublist := apply(ilist, i -> (
         M :=  pieritest(p-i,yt#0,r-1,drop(yt,1));
@@ -94,4 +96,9 @@ time pieritest(4,6,5,{4,2,2,1});
 -- used 0.000229 seconds
 time pieritest(10,20,10,{9,8,8,6,4,4,3,2,0});
 -- used 0.004343 seconds
-}*
+
+Additional test:
+pieritest(1,2,1,{2,2}) should be {}
+*}
+
+
