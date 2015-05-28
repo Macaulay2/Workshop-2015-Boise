@@ -166,24 +166,21 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 ------------------------------------------
 
 
-splineMatrix(List,List,ZZ) := Matrix => opts -> (B,L,r) ->(
+splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
     --Warn user if they are accidentally using ByFacets method with too few inputs.
     if opts.InputType === "ByFacets" then (
-	if INTisSimplicial(B,L) then(
-	  E := INTgetCodim1Intersections(List);
-	  splineMatrix(B,L,E,r,InputType=>"ByFacets")  
+	if INTisSimplicial(V,F) then(
+	  E := INTgetCodim1Intersections(F);
+	  splineMatrix(V,F,E,r,InputType=>"ByFacets")  
 	    )
 	else(
 	    print "Polyhedral complex is not simplicial."
 	    );
-	
-	--Function should compute E automatically, pretending it's simplicial or polytopal
-	
-	--Write function to compute E (given S or P complexes) here.
-	--splineMatrix(B,L,E,r)
 	);
     --If user DOES want to define complex by regions and dual graph.
     if opts.InputType === "ByLinearForms" then (
+    B := V;
+    L := F;
     m := max flatten B;
     A := matrix apply(B, i-> apply(toList(0..m), j-> if (j=== first i) then 1 else if (j===last i) then -1 else 0));
     D := matrix apply(#L, i-> apply(#L, j-> if i===j then L_i^(r+1) else 0));
@@ -215,14 +212,19 @@ INTgetCodim1Intersections(List) := List => F ->(
 		f-> all(s, v-> member(v,f)))))
 )
 
+
 INTgetSize = method();
 INTgetSize(List) := ZZ => vectors ->(
+    --Alternately, you could replace this code with line:
+    -- if all(vectors, v-> #v == #(vectors_0)) then #vectors_0 else null
     n := #(vectors_0);
     if instance(position(vectors,v->#v != n),Nothing) then return n
     else(
 	return null
     )
 )
+
+
 
 INTisSimplicial = method();
 -- Assumes that the inputted complex is pure
