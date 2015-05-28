@@ -17,7 +17,8 @@ newPackage(
 )
 
 export {
-  symmetrize
+  symmetrize,
+  tensorEigenvectors
 }
 
 symmetrize = method()
@@ -34,7 +35,7 @@ contract (Tensor,Number,Number) := (T,k,l) -> (
 	sliceList := toList apply(d, p->(if p==k then ij#0 else if p==l then ij#1 else null));
 	T_sliceList
 	));
-    sum Tslices
+    sum toList Tslices
     );
 
 tensorEigenvectors = method()
@@ -50,6 +51,6 @@ tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
 	v#(ind#k) = v#(ind#k) + sub(T_ind,S)*mon;
 	);
     minors(2, matrix{toList v, gens S})
-    )
+    );
 
 end
