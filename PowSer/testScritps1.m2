@@ -92,6 +92,8 @@ powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,i) -> (
 
 
 
-
+-- want to write script to check of family of ideals {I_0,..,I_l} satisfies the conditions:
+-- (a) I_i > I_(i+1)
+-- (b) I_i I_j < I_(i+j) for all i,j
 
 
