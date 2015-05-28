@@ -53,8 +53,21 @@ smallestContainingCone = (F,inputCone) -> (
 --input: M, a map of lattices; X and Y, source and target fans
 --output: b, a boolean value, true iff M respects the fans
 isCompatible = (M,X,Y) -> (
+<<<<<<< HEAD
+    for Cx in maxCones(fan(X)) do (
+        xConeContained = false;
+        imCx = posHull(M*rays(Cx));
+        for Cy in maxCones(fan(Y)) do (
+            if contains(Cy,imCx) then (
+                xConeContained = true;
+                break;
+            );
+        );
+        if not xConeContained then return false;
+=======
     for C in maxCones(X) do (
         
+>>>>>>> dd08705d036aa06df811bbadf97e08df55daf7f8
     );
 );
 *}
