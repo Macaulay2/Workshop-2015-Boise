@@ -187,5 +187,4 @@ polynomialToTensor (RingElement ) := (f) -> (
     symmetrize(sum T)
     )
 
-
 end

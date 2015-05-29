@@ -480,6 +480,11 @@ doc ///
         Text
             This package provides methods for computations with piecewise polynomial functions (splines) over
 	    polytopal complexes.
+    	Text
+	    @SUBSECTION "Definitions"@
+	    If $\Delta \subseteq {\mathbb R}^n$ is a heredetary (polytopal, simplicial, etc) complex, 
+	    a spline $f \in S_d^{r+1}(\Delta)$ is a function such that $f$ is polynomial of degree
+	    $d$ on each facet $\sigma\in\Delta$ and $f$ has smoothness $r$ ($f\in C^{r}$.)
         Text
             @SUBSECTION "Other acknowledgements"@
             --
@@ -505,7 +510,7 @@ doc ///
         compute matrix giving adjacent regions and continuity level
     Usage
     	S = splineMatrix(V,F,E,r)
-	S = splineMatrix(B,L,r)
+	S = splineMatrix(B,L,r,InputType=>"ByLinearForms")
     Inputs
     	V:List
 	    list of coordinates of vertices of Delta
@@ -527,8 +532,10 @@ doc ///
     Description
         Text
 	    This creates the basic spline matrix that has splines as
-	    its kernel.
+	    its kernel. Note that the ambient ring of the appropriate
+	    dimension needs to be defined.
 	Example
+	    R = QQ[x,y,z]
 	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
             F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
             E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
