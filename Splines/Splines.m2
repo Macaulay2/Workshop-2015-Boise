@@ -368,7 +368,7 @@ splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
 	K := ker AD;
 	b := #F;
-    	submatrix(gens K, toList(0..b-1),)
+    	image submatrix(gens K, toList(0..b-1),)
 )
 
 ------------------------------------------
@@ -391,7 +391,7 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
     	AD := splineMatrix(V,F,r,opts);
 	K := ker AD;
 	b := #F;
-    	submatrix(gens K, toList(0..b-1),)
+    	image submatrix(gens K, toList(0..b-1),)
 )
 
 ------------------------------------------
@@ -478,8 +478,13 @@ doc ///
         a package for building splines and computing bases
     Description
         Text
-            This package computing topological boundary maps and piecewise 
-	    continuous splines on polyhedral complexes.
+            This package provides methods for computations with piecewise polynomial functions (splines) over
+	    polytopal complexes.
+    	Text
+	    @SUBSECTION "Definitions"@
+	    If $\Delta \subseteq {\mathbb R}^n$ is a heredetary (polytopal, simplicial, etc) complex, 
+	    a spline $f \in S_d^{r+1}(\Delta)$ is a function such that $f$ is polynomial of degree
+	    $d$ on each facet $\sigma\in\Delta$ and $f$ has smoothness $r$ ($f\in C^{r}$.)
         Text
             @SUBSECTION "Other acknowledgements"@
             --
@@ -505,12 +510,12 @@ doc ///
         compute matrix giving adjacent regions and continuity level
     Usage
     	S = splineMatrix(V,F,E,r)
-	S = splineMatrix(B,L,r)
+	S = splineMatrix(B,L,r,InputType=>"ByLinearForms")
     Inputs
     	V:List
 	    list of coordinates of vertices of Delta
 	F:List
-	    list of oriented facets of Delta
+	    list of facets of Delta
 	E:List
 	    list of edges of Delta
 	r:ZZ
@@ -537,7 +542,8 @@ doc ///
     	    splineMatrix(V,F,E,1)
         Text
             Alternately, spline matrices can be created directly from the
-	    dual graph (with edges labeled by linear forms).
+	    dual graph (with edges labeled by linear forms).  Note: This way of
+	    entering data requires the ambient polynomial ring to be defined.
 	Example
 	    R = QQ[x,y]
 	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}

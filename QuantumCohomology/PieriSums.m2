@@ -62,12 +62,56 @@ pieriSecondSum = (p,r,l,yt) -> (
     apply(#C, i-> complementaryDiagram(r,yt#0,C_i))  
 );
 
+{*
+Format for an element: list of pairs
+{coefficient as an element in QQ[q], partition as a list of integers}
+
+L= { {1+q,{2,1,1}}, {-3,{3,2}} }
+
+*}
+
+--let Y be the name in our package for the quantum coefficient ring, probably either ZZ[q] or QQ[q]
+quantumPieriOneTerm = (p,r,l,T,Y) -> (
+    P1:=pieriFirstSum(p,r,l,T_1);    
+    P2:=pieriSecondSum(p,r,l,T_1);
+    P1=apply(#P1, i -> {T_0,delete(0,P1_i)});
+    P2=apply(#P2, i -> {(Y_0)*(T_0),delete(0,P2_i)});
+    return flatten {P1,P2}
+);
+
+simplify = (L) -> (
+    H:=partition(last,L);
+    L=apply(keys H, k -> {first sum(H#k), k});
+    select(L, k -> first k != 0)
+    --delete(null, apply(#L, i -> if L_i_0 != 0 then L_i))
+);
+
+
+    
+--Do each term, then combine them
+quantumPieri = (p,r,l,L,Y) -> (
+    if p==0 then return simplify L;
+    simplify flatten apply(#L, i -> quantumPieriOneTerm(p,r,l,L_i,Y))
+);
 
 end
 
 restart
 break
-load "PieriSecondSum.m2"
+load "PieriSums.m2";
+Y = QQ[q];
+L = { {1+q,{5,1,1}}, {-3,{3,2}} };
+quantumPieriOneTerm(2,2,5,L_0,Y)
+quantumPieri(2,2,5,L,Y)
+
+Z = { {1+q,{5,1,1}}, {-3,{3,2}}, {-3+q^2,{5,1,1} }};
+simplify(Z)
+Z = { {1+q,{5,1,1}}, {-3,{3,2}}, {-1-q,{5,1,1} }};
+
+
+
+
+
 complementaryDiagram(2,5,{4,3,2})
 complementaryDiagram(3,2,{2,2,1})
 

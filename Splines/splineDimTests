@@ -1,0 +1,37 @@
+-------------------------------------------
+-------------------------------------------
+splineDimTable=method();
+-------------------------------------------
+-------------------------------------------
+----- splineDimTable 
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- "ByModule"
+----- a= lower bound of dim table
+----- b= upper bound of dim table
+----- M= module
+--- OR!!!
+----- "ByFacets"
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list of {V,E,F}, list of vertices, edges and faces
+----- r= degree of desired continuity
+------ Functions that work go below this line
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ A hashTable with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+
+splineDimTable(ZZ,ZZ,Module):= (a,b,M)->(
+    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    )
+splineDimTable(ZZ,ZZ,List,ZZ):= (a,b,L,r)->(
+    M := splineModule(L_0,L_1,L_2,r);
+    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    )
+
+
+
+
