@@ -32,7 +32,7 @@ gameRepresentation(SimplicialComplex,List,List) := String => (Delta,L,R) -> (
 	    --print H;
     	    dummyH = merge(dummyH,Hnew,join);
 	    );
-	print H;
+	--print H;
 	H#(sub(1,ring Delta))
 	)
     else "Variables of Delta not bi-partitioned."
