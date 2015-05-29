@@ -13,7 +13,7 @@ newPackage ("ToricMaps",
 --needsPackage("NormalToricVarieties");
 load "coneContain.m2";
 
-export{"ToricMap","toricMap","pullback"
+export{"ToricMap","checkCompatibility","toricMap","pullback"
 		}
 
 -----------
@@ -35,20 +35,20 @@ globalAssignment ToricMap
 -- COMMENTS: The matrix M describes a fan-compatible linear map from the one-parameter subgroup lattice 
 -- of X to the one-parameter subgroup lattice of Y
 
-toricMap = method(Options => {})
+toricMap = method(Options => {checkCompatibility => true})
 
 
 -- toricMap still needs a check for whether the map of lattices is
 -- compatible with the fans defining the toric varieties.
 
-toricMap (NormalToricVariety, NormalToricVariety, Matrix) := opts -> (Y,X,M) -> (
+toricMap (NormalToricVariety, NormalToricVariety, Matrix) := ToricMap => opts -> (Y,X,M) -> (
 
 		n := dim X;
 		m := dim Y;
 		if not ((numRows M == m) and (numColumns M == n)) then (
 			error ("expected a "| toString m | "x" | toString n | " matrix.");
 			)
-		else if not isCompatible(Y,X,M) then (
+		else if (opts.checkCompatibility and not isCompatible(Y,X,M)) then (
 			error "Lattice map not compatible with fans."
 			)
 		else(
@@ -112,7 +112,6 @@ pullback (ToricMap, ToricDivisor) := (f, D) -> (
 		maximalCones := max X2;
 		numCones := length maximalCones;
         l := toList(apply(0..(numCones-1), i -> (maximalCones_i,cdat_i)));
-        print l;
 		cartierDict := hashTable(l);
         pullbackDict := new MutableHashTable;
         for C in max source f do (
