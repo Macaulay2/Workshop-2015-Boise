@@ -14,6 +14,9 @@ newPackage(
 	PackageExports => {
 	  "Tensors"
 	},
+    	PackageImports => {
+	    "PHCpack"
+	    },
         DebuggingMode => true 
 )
 
@@ -21,7 +24,16 @@ export {
   symmetrize,
   tensorEigenvectors,
   tensorToPolynomial,
-  multiplicationTensor
+  tensorToMultilinearForm,
+  multiplicationTensor,
+  eigenDiscriminant,
+<<<<<<< HEAD
+  tensorEigenvectorsCoordinates,
+  isSymmetric
+=======
+  tensorEigenvectorsCoordinate,
+  polynomialToTensor
+>>>>>>> 509061b12f225378053a0a496cff6d1aabe12e25
 }
 
 symmetrize = method()
@@ -31,6 +43,14 @@ symmetrize (Tensor) := (T) -> (
     L := apply(permutations d, p->T@p);
     (1_R/(d!))*(sum L)
 );
+
+isSymmetric = method()
+isSymmetric Tensor := T -> (
+    D := tensorDims T;
+    if not all(#D, i->D#i == D#0) then return false;
+    S := permutations(#D);
+    all(S, s->T@s == T)
+    )
 
 contract (Tensor,Number,Number) := (T,k,l) -> (
     d := #(tensorDims T);
@@ -45,33 +65,75 @@ contract (Tensor,Number,Number) := (T,k,l) -> (
     );
 
 tensorEigenvectors = method()
-tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
+tensorEigenvectors (Tensor,Number,Ring,RingElement) := (T,k,S,x) -> (
     R := ring T;
     d := tensorDims T;
     n := d#0;
-    S := R[apply(n,i->x_i)];
+    xpos := position(gens S, y->y==x);
     v := new MutableList from (n:0_S);
     for ind in (#d:0)..(#d:n-1) do (
-	monList := toList apply(#ind, j->(if j != k then S_(ind#j) else 1_S));
+	monList := toList apply(#ind, j->(if j != k then S_(xpos + ind#j) else 1_S));
 	mon := product monList;
 	v#(ind#k) = v#(ind#k) + sub(T_ind,S)*mon;
 	);
-    minors(2, matrix{toList v, gens S})
+    minors(2, matrix{toList v, take(gens S,{xpos,xpos + numgens S - 1})})
+    );
+tensorEigenvectors (Tensor,Number,Ring) := (T,k,S) -> tensorEigenvectors (T,k,S,S_0)
+tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
+    R := ring T;
+    n := (tensorDims T)#0;
+    S := R[apply(n,i->x_i)];
+    tensorEigenvectors(T,k,S,S_0)
     );
 
 tensorToPolynomial = method()
 tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     R := ring T;
-    d := tensorDims T;
-    n := d#0;
+    D := tensorDims T;
+    if not all(#D, i->(D#i == D#0)) then error "tensor is not square";
+    n := D#0;
     S := R[apply(n,i->x_i)];
+    tensorToPolynomial(T,S,S_0)
+    );
+tensorToPolynomial (Tensor,Ring) := (T,S) -> tensorToPolynomial(T,S,S_0)
+tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
+    R := ring T;
+    D := tensorDims T;
+    n := D#0;
+    xpos := position(gens S, y->y==x);
     f := 0_S;
-    for ind in (#d:0)..(#d:n-1) do (
-	mon := product toList apply(#ind, j->S_(ind#j));
+    for ind in (#D:0)..(#D:n-1) do (
+	mon := product toList apply(#ind, j->S_(xpos + ind#j));
 	f = f + sub(T_ind,S)*mon;
 	);
     f
     );
+
+tensorToMultilinearForm = method()
+tensorToMultilinearForm (Tensor,Ring) := (T,S) -> tensorToMultilinearForm(T,S,S_0)
+tensorToMultilinearForm (Tensor,Ring,RingElement) := (T,S,x) -> (
+    D := tensorDims T;
+    vs := gens S;
+    xpos := position(vs, y->y==x);
+    varLists := for n in D list (
+	take(vs, {xpos, xpos + n -1})) do (
+	xpos = xpos + n;
+	);
+    f := 0_S;
+    for ind in (#D:0)..<(toSequence D) do (
+	mon := product toList apply(#ind, j->varLists#j#(ind#j));
+	f = f + sub(T_ind,S)*mon;
+	);
+    f
+    );
+tensorToMultilinearForm (Tensor,Symbol) := (T,x) -> (
+    R := ring T;
+    D := tensorDims T;
+    varList := flatten apply(#D, i->apply(D#i, j->x_(i,j)));
+    S := R[varList];
+    tensorToMultilinearForm(T,S)
+    )
+    
 
 tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
 
@@ -91,6 +153,53 @@ multiplicationTensor Ring := R -> (
 	    )
 	);
     sum flatten L
+    )
+
+
+eigenDiscriminant = method()
+eigenDiscriminant (Number,Number,Ring) := (n,d,Sa) -> (
+    K := coefficientRing Sa;
+    x := symbol x;
+    vx := toList apply(n,i->x_i);
+    vs := gens Sa;
+    S := K[vs,vx];
+    vx = take(gens S, -n);
+    vs = take(gens S, n^d);
+    T := genericTensor(S,toList (d:n));
+    I := tensorEigenvectors(T,0,S,first vx);
+    jj := diff(transpose matrix{vx},gens I);
+    singI := minors(n-1,jj)+I;
+    J := saturate(singI,ideal vx);
+    sub(eliminate(vx,J),Sa)
+    )
+
+tensorEigenvectorsCoordinates = method()
+tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
+    n := (tensorDims T)#0;
+    I := tensorEigenvectors(T,k,x);
+    R := ring I;
+    S := CC[toSequence entries vars R];
+    J := sub(I,S);
+    rr := (vars S | matrix{{1_S}})*transpose random(CC^1,CC^(n+1));
+    L := J + ideal rr;
+    F := first entries gens L;
+    solveSystem(F)
+    )
+
+
+polynomialToTensor = method()
+polynomialToTensor (RingElement ) := (f) -> (
+    d := degree f;
+    n := numgens ring f;
+    M := tensorModule(QQ, toList(d_0:n));
+    T := apply(terms f, m -> (
+	    c := leadCoefficient m;
+	    j := toSequence(flatten apply(#(exponents m)_0, 
+		i -> toList(((exponents m)_0)_i:i)
+		));
+	    c*M_j
+	    ));
+    symmetrize(sum T)
     )
 
 end

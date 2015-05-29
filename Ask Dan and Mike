@@ -1,0 +1,726 @@
+Macaulay2, version 1.7.0.1
+with packages: ConwayPolynomials, Elimination, IntegralClosure, LLLBases,
+               PrimaryDecomposition, ReesAlgebra, TangentCone
+
+i1 : x_(0,0) .. x_(2,4)
+
+o1 = (x   , x   , x   , x   , x   , x   , x   , x   , x   , x   , x   , x   , x   ,
+       0,0   0,1   0,2   0,3   0,4   1,0   1,1   1,2   1,3   1,4   2,0   2,1   2,2 
+     ----------------------------------------------------------------------------------
+     x   , x   )
+      2,3   2,4
+
+o1 : Sequence
+
+i2 : x_(0,0) .. z_(2,4)
+
+o2 = (x   , x   , x   , x   , x   , x   , x   , x   , x   , x   , x   , x   , x   ,
+       0,0   0,1   0,2   0,3   0,4   1,0   1,1   1,2   1,3   1,4   2,0   2,1   2,2 
+     ----------------------------------------------------------------------------------
+     x   , x   , y   , y   , y   , y   , y   , y   , y   , y   , y   , y   , y   ,
+      2,3   2,4   0,0   0,1   0,2   0,3   0,4   1,0   1,1   1,2   1,3   1,4   2,0 
+     ----------------------------------------------------------------------------------
+     y   , y   , y   , y   , z   , z   , z   , z   , z   , z   , z   , z   , z   ,
+      2,1   2,2   2,3   2,4   0,0   0,1   0,2   0,3   0,4   1,0   1,1   1,2   1,3 
+     ----------------------------------------------------------------------------------
+     z   , z   , z   , z   , z   , z   )
+      1,4   2,0   2,1   2,2   2,3   2,4
+
+o2 : Sequence
+
+i3 : foo = method ( Options => { Limit => 4 } )
+
+o3 = foo
+
+o3 : MethodFunctionWithOptions
+
+i4 : viewHelp Options
+
+i5 : path
+
+o5 = {./, ../M2-Macaulay2/M2/Macaulay2/packages/,
+     ----------------------------------------------------------------------------------
+     ../M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/Macaulay2/packages
+     ----------------------------------------------------------------------------------
+     /, ../M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/usr-dist/common
+     ----------------------------------------------------------------------------------
+     /share/Macaulay2/}
+
+o5 : List
+
+i6 : 
+
+Process M2 finished
+
++ /Users/dan/src/M2/M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/M2 --no-readline --print-width 177
+Macaulay2, version 1.7.0.1
+with packages: ConwayPolynomials, Elimination, IntegralClosure, LLLBases, PrimaryDecomposition, ReesAlgebra, TangentCone
+-- loading ../../../Library/Application Support/Macaulay2/code/hom.m2
+../../../Library/Application Support/Macaulay2/code/hom.m2:3:15:(3):[5]: error: assignment to protected global variable 'homomorphism'', originally defined at ../M2-Macaulay2/M2/Macaulay2/m2/modules2.m2:522:1:(1):
+../../../Library/Application Support/Macaulay2/code/hom.m2:3:15:(3):[5]: --entering debugger (type help to see debugger commands)
+../../../Library/Application Support/Macaulay2/code/hom.m2:3:15-3:17: --source code:
+homomorphism' = method()
+
+i1 : 
+../M2-Macaulay2/M2/Macaulay2/m2/setup.m2:111:27:(1):[5]: --entering debugger (type help to see debugger commands)
+../M2-Macaulay2/M2/Macaulay2/m2/setup.m2:111:27-111:35: --source code:
+                    ret = loadfun fullfilename;
+
+i2 : exit 
+
+Process M2 finished
+
++ M2 --no-readline --print-width 177
+Macaulay2, version 1.7
+with packages: ConwayPolynomials, Elimination, IntegralClosure, LLLBases, PrimaryDecomposition, ReesAlgebra, TangentCone
+-- loading ../../../Library/Application Support/Macaulay2/code/hom.m2
+
+i1 : path
+
+o1 = {./, ../../../Library/Application Support/Macaulay2/code/, ../../../Library/Application Support/Macaulay2/local/share/Macaulay2/, ../../../Library/Application
+     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     Support/Macaulay2/local/common/share/Macaulay2/, /Applications/Macaulay2-1.7/share/Macaulay2/}
+
+o1 : List
+
+i2 : printWidth = 80
+
+o2 = 80
+
+i3 : path
+
+o3 = {./, ../../../Library/Application Support/Macaulay2/code/,
+     ---------------------------------------------------------------------------
+     ../../../Library/Application Support/Macaulay2/local/share/Macaulay2/,
+     ---------------------------------------------------------------------------
+     ../../../Library/Application
+     ---------------------------------------------------------------------------
+     Support/Macaulay2/local/common/share/Macaulay2/,
+     ---------------------------------------------------------------------------
+     /Applications/Macaulay2-1.7/share/Macaulay2/}
+
+o3 : List
+
+i4 : 
+
+Process M2 finished
+
++ M2 --no-readline --print-width 177
+Macaulay2, version 1.7
+with packages: ConwayPolynomials, Elimination, IntegralClosure, LLLBases, PrimaryDecomposition, ReesAlgebra, TangentCone
+
+i1 : 
+
+Process M2 finished
+
++ /Users/dan/src/M2/M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/M2 --no-readline --print-width 177
+Macaulay2, version 1.7.0.1
+with packages: ConwayPolynomials, Elimination, IntegralClosure, LLLBases, PrimaryDecomposition, ReesAlgebra, TangentCone
+
+i1 : printWidth = 80
+
+o1 = 80
+
+i2 : toString Elimination
+
+o2 = Elimination
+
+i3 : class oo
+
+o3 = String
+
+o3 : Type
+
+i4 : Elimination
+
+o4 = Elimination
+
+o4 : Package
+
+i5 : peek Elimination
+
+o5 = Package{configuration file name => /Users/dan/Library/Application Support/Macaulay2/init-Elimination.m2                                                                                                                       }
+             Dictionary => Elimination.Dictionary
+             documentation not loaded => true
+             example data files => MutableHashTable{}
+             example inputs => MutableHashTable{}
+             example results => MutableHashTable{}
+             exported mutable symbols => {}
+             exported symbols => {sylvesterMatrix, discriminant, resultant, eliminate}
+             index.html => /Users/dan/src/M2/M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/usr-dist/common/share/doc/Macaulay2/Elimination/html/index.html
+             loadDepth => 1
+             Options => OptionTable{Authors => {{Name => Michael E. Stillman, Email => mike@math.cornell.edu}}}
+                                    AuxiliaryFiles => false
+                                    CacheExampleOutput => null
+                                    Certification => null
+                                    Configuration => OptionTable{}
+                                    Date => January 5, 2005
+                                    DebuggingMode => false
+                                    Headline => a package for elimination of variables
+                                    HomePage => null
+                                    InfoDirSection => Macaulay2 and its packages
+                                    PackageExports => {}
+                                    PackageImports => {}
+                                    Reload => false
+                                    Version => 1.0
+             package prefix => /Users/dan/src/M2/M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/usr-dist/
+             private dictionary => Elimination#"private dictionary"
+             processed documentation => MutableHashTable{}
+             raw documentation => MutableHashTable{}
+             raw documentation database => /Users/dan/src/M2/M2-Macaulay2/M2/BUILD/dan/builds.tmp/mac64-master.production/usr-dist/x86_64-MacOS-10.10/lib/Macaulay2/x86_64-MacOS-10.10/Elimination/cache/rawdocumentation-dcba-8.db
+             source directory => /Users/dan/src/M2/M2-Macaulay2/M2/Macaulay2/packages/
+             source file => /Users/dan/src/M2/M2-Macaulay2/M2/Macaulay2/packages/Elimination.m2
+             test inputs => MutableHashTable{}
+             test number => 0
+             title => Elimination
+             undocumented keys => MutableHashTable{}
+
+i6 : f = x -> x+3
+
+o6 = f
+
+o6 : FunctionClosure
+
+i7 : f 444
+
+o7 = 447
+
+i8 : f "hi there"
+stdio:6:11:(3):[1]: error: no method for binary operator + applied to objects:
+--            "hi there" (of class String)
+--      +     3 (of class ZZ)
+
+i9 : g = method()
+
+o9 = g
+
+o9 : MethodFunction
+
+i10 : g ZZ := x -> x+1234
+
+o10 = {*Function[stdio:10:11-10:16]*}
+
+o10 : FunctionClosure
+
+i11 : g String := x -> x | "+1234"
+
+o11 = {*Function[stdio:11:15-11:20]*}
+
+o11 : FunctionClosure
+
+i12 : g 3
+
+o12 = 1237
+
+i13 : g "3"
+
+o13 = 3+1234
+
+i14 : partition
+
+o14 = partition
+
+o14 : MethodFunction
+
+i15 : help oo
+
+o15 = partition -- partition a set or list by values of a function
+      ************************************************************
+
+      Synopsis
+      ========
+
+        * Usage:partition(f,L)
+        * Inputs:
+            * f, a function
+            * L, a visible list, or a tally
+        * Outputs:
+            * a hash table, whose keys are the possible values of the function f
+              on the elements of the list, set or tally L, and the corresponding
+              value of the hash table is the list, set or tally of elements of L
+              which take that value under f
+
+      Description
+      ===========
+
+      +----------------------------------------+
+      |i1 : L = {1,3,6,5,3,1,2,8,8,8}          |
+      |                                        |
+      |o1 = {1, 3, 6, 5, 3, 1, 2, 8, 8, 8}     |
+      |                                        |
+      |o1 : List                               |
+      +----------------------------------------+
+      |i2 : partition(odd, L)                  |
+      |                                        |
+      |o2 = HashTable{false => {6, 2, 8, 8, 8}}|
+      |               true => {1, 3, 5, 3, 1}  |
+      |                                        |
+      |o2 : HashTable                          |
+      +----------------------------------------+
+      |i3 : partition(odd, set L)              |
+      |                                        |
+      |o3 = HashTable{false => set {2, 6, 8}}  |
+      |               true => set {1, 3, 5}    |
+      |                                        |
+      |o3 : HashTable                          |
+      +----------------------------------------+
+      |i4 : partition(odd, tally L)            |
+      |                                        |
+      |o4 = HashTable{false => Tally{2 => 1}}  |
+      |                              6 => 1    |
+      |                              8 => 3    |
+      |               true => Tally{1 => 2}    |
+      |                             3 => 2     |
+      |                             5 => 1     |
+      |                                        |
+      |o4 : HashTable                          |
+      +----------------------------------------+
+
+      The following example parititions the generators of an ideal by degree.
+
+      +-----------------------------------------------------------+
+      |i5 : R = QQ[a..f]                                          |
+      |                                                           |
+      |o5 = R                                                     |
+      |                                                           |
+      |o5 : PolynomialRing                                        |
+      +-----------------------------------------------------------+
+      |i6 : I = ideal"ab,ade,ac3,d4,b3,adf,f4,e10"                |
+      |                                                           |
+      |                           3   4   3          4   10       |
+      |o6 = ideal (a*b, a*d*e, a*c , d , b , a*d*f, f , e  )      |
+      |                                                           |
+      |o6 : Ideal of R                                            |
+      +-----------------------------------------------------------+
+      |i7 : partition(f -> first degree f, flatten entries gens I)|
+      |                                                           |
+      |o7 = HashTable{2 => {a*b}             }                    |
+      |                             3                             |
+      |               3 => {a*d*e, b , a*d*f}                     |
+      |                        3   4   4                          |
+      |               4 => {a*c , d , f }                         |
+      |                       10                                  |
+      |               10 => {e  }                                 |
+      |                                                           |
+      |o7 : HashTable                                             |
+      +-----------------------------------------------------------+
+
+      See also
+      ========
+
+        * "tally" -- tally the elements of a list or sequence
+        * "partitions" -- list the partitions of an integer
+
+      Ways to use partition :
+      =======================
+
+        * partition(Function,Tally)
+        * partition(Function,VisibleList)
+
+o15 : DIV
+
+i16 : partition ( x -> abs x , {3,-3,4,-4,-6,-7} )
+
+o16 = HashTable{3 => {3, -3}}
+                4 => {4, -4}
+                6 => {-6}
+                7 => {-7}
+
+o16 : HashTable
+
+i18 : o16#4
+
+o18 = {4, -4}
+
+o18 : List
+
+i19 : partition ( x -> even x , {3,-3,4,-4,-6,-7} )
+
+o19 = HashTable{false => {3, -3, -7}}
+                true => {4, -4, -6}
+
+o19 : HashTable
+
+i20 : QQ[x]===QQ[x]
+
+o20 = false
+
+i21 : x
+
+o21 = x
+
+o21 : QQ[x]
+
+i22 : R = QQ[x]
+
+o22 = R
+
+o22 : PolynomialRing
+
+i23 : ring x
+
+o23 = R
+
+o23 : PolynomialRing
+
+i24 : ring x === R
+
+o24 = true
+
+i25 : ring x == R
+stdio:25:8:(3): error: no method for binary operator == applied to objects:
+--            R (of class PolynomialRing)
+--     ==     R (of class PolynomialRing)
+
+i26 : instance(x,R)
+
+o26 = true
+
+i27 : 4.5
+
+o27 = 4.5
+
+o27 : RR (of precision 53)
+
+i28 : ring oo
+
+o28 = RR
+        53
+
+o28 : RealField
+
+i29 : class 4.5
+
+o29 = RR
+
+o29 : InexactFieldFamily
+
+i30 : instance(4.5, ring 4.5)
+
+o30 = false
+
+i31 : fold(times,{1,2,3,4})
+
+o31 = 24
+
+i32 : times {1,2,3,4}
+
+o32 = {1, 2, 3, 4}
+
+o32 : List
+
+i33 : times (1,2,3,4)
+
+o33 = 24
+
+i34 : product {1,2,3,4}
+
+o34 = 24
+
+i35 : R = QQ[a_1 .. a_10]
+
+o35 = R
+
+o35 : PolynomialRing
+
+i36 : I = ideal(a_1, a_2, a_3+a_4, a_9^6)
+
+                               6
+o36 = ideal (a , a , a  + a , a )
+              1   2   3    4   9
+
+o36 : Ideal of R
+
+i37 : support I
+
+o37 = {a , a , a , a , a }
+        1   2   3   4   9
+
+o37 : List
+
+i38 : S = QQ[support I]
+
+o38 = S
+
+o38 : PolynomialRing
+
+i39 : sub(I,S)
+
+                               6
+o39 = ideal (a , a , a  + a , a )
+              1   2   3    4   9
+
+o39 : Ideal of S
+
+i40 : vars R
+
+o40 = | a_1 a_2 a_3 a_4 a_5 a_6 a_7 a_8 a_9 a_10 |
+
+              1       10
+o40 : Matrix R  <--- R
+
+i41 : vars S
+
+o41 = | a_1 a_2 a_3 a_4 a_9 |
+
+              1       5
+o41 : Matrix S  <--- S
+
+i42 : hilbertSeries S^1
+
+          1
+o42 = --------
+             5
+      (1 - T)
+
+o42 : Expression of class Divide
+
+i43 : h = oo
+
+          1
+o43 = --------
+             5
+      (1 - T)
+
+o43 : Expression of class Divide
+
+i44 : numerator h
+
+o44 = 1
+
+o44 : ZZ[T]
+
+i45 : T
+
+o45 = T
+
+o45 : Symbol
+
+i46 : numerator h + T
+stdio:46:13:(3): error: no method for binary operator + applied to objects:
+--            1 (of class ZZ[T])
+--      +     T (of class Symbol)
+
+i48 : use ring numerator h
+
+o48 = ZZ[T]
+
+o48 : PolynomialRing
+
+i49 : T
+
+o49 = T
+
+o49 : ZZ[T]
+
+i50 : numerator h + T
+
+o50 = 1 + T
+
+o50 : ZZ[T]
+
+i51 : denominator h
+
+             5
+o51 = (1 - T)
+
+o51 : Expression of class Product
+
+i52 : peek oo
+
+                     5
+o52 = Product{(1 - T) }
+
+i53 : value denominator h
+
+                  2      3     4    5
+o53 = 1 - 5T + 10T  - 10T  + 5T  - T
+
+o53 : ZZ[T]
+
+i54 : value h
+stdio:54:1:(3): error: not implemented : fraction fields of rings with inverses
+
+i55 : dictionaryPath 
+
+o55 = {Macaulay2Doc.Dictionary, SimpleDoc.Dictionary, User#"private dictionary",
+      --------------------------------------------------------------------------
+      User.Dictionary, Elimination.Dictionary, LLLBases.Dictionary,
+      --------------------------------------------------------------------------
+      IntegralClosure.Dictionary, PrimaryDecomposition.Dictionary,
+      --------------------------------------------------------------------------
+      Classic.Dictionary, TangentCone.Dictionary, ReesAlgebra.Dictionary,
+      --------------------------------------------------------------------------
+      ConwayPolynomials.Dictionary, Core.Dictionary, OutputDictionary,
+      --------------------------------------------------------------------------
+      PackageDictionary}
+
+o55 : List
+
+i56 : f = x -> (
+          g := t -> t+3;
+          g x + g x)
+
+o56 = f
+
+o56 : FunctionClosure
+
+i57 : f 5
+
+o57 = 16
+
+i58 : g
+
+o58 = g
+
+o58 : MethodFunction
+
+i59 : f = x -> t -> x+t
+
+o59 = f
+
+o59 : FunctionClosure
+
+i60 : (f 4) 5
+
+o60 = 9
+
+i61 : 
+
+
+-----------------------------------------------------------------------------
+
+einsteinium$ pwd
+/Users/dan/src/M2/M2-Macaulay2/M2/Macaulay2/packages
+einsteinium$ git status
+On branch Hom-functoriality
+Your branch is up-to-date with 'dan/Hom-functoriality'.
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   ../m2/modules2.m2
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	DanPackage.m2
+	../../compose.m2
+
+no changes added to commit (use "git add" and/or "git commit -a")
+einsteinium$ git stash save
+Saved working directory and index state WIP on Hom-functoriality: fb07cb8 new strategy for compose(Module,Module,Module)
+HEAD is now at fb07cb8 new strategy for compose(Module,Module,Module)
+einsteinium$ git checkout -b demonstrate-pull-request
+Switched to a new branch 'demonstrate-pull-request'
+einsteinium$ git status
+On branch demonstrate-pull-request
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	DanPackage.m2
+	../../compose.m2
+
+nothing added to commit but untracked files present (use "git add" to track)
+einsteinium$ git add DanPackage.m2 
+einsteinium$ git status
+On branch demonstrate-pull-request
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	new file:   DanPackage.m2
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   =distributed-packages
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	../../compose.m2
+
+einsteinium$ git diff
+diff --git a/M2/Macaulay2/packages/=distributed-packages b/M2/Macaulay2/packages/=distributed-packages
+index ef97032..4ac19d2 100644
+--- a/M2/Macaulay2/packages/=distributed-packages
++++ b/M2/Macaulay2/packages/=distributed-packages
+@@ -113,3 +113,4 @@ TateOnProducts
+ LatticePolytopes
+ FiniteFittingIdeals
+ HigherCIOperators
++DanPackage
+einsteinium$ git add =distributed-packages 
+einsteinium$ git status
+On branch demonstrate-pull-request
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	modified:   =distributed-packages
+	new file:   DanPackage.m2
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	../../compose.m2
+
+einsteinium$ git commit
+Waiting for Emacs...
+[demonstrate-pull-request ba139e3] my new package
+ 2 files changed, 2 insertions(+)
+ create mode 100644 M2/Macaulay2/packages/DanPackage.m2
+einsteinium$ git log -1
+commit ba139e3d2d0ab37789f173478e2adbe0b070de70
+Author: Daniel R. Grayson <dan@math.uiuc.edu>
+Date:   Fri May 29 09:29:27 2015 -0600
+
+    my new package
+    
+    ... which is wonderful
+einsteinium$ 
+einsteinium$ git status
+On branch demonstrate-pull-request
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	../../compose.m2
+
+nothing added to commit but untracked files present (use "git add" to track)
+einsteinium$ git remote -v
+dan	git@github.com:DanGrayson/M2 (fetch)
+dan	git@github.com:DanGrayson/M2 (push)
+dan-ssh	http://github.com/DanGrayson/M2 (push)
+dan-ssh	http://github.com/DanGrayson/M2 (fetch)
+david	git@github.com:eisenbud/M2 (push)
+david	git@github.com:eisenbud/M2 (fetch)
+mike	git@github.com:MikeStillman/M2 (fetch)
+mike	git@github.com:MikeStillman/M2 (push)
+origin	git@github.com:Macaulay2/M2 (push)
+origin	git@github.com:Macaulay2/M2 (fetch)
+origin-ssh	http://github.com/Macaulay2/M2 (fetch)
+origin-ssh	http://github.com/Macaulay2/M2 (push)
+einsteinium$ git push dan-ssh demonstrate-pull-request
+Username for 'https://github.com': DanGrayson
+Password for 'https://DanGrayson@github.com': 
+Counting objects: 7, done.
+Delta compression using up to 8 threads.
+Compressing objects:  16% (1/6)   
+Compressing objects:  33% (2/6)   
+Compressing objects:  50% (3/6)   
+Compressing objects:  66% (4/6)   
+Compressing objects:  83% (5/6)   
+Compressing objects: 100% (6/6)   
+Compressing objects: 100% (6/6), done.
+Writing objects:  14% (1/7)   
+Writing objects:  28% (2/7)   
+Writing objects:  42% (3/7)   
+Writing objects:  57% (4/7)   
+Writing objects:  71% (5/7)   
+Writing objects:  85% (6/7)   
+Writing objects: 100% (7/7)   
+Writing objects: 100% (7/7), 580 bytes | 0 bytes/s, done.
+Total 7 (delta 5), reused 0 (delta 0)
+To http://github.com/DanGrayson/M2
+ * [new branch]      demonstrate-pull-request -> demonstrate-pull-request
+einsteinium$ git fetch dan-ssh
