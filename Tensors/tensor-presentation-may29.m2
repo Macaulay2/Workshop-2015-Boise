@@ -6,6 +6,7 @@ tensorDims T
 M = tensorModule(R,{3,3})
 N = tensorModule(R,{2})
 P = M**N
+tensorDims P
 P_(1,0,0) + P_(0,1,0)
 
 R = QQ[a..h]
@@ -36,13 +37,12 @@ I = tensorEigenvectors(T,0,R)
 
 
 T = makeTensor{{{1,0,0},{0,0,-1/2},{0,-1/2,0}},{{0,0,-1/2},{0,1,0},{-1/2,0,0}},{{0,-1/2,0},{-1/2,0,0},{0,0,1}}}
-S = permutations 3
-apply(#S,i->T@(S#i) == T)
 isSymmetric T
 
 -- isSymmetric? 
 R = QQ[x,y,z]
-tensorToPolynomial (T,R)
+p = tensorToPolynomial (T,R)
+polynomialToTensor p == T
 S = QQ[a_0..a_2,b_0..b_2,c_0..c_2]
 tensorToMultilinearForm(T,S)
 
