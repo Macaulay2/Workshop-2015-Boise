@@ -122,30 +122,25 @@ tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
     D := tensorDims T;
     n := D#0;
     xpos := position(gens S, y->y==x);
-    f := 0_S;
-    for ind in (#D:0)..(#D:n-1) do (
-	mon := product toList apply(#ind, j->S_(xpos + ind#j));
-	f = f + sub(T_ind,S)*mon;
-	);
-    f
+    xTen := makeTensor(take(gens S,{xpos,xpos+n-1}));
+    U := xTen ^** #D;
+    L := toList (0..#D-1);
+    contract(sub(T,S),U,L,L)
     );
 
 tensorToMultilinearForm = method()
 tensorToMultilinearForm (Tensor,Ring) := (T,S) -> tensorToMultilinearForm(T,S,S_0)
 tensorToMultilinearForm (Tensor,Ring,RingElement) := (T,S,x) -> (
     D := tensorDims T;
-    vs := gens S;
-    xpos := position(vs, y->y==x);
-    varLists := for n in D list (
-	take(vs, {xpos, xpos + n -1})) do (
+    xpos := position(gens S, y->y==x);
+    U := null;
+    for n in D do (
+	u := makeTensor(take(gens S, {xpos, xpos + n -1}));
+	if U === null then U = u else U = U**u;
 	xpos = xpos + n;
 	);
-    f := 0_S;
-    for ind in (#D:0)..<(toSequence D) do (
-	mon := product toList apply(#ind, j->varLists#j#(ind#j));
-	f = f + sub(T_ind,S)*mon;
-	);
-    f
+    L := toList (0..#D-1);
+    contract(sub(T,S),U,L,L)
     );
 tensorToMultilinearForm (Tensor,Symbol) := (T,x) -> (
     R := ring T;
@@ -228,6 +223,13 @@ substitute (Tensor,Thing) := (T,S) -> (
     E = apply(E, e->sub(e,S));
     M := tensorModule(ring first E,tensorDims T);
     tensor(M,E)
+    )
+
+Tensor ^** Number := (T,n) -> (
+    if n == 0 then return 1_(ring T);
+    U := T;
+    for i from 1 to n-1 do U = U**T;
+    U
     )
 
 ///
