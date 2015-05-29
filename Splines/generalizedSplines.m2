@@ -1,3 +1,18 @@
+------------------------------------------
+------------------------------------------
+-- This method computes the generalized spline module
+-- given by a graph whose edges are labeled by ideals
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--E = list of edges. Each edge is a list with two vertices.
+--    the set of vertices must be exactly the integers 0..n-1.
+--ideals = list of ideals that label the edges. 
+--    Must be in same order as the edges.
+------------------------------------------
+--Outputs:
+--Spline module
+------------------------------------------
 generalizedSplines = method();
 --assume vertices are 0,...,n-1
 generalizedSplines(List,List) := Module => (E,ideals) ->(
