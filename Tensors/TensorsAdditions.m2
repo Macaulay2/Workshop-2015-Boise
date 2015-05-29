@@ -27,8 +27,13 @@ export {
   tensorToMultilinearForm,
   multiplicationTensor,
   eigenDiscriminant,
+<<<<<<< HEAD
   tensorEigenvectorsCoordinates,
   isSymmetric
+=======
+  tensorEigenvectorsCoordinate,
+  polynomialToTensor
+>>>>>>> 509061b12f225378053a0a496cff6d1aabe12e25
 }
 
 symmetrize = method()
@@ -181,5 +186,20 @@ tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     solveSystem(F)
     )
 
+
+polynomialToTensor = method()
+polynomialToTensor (RingElement ) := (f) -> (
+    d := degree f;
+    n := numgens ring f;
+    M := tensorModule(QQ, toList(d_0:n));
+    T := apply(terms f, m -> (
+	    c := leadCoefficient m;
+	    j := toSequence(flatten apply(#(exponents m)_0, 
+		i -> toList(((exponents m)_0)_i:i)
+		));
+	    c*M_j
+	    ));
+    symmetrize(sum T)
+    )
 
 end

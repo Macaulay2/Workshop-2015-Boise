@@ -2,9 +2,10 @@ path=append(path,"GitHub/Workshop-2015-Boise/Splines/")
 loadPackage("Polyhedra");
 
 pComp=method();
-pComp(List, List):=(V,P)->(
-	PList=apply(P,x->(convexHull(transpose matrix V_x)));
-	polyhedralComplex PList)
+pComp(List, List):=(V,F)->(
+	PList := apply(F,x->(convexHull(transpose matrix V_x)));
+	polyhedralComplex PList
+)
 
 --Computes an echelon form of a matrix, 
 --returning a list of columns with leading 1s 
@@ -18,43 +19,43 @@ pComp(List, List):=(V,P)->(
 --hyperplane.    
 ref=method();
 ref(Matrix):=M->(
-	n=numcols M;
-	s=numrows M;
-	m=min(n,s);
-	N=mutableMatrix(M**QQ);
-	i:=0;
-	stopper:=0;
-	leading:={};
+	n := numcols M;
+	s := numrows M;
+	m := min(n,s);
+	N := mutableMatrix(M**QQ);
+	i := 0;
+	stopper := 0;
+	leading := {};
 	while i<m and stopper < n do(
-		j:=select(1,toList(i..s-1),k->N_(k,stopper) != 0);
+		j := select(1,toList(i..s-1),k->N_(k,stopper) != 0);
 		if j != {} then (
-			j=j#0;
-			leading=append(leading,stopper);
+			j = j#0;
+			leading = append(leading,stopper);
 			scan((j+1)..(s-1),k->(
 				if N_(k,i) != 0 then(
-					a:=N_(j,i);
-					b:=N_(k,i);
-					N=rowAdd(N,k,-b/a,j) ) ) );
-			if i != j then(N=rowSwap(N,i,j) );
-			i=i+1);
-		stopper=stopper+1);
-	leading)
+					a := N_(j,i);
+					b := N_(k,i);
+					N = rowAdd(N,k,-b/a,j) ) ) );
+			if i != j then (N=rowSwap(N,i,j) );
+			i = i+1);
+		stopper = stopper+1);
+	leading
+)
 
 
---shuffles the rows of halfspaces matrix so that they appear in same order as codim 1 faces of polyhedron --
-halfsort=method(); 
+--shuffles the rows of halfspaces matrix 
+--so that they appear in same order as codim 1 faces of polyhedron --
+halfsort = method(); 
 halfsort(Sequence,List):=(x,y)->(
-	r=numrows(x#0); 
-	L=new MutableList from toList(1..r); 
-	for i from 0 to r-1 do(
-		j:=0; 
-		V:={(x#1)_(i,0)}; 
-		U:=toList( set(flatten entries ((x#0)^{i} * vertices(y_j))) ); 
-		while U !=V do(
-			j=j+1; 
-			U=toList(set(flatten entries ((x#0)^{i} * vertices(y_j))) )  ); 
-			L#j=flatten entries (x#0)^{i} ); 
-		matrix toList L)
+	r := numrows(x#0); 
+	L := apply(toList(0..r-1), i-> (
+		position(toList(0..r-1), j->
+		    {(x#1)_(i,0)} == unique flatten entries ((x#0)^{i} * vertices(y_j))
+		    )
+		)
+	    );
+	matrix apply(L,i-> flatten entries (x#0)^{i})
+	)
 
 --Inputs: A pure, connected, hereditary polyhedral complex PC of dimension d in R^d (pseudomanifold?). (if a pair of facets X,Y of PC intersect nontrivially then there must be a chain of facets (F0,F1,..,Fn) of PC such that F0=X,Fn=Y, and each consecutive pair of facets Fi and F(i+1) intersect in a codim 1 face of both).
 --Outputs: The boundary complex of PC.
@@ -203,6 +204,6 @@ splineComplex(ZZ,PolyhedralComplex):=(r,PC)->(
     
 V={{-1, -1, -1}, {3, -1, -1}, {-1, 3, -1}, {-1, -1, 3}, {-4, -4, -4}, {12, -4, -4}, {-4, 12, -4}, {-4, -4, 12}};
 F={{0, 1, 2, 3}, {1, 2, 3, 5, 6, 7}, {0, 2, 3, 4, 6, 7}, {0, 1, 3, 4, 5, 7}, {0, 1, 2, 4, 5, 6}};
-P=pComp(V,F);
-CP=splineComplex(1,P);
+time P=pComp(V,F);
+time CP=splineComplex(1,P);
     
