@@ -143,7 +143,7 @@ multiplicationTensor Ring := R -> (
 eigenDiscriminant = method()
 eigenDiscriminant (Number,Number,Symbol) := (n,d,x) -> (
     K := QQ;
-    Sa := K[a_(d:0)..a_(d:n-1)];
+    Sa := K[symbol a_(d:0)..symbol a_(d:n-1)];
     T := genericTensor(Sa,toList (d:n));
     I := tensorEigenvectors(T,0,x);
     Sx := ring I;
@@ -157,9 +157,9 @@ eigenDiscriminant (Number,Number,Symbol) := (n,d,x) -> (
     )
 
 tensorEigenvectorsCoordinates = method()
-tensorEigenvectorsCoordinates (Tensor,Number) := (T,k) -> (
+tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     n := (tensorDims T)#0;
-    I := tensorEigenvectors(T,k,symbol x);
+    I := tensorEigenvectors(T,k,x);
     R := ring I;
     S := CC[toSequence entries vars R];
     J := sub(I,S);
