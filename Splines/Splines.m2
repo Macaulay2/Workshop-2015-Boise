@@ -480,6 +480,12 @@ doc ///
         Text
             This package computing topological boundary maps and piecewise 
 	    continuous splines on polyhedral complexes.
+	Text
+	    @SUBSECTION "Definitions of Splines"@
+	    Given a complex $\Delta\subset{\mathbb R}^d$, a spline 
+	    $f \in S^{r+1}_d(\Delta)$ is a piecewise polynomial function on $\Delta$, 
+	    such that $f$ is of smoothness $r$ ($f \in C^r$) and $f$ restricts to a degree $d$ polynomial on each face 
+	    $\sigma\in\Delta$.
         Text
             @SUBSECTION "Other acknowledgements"@
             --
