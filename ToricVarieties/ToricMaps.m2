@@ -13,7 +13,7 @@ newPackage ("ToricMaps",
 --needsPackage("NormalToricVarieties");
 --load "coneContain.m2";
 
-export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphism","inverse"
+export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphism","inverse","isIso"
 		}
 
 -----------
@@ -201,8 +201,7 @@ inverse (ToricMap) := (ToricMap) => f -> (
 
 blowupMap = method()
 blowupMap (List, NormalToricVariety, List) := ToricMap => (s,X,v) -> (
-    return toricMap(X,blowup(s,X,v),id(ZZ^(dim X)));
-    )
+    return toricMap(X,blowup(s,X,v),id(ZZ^(dim X))));
 
 --makeSimplicialMap
 --makeSmoothMap
