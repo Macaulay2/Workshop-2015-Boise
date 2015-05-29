@@ -14,6 +14,9 @@ newPackage(
 	PackageExports => {
 	  "Tensors"
 	},
+    	PackageImports => {
+	    "PHCpack"
+	    },
         DebuggingMode => true 
 )
 
@@ -22,7 +25,9 @@ export {
   tensorEigenvectors,
   tensorToPolynomial,
   tensorToMultilinearForm,
-  multiplicationTensor
+  multiplicationTensor,
+  eigenDiscriminant,
+  tensorEigenvectorsCoordinate
 }
 
 symmetrize = method()
@@ -133,5 +138,36 @@ multiplicationTensor Ring := R -> (
 	);
     sum flatten L
     )
+
+
+eigenDiscriminant = method()
+eigenDiscriminant (Number,Number,Symbol) := (n,d,x) -> (
+    K := QQ;
+    Sa := K[a_(d:0)..a_(d:n-1)];
+    T := genericTensor(Sa,toList (d:n));
+    I := tensorEigenvectors(T,0,x);
+    Sx := ring I;
+    S := K[toSequence entries vars Sa,toSequence entries vars Sx];
+    I = sub(I,S);
+    vx := sub(vars Sx,S);
+    jj := diff(transpose vx,gens I);
+    singI := minors(n-1,jj)+I;
+    J := saturate(singI,ideal vx);
+    sub(eliminate(first entries vx,J),Sa)
+    )
+
+tensorEigenvectorsCoordinates = method()
+tensorEigenvectorsCoordinates (Tensor,Number) := (T,k) -> (
+    n := (tensorDims T)#0;
+    I := tensorEigenvectors(T,k,symbol x);
+    R := ring I;
+    S := CC[toSequence entries vars R];
+    J := sub(I,S);
+    rr := (vars S | matrix{{1_S}})*transpose random(CC^1,CC^(n+1));
+    L := J + ideal rr;
+    F := first entries gens L;
+    solveSystem(F)
+    )
+
 
 end
