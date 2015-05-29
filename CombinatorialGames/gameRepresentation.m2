@@ -18,6 +18,7 @@ gameRepresentation(SimplicialComplex,List,List) := String => (Delta,L,R) -> (
 	d := dim(Delta);
 	Fvec := apply(toList(0..d+1), i->flatten entries faces(d-i,Delta));
 	H := hashTable apply(Fvec_0, f-> f=>"{|}");
+	E := hashTable {{}=>""};
 	--print H;
 	dummyH := merge(H,E,join);
 	tempStringL ={};
