@@ -62,7 +62,7 @@ tensorEigenvectors (Tensor,Number,Ring,RingElement) := (T,k,S,x) -> (
 	mon := product monList;
 	v#(ind#k) = v#(ind#k) + sub(T_ind,S)*mon;
 	);
-    minors(2, matrix{toList v, gens S})
+    minors(2, matrix{toList v, take(gens S,{xpos,xpos + numgens S - 1})})
     );
 tensorEigenvectors (Tensor,Number,Ring) := (T,k,S) -> tensorEigenvectors (T,k,S,S_0)
 tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
@@ -141,21 +141,22 @@ multiplicationTensor Ring := R -> (
 
 
 eigenDiscriminant = method()
-eigenDiscriminant (Number,Number,Symbol) := (n,d,x) -> (
-    K := QQ;
-    Sa := K[symbol a_(d:0)..symbol a_(d:n-1)];
-    T := genericTensor(Sa,toList (d:n));
-    I := tensorEigenvectors(T,0,x);
-    Sx := ring I;
-    S := K[toSequence entries vars Sa,toSequence entries vars Sx];
-    I = sub(I,S);
-    vx := sub(vars Sx,S);
-    jj := diff(transpose vx,gens I);
+eigenDiscriminant (Number,Number,Ring) := (n,d,Sa) -> (
+    K := coefficientRing Sa;
+    x := symbol x;
+    vx := toList apply(n,i->x_i);
+    vs := gens Sa;
+    S := K[vs,vx];
+    vx = take(gens S, -n);
+    vs = take(gens S, n^d);
+    T := genericTensor(S,toList (d:n));
+    I := tensorEigenvectors(T,0,S,first vx);
+    jj := diff(transpose matrix{vx},gens I);
     singI := minors(n-1,jj)+I;
     J := saturate(singI,ideal vx);
-    sub(eliminate(first entries vx,J),Sa)
+    sub(eliminate(vx,J),Sa)
     )
-
+///
 tensorEigenvectorsCoordinates = method()
 tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     n := (tensorDims T)#0;
@@ -168,6 +169,6 @@ tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     F := first entries gens L;
     solveSystem(F)
     )
-
+///
 
 end
