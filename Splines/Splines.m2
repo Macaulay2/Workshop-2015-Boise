@@ -394,7 +394,7 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 	if opts.InputType==="ByLinearForms" then (
 		b = #(unique flatten V)
 		);
-    	submatrix(gens K, toList(0..b-1),)
+    	image submatrix(gens K, toList(0..b-1),)
 )
 
 ------------------------------------------
