@@ -51,6 +51,7 @@ iteratedPieri = (plist,r,l,L,Y) -> (
 
 quantumMonomialMultiplication = (r,l,yt1,yt2,Y) -> (
     W:=giambelliDet(l,yt2);
+    print concatenate("giambelliDet(l,yt2) = ",toString(W)) << endl;
     L:=apply(#W, i -> iteratedPieri(W_i_0,r,l,{ {1,yt1}},Y));
     for i from 0 to #L-1 do (print concatenate(toString(W_i_1)," ",toString(L_i)) << endl);
     L=flatten apply(#L, i-> apply(#(L_i), j -> {(W_i_1)*(L_i_j_0),L_i_j_1}));
@@ -80,14 +81,25 @@ oo_0
 Y=QQ[q]
 quantumPieri(3,2,5,{ {1,{2,2}} },Y)
 quantumMonomialMultiplication(2,5,{2,2},{3,2},Y)
+-- Anders Buch's Maple program gives S[5, 4] + S[4, 3, 2] + S[4, 4, 1] + S[5, 2, 2] + S[5, 3, 1]
 
+TEST ///
+   Y=QQ[q];
+   L={{1_Y, {5, 4}}, {1_Y, {5, 3, 1}}, {1_Y, {5, 2, 2}}, {1_Y, {4, 4, 1}}, {1_Y, {4, 3, 2}}};
+   assert(set(quantumMonomialMultiplication(2,5,{2,2},{3,2},Y)) === set(L) )
+///
 
 quantumMonomialMultiplication(2,5,{2,2},{3,2,1},Y)
 --Bug: our function gives {{1, {4, 4, 2}}, {-q, {1, 1}}, {1, {5, 4, 1}}, {1, {5, 3, 2}}, {1, {4, 3, 3}}}
 --but Anders Buch's Maple program gives S[5, 4, 1] + S[5, 3, 2] + S[4, 4, 2] + S[4, 3, 3] 
 -- :-(
 
+quantumPieri(1,2,5,{{1,{2,2}}},Y)
+break
+quantumPieri(5,2,5,{{1,{3,2}}},Y)
+quantumPieri(5,2,5,{{1,{2,2,1}}},Y)
 
+f=quantumPieri(1,2,5,{{1,{2,2}}},Y)
+quantumPieri(5,2,5,f,Y)
 
-
-
+iteratedPieri({1,5},2,5,{ {1,{2,2}} },Y)

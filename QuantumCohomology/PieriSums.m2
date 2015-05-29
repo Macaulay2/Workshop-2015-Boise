@@ -53,12 +53,12 @@ pieriFirstSum = (p, r, l, yt) -> (
     ));
     return flatten sublist
 )
-
+--corrected bug May 29
 pieriSecondSum = (p,r,l,yt) -> (
     if (#yt < r+1) or (#yt == r+1 and yt_r == 0) then return {};    
     yt=apply(#yt, i -> yt_i -1); 
     cyt:=complementaryDiagram(r,yt#0,yt);
-    C:=pieriFirstSum(l-p,r,cyt#0,cyt);
+    C:=pieriFirstSum(l-p,r,yt#0,cyt);
     apply(#C, i-> complementaryDiagram(r,yt#0,C_i))  
 );
 
@@ -81,7 +81,7 @@ quantumPieriOneTerm = (p,r,l,T,Y) -> (
 
 simplify = (L,Y) -> (
     H:=partition(last,L);
-    L=apply(keys H, k -> {first sum(H#k), k});
+    L=apply(keys H, k -> { (1_Y)*(first sum(H#k)), k});
     select(L, k -> k_0 != 0_Y)
     --delete(null, apply(#L, i -> if L_i_0 != 0 then L_i))
 );
