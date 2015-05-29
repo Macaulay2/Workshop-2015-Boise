@@ -15,7 +15,8 @@ newPackage("QCAlgebra",
 	  {Name => "Corey Harris",
 	   HomePage => "",
 	   Email => ""}},
-     AuxiliaryFiles => true,
+     --AuxiliaryFiles => true,
+     AuxiliaryFiles => false,
      DebuggingMode => true,
      CacheExampleOutput =>true
      )
@@ -158,7 +159,14 @@ Ring List := (R, varList) -> (
 
    multVals := (c,d) -> c*d;
       
-   multKeys := (m,n) -> m | n;
+   --multKeys := (m,n) -> m | n;
+   multKeys := (m,n) -> (
+       mtally := new HashTable from tally (m#monList | n#monList);
+       monList := flatten (for k in keys mtally list (
+           toList (mtally#k : k)
+       ));
+       qcMonomial(monList,m.ring)   
+   );
 
    A + A := (f,g) -> (
       newHash := removeZeroes merge(f.terms,g.terms,addVals);
@@ -946,6 +954,14 @@ restart
 uninstallPackage "QCAlgebra"
 installPackage "QCAlgebra"
 needsPackage "QCAlgebra"
+QQ{x,y}
+x.terms
+x*x
+x*y*x*y*y
+f = x
+g = y
+removeZeroes combine(f.terms,g.terms,multKeys,multVals,addVals);
+
 --viewHelp "QCAlgebra"
 
 {*
