@@ -32,8 +32,18 @@ n = 3
 T = randomTensor(QQ,toList (d:n))
 I = tensorEigenvectors(T,0,symbol x)
 primaryDecomposition I
-netList (s = tensorEigenvectorsCoordinates(T,0,symbol x))
+--netList (s = tensorEigenvectorsCoordinates(T,0,symbol x))
+R = ring I
+S = CC[toSequence entries vars R]
+J = sub(I,S)
+rr = (vars S | matrix{{1_S}})*transpose random(CC^1,CC^(n+1))
+L = J + ideal rr
+F = first entries gens L
+--s = solveSystem(F)
+s = bertiniZeroDimSolve(F)
+
 ne = (n,d)->sum for i from 0 to n-1 list (d-1)^i
 ne(n,d) == #s
 
-eigenDiscriminant(2,3,symbol x)
+T = QQ[a_(d:0)..a_(d:n-1)]
+eigenDiscriminant(2,3,T)
