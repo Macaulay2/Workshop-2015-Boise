@@ -38,7 +38,17 @@ symmetrize (Tensor) := (T) -> (
     R := ring T;
     L := apply(permutations d, p->T@p);
     (1_R/(d!))*(sum L)
-);
+    );
+symmetrize (Tensor,List) := (T,L) -> (
+    d := #(tensorDims T);
+    R := ring T;
+    S := apply(permutations L, p->(
+	    ind := new MutableList from (0..d-1);
+	    scan(#L, j->(ind#(L#j) = p#j));
+	    T@(toList ind)
+	    ));
+    (1_R/((#L)!))*(sum S)
+    )
 
 isSymmetric = method()
 isSymmetric Tensor := T -> (
@@ -56,13 +66,28 @@ contract (Tensor,List,List) := (T,K,L) -> (
     Tslices := apply((#K:0)..<(toSequence KD), i-> (
 	    sliceList := new MutableList from (#D:null);
 	    scan(#K, j->(sliceList#(K#j) = i#j; sliceList#(L#j) = i#j));
-	    print T_(toList sliceList);
+	    --print T_(toList sliceList);
 	    T_(toList sliceList)
 	    ));
      sum toList Tslices
      );
 contract (Tensor,Number,Number) := (T,k,l) -> contract(T,{k},{l})
-
+contract (Tensor,Tensor,List,List) := (T,U,K,L) -> (
+    Td := tensorDims T;
+    Ud := tensorDims U;
+    KD := apply(K, k->Td#k);
+    LD := apply(L, k->Ud#k);
+    if KD != LD then error "dimension mismatch";
+    slices := apply((#K:0)..<(toSequence KD), i-> (
+	    TsliceList := new MutableList from (#Td:null);
+	    UsliceList := new MutableList from (#Ud:null);
+	    scan(#K, j->(TsliceList#(K#j) = i#j; UsliceList#(L#j) = i#j));
+	    --print T_(toList sliceList);
+	    T_(toList TsliceList)**U_(toList UsliceList)
+	    ));
+     sum toList slices
+     );
+contract (Tensor,Tensor,Number,Number) := (T,U,k,l) -> contract(T,U,{k},{l})
 
 tensorEigenvectors = method()
 tensorEigenvectors (Tensor,Number,Ring,RingElement) := (T,k,S,x) -> (
