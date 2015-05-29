@@ -79,10 +79,10 @@ quantumPieriOneTerm = (p,r,l,T,Y) -> (
     return flatten {P1,P2}
 );
 
-simplify = (L) -> (
+simplify = (L,Y) -> (
     H:=partition(last,L);
     L=apply(keys H, k -> {first sum(H#k), k});
-    select(L, k -> first k != 0)
+    select(L, k -> k_0 != 0_Y)
     --delete(null, apply(#L, i -> if L_i_0 != 0 then L_i))
 );
 
@@ -90,8 +90,8 @@ simplify = (L) -> (
     
 --Do each term, then combine them
 quantumPieri = (p,r,l,L,Y) -> (
-    if p==0 then return simplify L;
-    simplify flatten apply(#L, i -> quantumPieriOneTerm(p,r,l,L_i,Y))
+    if p==0 then return simplify(L,Y);
+    simplify(flatten apply(#L, i -> quantumPieriOneTerm(p,r,l,L_i,Y)),Y)
 );
 
 end
@@ -103,6 +103,10 @@ Y = QQ[q];
 L = { {1+q,{5,1,1}}, {-3,{3,2}} };
 quantumPieriOneTerm(2,2,5,L_0,Y)
 quantumPieri(2,2,5,L,Y)
+
+
+
+
 
 Z = { {1+q,{5,1,1}}, {-3,{3,2}}, {-3+q^2,{5,1,1} }};
 simplify(Z)
