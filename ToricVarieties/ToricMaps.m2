@@ -11,7 +11,7 @@ newPackage ("ToricMaps",
 	)
 
 --needsPackage("NormalToricVarieties");
-load "coneContain.m2";
+--load "coneContain.m2";
 
 export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphism","inverse"
 		}
@@ -37,10 +37,6 @@ globalAssignment ToricMap
 
 toricMap = method(Options => {checkCompatibility => true})
 
-
--- toricMap still needs a check for whether the map of lattices is
--- compatible with the fans defining the toric varieties.
-
 toricMap (NormalToricVariety, NormalToricVariety, Matrix) := ToricMap => opts -> (Y,X,M) -> (
 
 		n := dim X;
@@ -55,7 +51,8 @@ toricMap (NormalToricVariety, NormalToricVariety, Matrix) := ToricMap => opts ->
 			new ToricMap from {
 			symbol target => Y,
 			symbol source => X,
-			symbol matrix => M
+			symbol matrix => M,
+            symbol isIso => null
 			} 
 			)
 		)
@@ -74,6 +71,26 @@ source ToricMap := NormalToricVariety => f -> f.source
 target ToricMap := NormalToricVariety => f -> f.target
 matrix ToricMap := Matrix => o -> f -> f.matrix
 
+--input: M, a matrix; X and Y, source and target normal toric varieties
+--output: b, a boolean value, true iff M respects the fans of X and Y
+isCompatible = (Y,X,M) -> (
+    local xConeContained;
+    local imCx;
+    for Cx in maxCones(fan(X)) do (
+        xConeContained = false;
+        imCx = posHull(M*rays(Cx));
+        for Cy in maxCones(fan(Y)) do (
+            if contains(Cy,imCx) then (
+                xConeContained = true;
+                break;
+            );
+        );
+        if not xConeContained then return false;
+    );
+    return true;
+);
+
+
 compose := method()
 
 -- composing maps
@@ -90,7 +107,7 @@ ToricMap @@ ToricMap := ToricMap => (f,g) -> compose(f,g)
 cartierCoefficients := method()
 
 
--- Taken from NormalToricVarieties.m2 (not exported)
+-- Taken from NormalToricVarieties.m2 (which does not export it)
 cartierCoefficients ToricDivisor := List => D -> (
 	X := variety D;
 	V := matrix rays X;
@@ -154,6 +171,7 @@ ToricMap ^* := f -> D -> pullback(f,D)
 isIsomorphism = method()
 
 isIsomorphism (ToricMap) := Boolean => f -> (
+    if f.isIso =!= null then return f.isIso;
 	m := matrix f;
 	d := det m;
 	if not (d == 1 or d == -1) then (
@@ -180,6 +198,14 @@ inverse (ToricMap) := (ToricMap) => f -> (
 		return toricMap(source f, target f, inverse matrix f);
 		)
 	)
+
+--blowupMap = method()
+--blowupMap (List, NormalToricVariety, List) := ToricMap => (s,X,v) -> (
+    return toricMap(X,blowup(s,X,v),id(ZZ^(dim X)));
+
+--makeSimplicialMap
+--makeSmoothMap
+
 
 end
 
