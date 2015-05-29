@@ -51,7 +51,8 @@ toricMap (NormalToricVariety, NormalToricVariety, Matrix) := ToricMap => opts ->
 			new ToricMap from {
 			symbol target => Y,
 			symbol source => X,
-			symbol matrix => M
+			symbol matrix => M,
+            symbol isIso => null
 			} 
 			)
 		)
@@ -170,6 +171,7 @@ ToricMap ^* := f -> D -> pullback(f,D)
 isIsomorphism = method()
 
 isIsomorphism (ToricMap) := Boolean => f -> (
+    if f.isIso =!= null then return f.isIso;
 	m := matrix f;
 	d := det m;
 	if not (d == 1 or d == -1) then (
@@ -196,6 +198,14 @@ inverse (ToricMap) := (ToricMap) => f -> (
 		return toricMap(source f, target f, inverse matrix f);
 	)
 	)
+
+--blowupMap = method()
+--blowupMap (List, NormalToricVariety, List) := ToricMap => (s,X,v) -> (
+    return toricMap(X,blowup(s,X,v),id(ZZ^(dim X)));
+
+--makeSimplicialMap
+--makeSmoothMap
+
 
 end
 
