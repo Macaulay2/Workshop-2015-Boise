@@ -391,7 +391,7 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
     	AD := splineMatrix(V,F,r,opts);
 	K := ker AD;
 	b := #F;
-    	submatrix(gens K, toList(0..b-1),)
+    	image submatrix(gens K, toList(0..b-1),)
 )
 
 ------------------------------------------
