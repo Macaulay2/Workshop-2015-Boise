@@ -95,7 +95,7 @@ cartierCoefficients ToricDivisor := List => D -> (
 	X := variety D;
 	V := matrix rays X;
 	a := matrix vector D;
-	return apply(max X, s -> -a^s // V^s)
+	return apply(max X, s -> a^s // V^s)
 	)
 
 pullback = method()
@@ -129,13 +129,26 @@ pullback (ToricMap, ToricDivisor) := (f, D) -> (
             --associated to that maxl cone.
             pullbackDict#C = (transpose(matrix f))*(cartierDict#imC);
         );
-        pullbackDict;
+        listContains := (l,x) -> (
+            for i in l do (if x==i then return true);
+            return false;
+        );
 
 		--then use that cart data to get the divisor coeffs
 		--for the rays of source f.
-
-		--return that divisor
-		)
+        pullbackCoeffs := {};
+        numRays := #(rays(source f)) -1;
+        for i in 0..numRays do (
+            j:=0;
+            for k in keys(pullbackDict) do (
+                if listContains(k,i) then (
+                    pullbackCoeffs = append(pullbackCoeffs,((matrix({(rays(source f))_i})*(pullbackDict#k)))_(0,0));
+                    break;
+                );
+            );
+        );
+        return toricDivisor(pullbackCoeffs,source f);
+    );
 
 
 -- isIsomorphism: whether a toric map have a (toric) inverse?
