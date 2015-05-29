@@ -368,7 +368,7 @@ splineModule(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
 	K := ker AD;
 	b := #F;
-    	image submatrix(gens K, toList(0..b-1),)
+    	submatrix(gens K, toList(0..b-1),)
 )
 
 ------------------------------------------
@@ -478,8 +478,8 @@ doc ///
         a package for building splines and computing bases
     Description
         Text
-            This package provides methods for computations with piecewise polynomial functions (splines) over
-	    polytopal complexes.
+            This package computing topological boundary maps and piecewise 
+	    continuous splines on polyhedral complexes.
         Text
             @SUBSECTION "Other acknowledgements"@
             --
@@ -510,7 +510,7 @@ doc ///
     	V:List
 	    list of coordinates of vertices of Delta
 	F:List
-	    list of facets of Delta
+	    list of oriented facets of Delta
 	E:List
 	    list of edges of Delta
 	r:ZZ
@@ -527,16 +527,17 @@ doc ///
     Description
         Text
 	    This creates the basic spline matrix that has splines as
-	    its kernel.
+	    its kernel. Note that the ambient ring of the appropriate
+	    dimension needs to be defined.
 	Example
+	    R = QQ[x,y,z]
 	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
             F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
             E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
     	    splineMatrix(V,F,E,1)
         Text
             Alternately, spline matrices can be created directly from the
-	    dual graph (with edges labeled by linear forms).  Note: This way of
-	    entering data requires the ambient polynomial ring to be defined.
+	    dual graph (with edges labeled by linear forms).
 	Example
 	    R = QQ[x,y]
 	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}

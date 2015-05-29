@@ -1,0 +1,155 @@
+-----BOISE 2015 M2 WORKSHOP--------
+--PHCpack group
+--This code has functions that 
+
+restart
+load "/home/taylor/Workshop-2015-Boise/PHCpack/Monodromy.m2"
+
+R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]--define the ring
+
+G1=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}}
+gens ring G1
+
+characteristicPoly = (M) -> (
+    --IN: a square matrix (not a mutable matrix)
+    --OUT: the characteristic polynomial of a matrix
+    n:= numgens source M;
+    S = CC[gens ring M][x];
+    PHI=map(S,ring M, gens coefficientRing S);
+    MM=PHI M;
+    --find the size of the matrix
+    id1 := mutableIdentity(S, n);    Id := matrix(id1);
+    --create the identity matrix
+    chM := det (x*Id-MM);
+    --find characteristic polynomial
+    return(chM);
+    )
+
+pullCoefficients = (f) -> (
+    --IN: a polynomial f in x
+    --OUT: a list of the coefficients of x^i, excluding occurences  of 0,-1, and 1
+    CoeffList:= new MutableList from {};
+    --Create a list to accumulate coefficients
+    k:=0;     t:=0;
+    while k<=degree(x,f) do
+    --loop through powers of x
+       (
+	   C = coefficient(x^k,f);
+	   --find coefficient of x^k
+	   if C == 0 or C==1 or C==-1
+	       then C==0 
+	   --if its a bad value (0,1,-1), don't include it    
+	   else
+	       (CoeffList#t = C;t=t+1;);
+	   --otherwise include it        
+	   k=k+1;
+       );
+   --return the list of coefficients
+   return(CoeffList);
+    )
+
+
+
+restrictRing = (A) -> (
+    SbRing = CC[support A];    
+    L = indices A;
+    i=0;t=0;
+    mapList = new MutableList from {};
+    while i<numgens ring A do
+    (
+    	if member(i,L)
+	    then (mapList#i = (gens SbRing)#t; t=t+1;)
+        else mapList#i=0;
+	i=i+1; 
+    );
+    MapList = new List from mapList;
+    phi=map(SbRing,ring A,MapList);
+    return(phi(A));
+ )
+
+
+getCoefficients = (A,I,J) -> (
+    --IN: a weighted adjacency matrix corresponding to a compartment model, A
+    --    a list of input indices, I
+    --    a list of output indices, J
+    --OUT: a list of polynomials describing a map on the variables a_(i,j) 
+    R= ring A;
+    A = restrictRing(A);
+    SS = CC[join(gens ring A,{y})];
+    Phi=map(SS,ring A, delete(y,gens SS));
+    A = Phi A;
+    chA := characteristicPoly(A);
+    --find characteristic polynomial
+    allCoeff := new MutableList from {};
+    allCoeff=pullCoefficients(chA);
+    --begin a list to collect the relevant polynomials and include the coeff of chA
+    jindex:=0;iindex:=0;
+     while jindex<#J do
+     --scroll through inputs
+    	(
+	    j=J#jindex;
+	    iindex=0;
+	    while iindex<#I do
+	    --scroll through outputs
+	    	(
+		  i=I#iindex;
+		  if j==i
+		      then (chAjj := characteristicPoly(submatrix'(A,{j},{j})); allCoeff = join(allCoeff,pullCoefficients(chAjj));)
+		  --if i=j then collect relevant polynomials quickly via a submatrix
+		  else if j!=i then
+		  --otherwise use a derivative trick
+		      (
+		      AnewMM :=mutableMatrix(A);
+		      use SS;
+		      AnewMM_(i,j)=y;
+		      Anew := matrix(AnewMM);
+		      chAnew := characteristicPoly(Anew);
+		      allCoeff = join(allCoeff,pullCoefficients(diff(y,chAnew)));
+		      );    
+		  iindex=iindex+1;    
+		);
+	    jindex=jindex+1;	    
+	);
+    AllCoeff:= new List from allCoeff;
+    AllCoeff2 = new MutableList from {};
+    oldRing = ring AllCoeff#0;    
+    LL = delete((gens(oldRing))#(numgens oldRing-1),gens(ring AllCoeff#0));  
+    Ring3 = CC[LL];
+    t=0;
+    for f in AllCoeff do(
+    	PHI = map(Ring3,ring f,join(gens Ring3,{0}));
+    	AllCoeff2#t = PHI(f);
+    	t=t+1;
+    );
+    use R;
+    finalCoeff = new List from AllCoeff2;
+    return(finalCoeff);
+    )
+
+
+
+-------------
+--Example 1--
+-------------
+
+G1=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}}
+TestI = new MutableList from {};
+TestJ = new MutableList from {};
+TestI = {0};
+TestJ = {0,1};
+F = getCoefficients(G1,TestI,TestJ)
+doMonodromy F
+
+--------------
+--Example 2---
+--------------
+
+G2 = matrix{{a11,a12,0,0},{a21,-(a12-a32),a23,0},{0,a32,a33,a34},{0,0,a43,a44}}
+TestI = {0,2};
+TestJ = {0,3};
+F=getCoefficients(G2,TestI,TestJ)  
+doMonodromy(F)
+
+
+---------------------------------------------------------------------------
+

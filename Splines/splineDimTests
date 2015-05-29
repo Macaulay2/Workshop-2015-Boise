@@ -1,0 +1,39 @@
+viewHelp("Splines")
+
+V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
+F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
+E = {{0,1},{0,2},{0,3},{0,4},{0,5}}
+M=splineModule(V,F,E,2)
+ring M
+M=image M
+hilbertFunction(4,image M)
+
+splineDimList(3,3,image M)
+hilbertPolyEval(4,image M)
+
+postNum=(M)->(
+    reg = regularity M;
+    L=apply(10,i->hilbertFunction(i,M)==hilbertPolyEval(i,M));
+    )
+postNum image M
+reg = regularity M
+L_reg
+i=reg
+while hilbertFunction(i,M)==hilbertPolyEval(i,M) do (
+    i=i-1;
+    )
+
+
+------ Functions that work go below this line
+splineDimList=(a,b,M)->(
+    apply(toList(a..b),i->hilbertFunction(i,M))
+    )
+
+
+hilbertPolyEval=method();
+hilbertPolyEval(ZZ,Module):=(i,M)->(
+    P=hilbertPolynomial(M,Projective=>false);
+    sub(P,(vars ring P)_(0,0)=>i)
+    )
+
+
