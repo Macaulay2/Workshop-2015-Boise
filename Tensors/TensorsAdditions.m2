@@ -158,9 +158,9 @@ eigenDiscriminant (Number,Number,Ring) := (n,d,Sa) -> (
     )
 ///
 tensorEigenvectorsCoordinates = method()
-tensorEigenvectorsCoordinates (Tensor,Number) := (T,k) -> (
+tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     n := (tensorDims T)#0;
-    I := tensorEigenvectors(T,k,symbol x);
+    I := tensorEigenvectors(T,k,x);
     R := ring I;
     S := CC[toSequence entries vars R];
     J := sub(I,S);
