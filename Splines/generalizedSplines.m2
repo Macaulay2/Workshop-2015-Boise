@@ -1,6 +1,7 @@
 generalizedSplines = method();
 --assume vertices are 0,...,n-1
-generalizedSplines(List,List,Ring) := Module => (E,ideals,S) ->(
+generalizedSplines(List,List) := Module => (E,ideals) ->(
+    S = ring first ideals;
     vertices := unique flatten E;
     n := #vertices;
     T := directSum(apply(ideals,I->coker gens I));
@@ -27,7 +28,7 @@ F={{1,2,4,5,10,11,13,14},{10,11,13,14,19,20,22,23},
     {4,5,7,8,13,14,16,17},{13,14,16,17,22,23,25,26},
     {5,6,8,9,14,15,17,18},{14,15,17,18,23,24,26,27}};
 
-M = generalizedSplines(E,ideals,S);
-N = image splineModule(V,F,edg,1);
+M = generalizedSplines(E,ideals);
+N = image splineModule(V,F,1);
 h1 = hilbertSeries M
 h2 = hilbertSeries N
