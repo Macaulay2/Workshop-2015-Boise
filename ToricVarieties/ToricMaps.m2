@@ -178,7 +178,7 @@ inverse (ToricMap) := (ToricMap) => f -> (
 		)
 	else (
 		return toricMap(source f, target f, inverse matrix f);
-	)
+		)
 	)
 
 end
