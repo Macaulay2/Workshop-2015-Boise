@@ -13,7 +13,7 @@ newPackage ("ToricMaps",
 --needsPackage("NormalToricVarieties");
 load "coneContain.m2";
 
-export{"ToricMap","checkCompatibility","toricMap","pullback"
+export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphism","inverse"
 		}
 
 -----------
@@ -100,7 +100,7 @@ cartierCoefficients ToricDivisor := List => D -> (
 
 pullback = method()
 
-pullback (ToricMap, ToricDivisor) := (f, D) -> (
+pullback (ToricMap, ToricDivisor) := ToricDivisor => (f, D) -> (
 
 		--check is D = divisor on target f?
 
@@ -149,15 +149,37 @@ pullback (ToricMap, ToricDivisor) := (f, D) -> (
         return toricDivisor(pullbackCoeffs,source f);
     );
 
+ToricMap ^* := f -> D -> pullback(f,D)
 
--- isIsomorphism: whether a toric map have a (toric) inverse?
+isIsomorphism = method()
 
--- isIsomorphism (ToricMap) := opts -> (f) -> (
---		if 
---		-- if so, the inverse is a ZZ matrix.
---		-- is the inverse matrix compatible with fans in the natural way?
---		)
+isIsomorphism (ToricMap) := Boolean => f -> (
+	m := matrix f;
+	d := det m;
+	if not (d == 1 or d == -1) then (
+		return false;
+		)
+	else (
+		minv := inverse m;
+		X := source f;
+		Y := target f;
+		if not (isCompatible(X,Y,minv)) then (
+			return false;
+			);
+	return true;
+		);
+	)
 
---inverse
+inverse = method()
+
+inverse (ToricMap) := (ToricMap) => f -> (
+	if not isIsomorphism(f) then (
+		error "map is not invertible."
+		)
+	else (
+		return toricMap(source f, target f, inverse matrix f);
+	)
+	)
 
 end
+
