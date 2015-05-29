@@ -57,8 +57,10 @@ export {
   "mixedVolume",
   "nonZeroFilter",
   "numericalIrreducibleDecomposition",
+  "numThreads",
   "parseSolutions",
   "refineSolutions",
+  "seeProgress",
   "solveRationalSystem",
   "solveSystem",
   "StableMixedVolume",
@@ -1118,7 +1120,7 @@ topWitnessSet (List,ZZ) := o->(system,dimension) -> (
 --------  TRACK PATHS  -----------
 ----------------------------------
 
-trackPaths = method(TypicalValue => List, Options=>{gamma=>0, tDegree=>2, Verbose => false, numThreads=>0, seeProgress=>False})
+trackPaths = method(TypicalValue => List, Options=>{gamma=>0, tDegree=>2, Verbose => false, numThreads=>0, seeProgress=>false})
 trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   -- IN: T, target system to be solved;
   --     S, start system with solutions in Ssols;
@@ -1159,12 +1161,9 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   
   if n> numgens R then error "the system is overdetermined"; 
   
-  -- writing data to the corresponding files
-
-  
   -- making batch file
   bat := openOut batchfile;
-  if not (o.numThreads > 0) then (
+  if not (o.numThreads > 1) then (
     bat << targetfile << endl << outfile << endl <<"n"<< endl 
     << startfile << endl << Ssolsfile << endl;
   
@@ -1183,7 +1182,7 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
     bat << "0" << endl; -- exit for now
     close bat;
   );
-  if o.numThreads > 0 then (
+  if o.numThreads > 1 then (
     bat << targetfile << endl << outfile << endl 
     << startandsolutionfile << endl;
   
@@ -1201,7 +1200,7 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
     close bat;
   );
 
-  run(PHCexe|" -p "|(if o.numThreads > 1 then ("-t"|o.numThreads) else ""|<"|batchfile|" >phc_session.log");
+  run(PHCexe|" -p "|(if o.numThreads > 1 then ("-t"|o.numThreads) else "")|"<"|batchfile|" >phc_session.log");
   run(PHCexe|" -z "|outfile|" "|Tsolsfile);
   
   -- parse and output the solutions
