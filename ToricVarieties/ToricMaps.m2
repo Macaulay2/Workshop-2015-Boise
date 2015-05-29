@@ -83,7 +83,7 @@ compose (ToricMap, ToricMap) := opts -> (f,g) -> (
 		else return toricMap(source g, target f, (matrix f)*(matrix g))
 
 		)
--- @@ operator (should it be * instead of @@? I don't think so)
+-- @@ operator (should it be * instead of @@? I do not think so)
 
 ToricMap @@ ToricMap := ToricMap => (f,g) -> compose(f,g)
 
@@ -105,15 +105,31 @@ pullback (ToricMap, ToricDivisor) := (f, D) -> (
 		--check is D = divisor on target f?
 
 		X2 := variety D;
+        if X2 =!= target f then (
+            error "variety of "|D|" is not the same as the target of"|f;
+        );
 		cdat := cartierCoefficients(D);
-		maxCones := max X2;
-		numCones := length maxCones;
-		l := apply((0..(numCones-1)), i -> (maxCones_i,cdat_i));
-
-		return l;
-
-		--apply the transpose of matrix f to the cart data
-		--associated to that maxl cone.
+		maximalCones := max X2;
+		numCones := length maximalCones;
+        l := toList(apply(0..(numCones-1), i -> (maximalCones_i,cdat_i)));
+        print l;
+		cartierDict := hashTable(l);
+        pullbackDict := new MutableHashTable;
+        for C in max source f do (
+            coneC := posHull ((matrix f)*(transpose(matrix ((rays(source f))_C))));
+            imC := null;
+            for imCone in max target f do (
+                polyCone := posHull(transpose(matrix ((rays(target f))_imCone)));
+                if contains(polyCone,coneC) then (
+                    imC = imCone;
+                    break;
+                );
+            );
+            --apply the transpose of matrix f to the cart data
+            --associated to that maxl cone.
+            pullbackDict#C = (transpose(matrix f))*(cartierDict#imC);
+        );
+        pullbackDict;
 
 		--then use that cart data to get the divisor coeffs
 		--for the rays of source f.
