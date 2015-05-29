@@ -2,7 +2,7 @@
 --output: a cone, the smallest cone of F containing C
 needsPackage("Polyhedra");
 smallestContainingCone = (F,inputCone) -> (
-    recurser = (bigCone,checkCone) -> (
+    recurser := (bigCone,checkCone) -> (
         for C in faces(1,bigCone) do (
             if contains(C,checkCone) then (
                 return recurser(C,checkCone);
@@ -51,13 +51,15 @@ maxContainingCone = (F,inputCone) -> (
 --For each maximal cone C of fan1, returns a maximal cone from fan2
 --that contains the image of C under M
 maxImageCones =  (fan2,fan1,M) -> (
-    return apply(maxCones(fan1),c->maxImageCones(fan2,posHull(M*rays(c))))
+    return apply(maxCones(fan1),c->maxContainingCone(fan2,posHull(M*rays(c))))
 );
 
 
 --input: M, a matrix; X and Y, source and target normal toric varieties
 --output: b, a boolean value, true iff M respects the fans of X and Y
 isCompatible = (Y,X,M) -> (
+    local xConeContained;
+    local imCx;
     for Cx in maxCones(fan(X)) do (
         xConeContained = false;
         imCx = posHull(M*rays(Cx));
