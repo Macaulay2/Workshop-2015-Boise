@@ -33,12 +33,7 @@ export {
 }
 
 symmetrize = method()
-symmetrize (Tensor) := (T) -> (
-    d := #(tensorDims T);
-    R := ring T;
-    L := apply(permutations d, p->T@p);
-    (1_R/(d!))*(sum L)
-    );
+symmetrize (Tensor) := (T) -> symmetrize(T,toList (0..#(tensorDims T)-1))
 symmetrize (Tensor,List) := (T,L) -> (
     d := #(tensorDims T);
     R := ring T;
@@ -82,8 +77,9 @@ contract (Tensor,Tensor,List,List) := (T,U,K,L) -> (
 	    TsliceList := new MutableList from (#Td:null);
 	    UsliceList := new MutableList from (#Ud:null);
 	    scan(#K, j->(TsliceList#(K#j) = i#j; UsliceList#(L#j) = i#j));
-	    --print T_(toList sliceList);
-	    T_(toList TsliceList)**U_(toList UsliceList)
+	    Tslice := T_(toList TsliceList);
+	    Uslice := U_(toList UsliceList);
+	    if #K == #Td or #K == #Ud then Tslice*Uslice else Tslice**Uslice
 	    ));
      sum toList slices
      );
@@ -226,6 +222,14 @@ polynomialToTensor (RingElement ) := (f) -> (
 	    ));
     symmetrize(sum T)
     )
+
+substitute (Tensor,Thing) := (T,S) -> (
+    E := entries T;
+    E = apply(E, e->sub(e,S));
+    M := tensorModule(ring first E,tensorDims T);
+    tensor(M,E)
+    )
+
 ///
 tensorFromSlices = method()
 tensorFromSlices List := S -> (
