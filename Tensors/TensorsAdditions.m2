@@ -27,13 +27,9 @@ export {
   tensorToMultilinearForm,
   multiplicationTensor,
   eigenDiscriminant,
-<<<<<<< HEAD
   tensorEigenvectorsCoordinates,
-  isSymmetric
-=======
-  tensorEigenvectorsCoordinate,
+  isSymmetric,
   polynomialToTensor
->>>>>>> 509061b12f225378053a0a496cff6d1aabe12e25
 }
 
 symmetrize = method()
@@ -42,7 +38,17 @@ symmetrize (Tensor) := (T) -> (
     R := ring T;
     L := apply(permutations d, p->T@p);
     (1_R/(d!))*(sum L)
-);
+    );
+symmetrize (Tensor,List) := (T,L) -> (
+    d := #(tensorDims T);
+    R := ring T;
+    S := apply(permutations L, p->(
+	    ind := new MutableList from (0..d-1);
+	    scan(#L, j->(ind#(L#j) = p#j));
+	    T@(toList ind)
+	    ));
+    (1_R/((#L)!))*(sum S)
+    )
 
 isSymmetric = method()
 isSymmetric Tensor := T -> (
@@ -52,17 +58,36 @@ isSymmetric Tensor := T -> (
     all(S, s->T@s == T)
     )
 
-contract (Tensor,Number,Number) := (T,k,l) -> (
-    d := #(tensorDims T);
-    n := (tensorDims T)#k;
-    m := (tensorDims T)#l;
-    assert(n == m);
-    Tslices := apply((0,0)..(n-1,n-1), ij-> (
-	sliceList := toList apply(d, p->(if p==k then ij#0 else if p==l then ij#1 else null));
-	T_sliceList
-	));
-    sum toList Tslices
-    );
+contract (Tensor,List,List) := (T,K,L) -> (
+    D := tensorDims T;
+    KD := apply(K, k->D#k);
+    LD := apply(L, k->D#k);
+    if KD != LD then error "dimension mismatch";
+    Tslices := apply((#K:0)..<(toSequence KD), i-> (
+	    sliceList := new MutableList from (#D:null);
+	    scan(#K, j->(sliceList#(K#j) = i#j; sliceList#(L#j) = i#j));
+	    --print T_(toList sliceList);
+	    T_(toList sliceList)
+	    ));
+     sum toList Tslices
+     );
+contract (Tensor,Number,Number) := (T,k,l) -> contract(T,{k},{l})
+contract (Tensor,Tensor,List,List) := (T,U,K,L) -> (
+    Td := tensorDims T;
+    Ud := tensorDims U;
+    KD := apply(K, k->Td#k);
+    LD := apply(L, k->Ud#k);
+    if KD != LD then error "dimension mismatch";
+    slices := apply((#K:0)..<(toSequence KD), i-> (
+	    TsliceList := new MutableList from (#Td:null);
+	    UsliceList := new MutableList from (#Ud:null);
+	    scan(#K, j->(TsliceList#(K#j) = i#j; UsliceList#(L#j) = i#j));
+	    --print T_(toList sliceList);
+	    T_(toList TsliceList)**U_(toList UsliceList)
+	    ));
+     sum toList slices
+     );
+contract (Tensor,Tensor,Number,Number) := (T,U,k,l) -> contract(T,U,{k},{l})
 
 tensorEigenvectors = method()
 tensorEigenvectors (Tensor,Number,Ring,RingElement) := (T,k,S,x) -> (
@@ -135,7 +160,7 @@ tensorToMultilinearForm (Tensor,Symbol) := (T,x) -> (
     )
     
 
-tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
+tensorModule Tensor := T -> class T
 
 tensor Matrix := o -> M -> makeTensor entries M
 
@@ -201,5 +226,15 @@ polynomialToTensor (RingElement ) := (f) -> (
 	    ));
     symmetrize(sum T)
     )
+///
+tensorFromSlices = method()
+tensorFromSlices List := S -> (
+    
 
+
+factorMap = method()
+factorMap (Tensor,Matrix,Number) := (T,M,k) -> (
+    
+    slices := apply(
+///
 end
