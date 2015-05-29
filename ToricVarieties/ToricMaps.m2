@@ -11,7 +11,7 @@ newPackage ("ToricMaps",
 	)
 
 --needsPackage("NormalToricVarieties");
-load "coneContain.m2";
+--load "coneContain.m2";
 
 export{"ToricMap","checkCompatibility","toricMap","pullback"
 		}
@@ -36,10 +36,6 @@ globalAssignment ToricMap
 -- of X to the one-parameter subgroup lattice of Y
 
 toricMap = method(Options => {checkCompatibility => true})
-
-
--- toricMap still needs a check for whether the map of lattices is
--- compatible with the fans defining the toric varieties.
 
 toricMap (NormalToricVariety, NormalToricVariety, Matrix) := ToricMap => opts -> (Y,X,M) -> (
 
@@ -74,6 +70,26 @@ source ToricMap := NormalToricVariety => f -> f.source
 target ToricMap := NormalToricVariety => f -> f.target
 matrix ToricMap := Matrix => o -> f -> f.matrix
 
+--input: M, a matrix; X and Y, source and target normal toric varieties
+--output: b, a boolean value, true iff M respects the fans of X and Y
+isCompatible = (Y,X,M) -> (
+    local xConeContained;
+    local imCx;
+    for Cx in maxCones(fan(X)) do (
+        xConeContained = false;
+        imCx = posHull(M*rays(Cx));
+        for Cy in maxCones(fan(Y)) do (
+            if contains(Cy,imCx) then (
+                xConeContained = true;
+                break;
+            );
+        );
+        if not xConeContained then return false;
+    );
+    return true;
+);
+
+
 compose := method()
 
 -- composing maps
@@ -90,7 +106,7 @@ ToricMap @@ ToricMap := ToricMap => (f,g) -> compose(f,g)
 cartierCoefficients := method()
 
 
--- Taken from NormalToricVarieties.m2 (not exported)
+-- Taken from NormalToricVarieties.m2 (which does not export it)
 cartierCoefficients ToricDivisor := List => D -> (
 	X := variety D;
 	V := matrix rays X;
