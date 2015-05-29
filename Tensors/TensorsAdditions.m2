@@ -27,7 +27,8 @@ export {
   tensorToMultilinearForm,
   multiplicationTensor,
   eigenDiscriminant,
-  tensorEigenvectorsCoordinate
+  tensorEigenvectorsCoordinates,
+  isSymmetric
 }
 
 symmetrize = method()
@@ -37,6 +38,14 @@ symmetrize (Tensor) := (T) -> (
     L := apply(permutations d, p->T@p);
     (1_R/(d!))*(sum L)
 );
+
+isSymmetric = method()
+isSymmetric Tensor := T -> (
+    D := tensorDims T;
+    if not all(#D, i->D#i == D#0) then return false;
+    S := permutations(#D);
+    all(S, s->T@s == T)
+    )
 
 contract (Tensor,Number,Number) := (T,k,l) -> (
     d := #(tensorDims T);
@@ -75,7 +84,9 @@ tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
 tensorToPolynomial = method()
 tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     R := ring T;
-    n := (tensorDims T)#0;
+    D := tensorDims T;
+    if not all(#D, i->(D#i == D#0)) then error "tensor is not square";
+    n := D#0;
     S := R[apply(n,i->x_i)];
     tensorToPolynomial(T,S,S_0)
     );
@@ -156,7 +167,7 @@ eigenDiscriminant (Number,Number,Ring) := (n,d,Sa) -> (
     J := saturate(singI,ideal vx);
     sub(eliminate(vx,J),Sa)
     )
-///
+
 tensorEigenvectorsCoordinates = method()
 tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     n := (tensorDims T)#0;
@@ -169,6 +180,6 @@ tensorEigenvectorsCoordinates (Tensor,Number,Symbol) := (T,k,x) -> (
     F := first entries gens L;
     solveSystem(F)
     )
-///
+
 
 end

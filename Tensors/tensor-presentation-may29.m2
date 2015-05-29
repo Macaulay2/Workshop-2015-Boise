@@ -1,4 +1,23 @@
+loadPackage "TensorsAdditions"
+--Constructing tensors
+R = QQ
+T = randomTensor(R,{3,3,3})
+tensorDims T
+M = tensorModule(R,{3,3})
+N = tensorModule(R,{2})
+P = M**N
+P_(1,0,0) + P_(0,1,0)
 
+R = QQ[a..h]
+T = genericTensor(R,{2,2,2})
+
+--Entries and slices
+T_{0,1,1}
+T_{0,0,}
+T_{,0,}
+T_{,1,}
+
+--Eigenvectors
 A = makeTensor{{0,1},{-2,3}}
 R = QQ[x,y]    
 right = tensorEigenvectors(A,0,R)
@@ -19,11 +38,14 @@ I = tensorEigenvectors(T,0,R)
 T = makeTensor{{{1,0,0},{0,0,-1/2},{0,-1/2,0}},{{0,0,-1/2},{0,1,0},{-1/2,0,0}},{{0,-1/2,0},{-1/2,0,0},{0,0,1}}}
 S = permutations 3
 apply(#S,i->T@(S#i) == T)
+isSymmetric T
 
 -- isSymmetric? 
 R = QQ[x,y,z]
 tensorToPolynomial (T,R)
-R = QQ[x,y,z]
+S = QQ[a_0..a_2,b_0..b_2,c_0..c_2]
+tensorToMultilinearForm(T,S)
+
 I = tensorEigenvectors(T,0,R)
 netList primaryDecomposition I
 
