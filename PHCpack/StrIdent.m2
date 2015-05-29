@@ -19,7 +19,6 @@ export{
 "doMonodromy",
 "getCoefficients",
 "NumLoops",
-"pullCoefficients",
 "restrictRing"
 }
 
@@ -33,9 +32,9 @@ characteristicPoly (Matrix) := (M) -> (
   phi := map(S, ring M, gens coefficientRing S);
   newM := phi M;
   --create the identity matrix
-  Id := matrix(mutableIdentity(S, numgens source M));
+  IdM := matrix(mutableIdentity(S, numgens source M));
   --find characteristic polynomial
-  return(det (x*Id - newM));
+  return(det(x*IdM - newM));
 )
 
 pullCoefficients = method()
@@ -46,20 +45,18 @@ pullCoefficients (RingElement) := (f) -> (
   --Create a list to accumulate coefficients
   k := 0;
   t := 0;
-  x := symbol x;
+  x := (gens ring f)#0;
   --loop through powers of x
-  while k<=degree(x,f) do (
-    C := coefficient(x^k,f);
+  while k <= degree(x,f) do (
 	  --find coefficient of x^k
-	  if C == 0 or C==1 or C==-1 then
-      C==0 
-	  --if its a bad value (0,1,-1), don't include it    
-	  else
-	    (CoeffList#t = C;t=t+1;);
-	  --otherwise include it        
-	    k = k+1;
+    C := coefficient(x^k,f);
+	  --if its a bad value (0,1,-1), don't include it
+	  if not (C == 0 or C==1 or C==-1) then (
+	    CoeffList#t = C;
+      t=t+1;
+    );
+	  k = k+1;
   );
-  --return the list of coefficients
   return(CoeffList);
 )
 
@@ -85,15 +82,13 @@ restrictRing (Matrix) := (A) -> (
 restrictRing (RingElement) := (A) -> (
   SbRing := CC[support A];    
   L := indices A;
-  i := 0;
   t := 0;
   mapList := new MutableList from {};
-  while i<numgens ring A do (
+  for i from 0 to (numgens ring A - 1) do (
     if member(i,L) then 
       (mapList#i = (gens SbRing)#t; t=t+1;)
     else 
       mapList#i=0;
-	    i = i+1; 
   );
   MapList := new List from mapList;
   phi := map(SbRing,ring A,MapList);
@@ -144,11 +139,9 @@ getCoefficients (Matrix, List, List) := (B,I,J) -> (
   oldRing := ring AllCoeff#0;    
   LL := delete((gens(oldRing))#(numgens oldRing-1),gens(ring AllCoeff#0));  
   Ring3 := CC[LL];
-  t := 0;
-  for f in AllCoeff do(
-    PHI := map(Ring3,ring f,join(gens Ring3,{0}));
-    AllCoeff2#t = PHI(f);
-    t := t+1;
+  for i from 0 to (length AllCoeff - 1) do (
+    PHI := map(Ring3,ring AllCoeff#i,join(gens Ring3,{0}));
+    AllCoeff2#i = PHI(AllCoeff#i);
   );
   finalCoeff := new List from AllCoeff2;
   return(finalCoeff);
@@ -213,6 +206,7 @@ doBlackbox (List) := (System) -> (
 TEST/// 
   R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
   Ex2 = matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
+  print pullCoefficients(Ex2)
   System = getCoefficients(Ex2,{0},{0})
   sol=doMonodromy(System)
 ///;
