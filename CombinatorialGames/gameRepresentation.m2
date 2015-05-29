@@ -1,12 +1,4 @@
-restart
 loadPackage("SimplicialComplexes")
-S = QQ[x_1,x_2,y_1]
-L = {x_1,x_2}
-R = {y_1}
-S = QQ[L,R,Degrees=>join(apply(L,i->{1,0}),apply(R,i->{0,1}))]
-Delta = simplicialComplex(apply({{x_1,x_2},{x_2,y_1}},product))
-
-
 gameRepresentation = method()
 gameRepresentation(SimplicialComplex,List,List) := String => (Delta,L,R) -> (
     S := ring Delta;
@@ -36,5 +28,15 @@ gameRepresentation(SimplicialComplex,List,List) := String => (Delta,L,R) -> (
 	)
     else "Variables of Delta not bi-partitioned."
     )
+end
+
+restart
+
+
+S = QQ[x_1,x_2,y_1]
+L = {x_1,x_2}
+R = {y_1}
+S = QQ[L,R,Degrees=>join(apply(L,i->{1,0}),apply(R,i->{0,1}))]
+Delta = simplicialComplex(apply({{x_1,x_2},{x_2,y_1}},product))
 
 gameRepresentation(Delta,L,R)
