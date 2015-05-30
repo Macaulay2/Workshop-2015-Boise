@@ -15,10 +15,13 @@ newPackage(
 export{
 "characteristicPoly",
 "doMonodromy",
+"doMultiMonodromy",
 "getCoefficients",
+"makeMultiIdentifiabilitySystem",
 "NumLoops",
 "pullCoefficients",
-"restrictRing"
+"restrictRing",
+"tryEvalSol"
 }
 
 --needsPackage("PHCpack");
@@ -128,7 +131,7 @@ getCoefficients (Matrix, List, List) := (B,I,J) -> (
       else if j!=i then ( --otherwise use a derivative trick
         AnewMM := mutableMatrix(A);
         use SS;
-        AnewMM_(i,j) := y;
+        AnewMM_(i,j) = y;
         Anew := matrix(AnewMM);
         chAnew := characteristicPoly(Anew);
         allCoeff = join(allCoeff,pullCoefficients(diff(y,chAnew)));
@@ -192,6 +195,47 @@ doMonodromy (List) := o -> (System) -> (
   print Sol;
 )
 
+tryEvalSol = method()
+tryEvalSol (List, List) := (NewSol, ExtraPolys) -> (
+  ValueMap := for i from 0 to (length NewSol - 1) list ((gens(ring (ExtraPolys#0)))#i => NewSol#i);
+  Tolerance := 4;
+  for Poly in ExtraPolys do (
+    TestValue := Poly.sub(ValueMap);
+    if ((round(Tolerance, realPart TestValue) != 0)
+    or (round(Tolerance, imaginaryPart TestValue) != 0)) then
+      return false;
+  );
+  return true;
+)
+
+makeMultiIdentifiabilitySystem = method()
+makeMultiIdentifiabilitySystem (List, List) := (IndSystem, ExtraPolys) -> (
+  R := ring ideal IndSystem;
+  ValueList := for v in R.gens list (v => random(CC));
+  phi := map(CC, R, ValueList);
+  return (IndSystem/(f -> f - phi f), ValueList, ExtraPolys/(f -> f - phi f))
+)
+
+doMultiMonodromy = method(Options => {NumLoops => 5, Tolerance => 4})
+doMultiMonodromy (List, List) := o -> (IndSystem, ExtraPolys) -> (
+  (FirstSystem, FirstSolution, EvalExtraPolys) := makeMultiIdentifiabilitySystem(IndSystem, ExtraPolys);
+  print FirstSolution;
+  Sol := {point({for v in FirstSolution list v#1})};
+  Sols := new MutableList;
+  for i from 1 to o.NumLoops do (
+    NewSol := doOneLoop(FirstSystem, (makeIdentifiabilitySystem(IndSystem))#0, Sol);
+    Sols#(i-1) = NewSol;
+    Sol := NewSol;
+  );
+  TestSols := new List from Sols;
+  GoodSols := new MutableList;
+  --need to kill duplicates within some tolerance
+  for i from 0 to length TestSols do (
+    if tryEvalSol((TestSols#i)#Coordinates, EvalExtraPolys) then
+      GoodSols#i = TestSols#i;
+  );
+)
+
 doBlackbox = method()
 doBlackbox (List) := (System) -> (
   print "Blackbox solution(s) for given variable ordering:";
@@ -199,6 +243,43 @@ doBlackbox (List) := (System) -> (
   return solveSystem((makeIdentifiabilitySystem(System))#0);
 )
 
+loadPackage "EliminationMatrices"
+maxAlgInd = method()
+maxAlgInd (List) := (F) -> (
+  M := matrix {F};    
+  JM := jacobian(M);
+  mCol := maxCol(JM);
+  Indices := mCol#1;
+  linIndlist := for i in Indices list M_(0,i); 
+  return(linIndlist);   
+)
+
+strIdentPolys = method()
+strIdentPolys (Matrix, List, List) := (A,I,J) ->(
+  F:=getCoefficients(A,I,J);
+  sup := for f in F list(support f);
+  flatsup :=unique flatten sup;
+  if #(flatsup) == #F then 
+    return({F,{}})
+  else if #(flatsup) > #F then 
+    return("This System is Underdetermined")
+  else (
+    oldPolys:=toList(set F - set maxAlgInd(F));
+    oldPolyList:= new MutableList from {};
+    return({maxAlgInd(F),oldPolys});
+  );
+)
+
+R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
+Ex2=matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
+strIdentPolys(Ex2,{0},{0})
+
+R := CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44];
+Ex1:=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}};
+STRI := strIdentPolys(Ex1,{0},{0,1});
+print STRI	
+print doMultiMonodromy (STRI#0, STRI#1)
+print "ASDF"
 
 --##########################################################################--
 -- TESTS

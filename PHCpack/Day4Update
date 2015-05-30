@@ -1,0 +1,55 @@
+-------------------------------Boise 2015 M2 Workshop------------------------
+----------------------------------PHC Pack Group-----------------------------
+--------------------------------------Day 4----------------------------------
+restart
+
+loadPackage "StrIdent"
+
+--------------------------CODE FOR FINDING MAXIMALLY ALG IND SUBSET --------------------------
+loadPackage "EliminationMatrices"
+maxAlgInd = (F) -> (
+ M:=matrix {F};    
+ JM:=jacobian(M);
+ mCol:=maxCol(JM);
+ Indices:=mCol#1;
+ linIndlist:=for i in Indices list M_(0,i); 
+ return(linIndlist);   
+)
+
+
+
+strIdentPolys = (A,I,J) ->(
+F:=getCoefficients(A,I,J);
+sup := for f in F list(support f);
+flatsup :=unique flatten sup;
+if #(flatsup) == #F then return({F,{}})
+else if #(flatsup) > #F then return("This System is Underdetermined")
+else (
+    	oldPolys:=toList(set F - set maxAlgInd(F));
+	oldPolyList:= new MutableList from {};
+--	for i from 0 to (#F-1) do if member(F#i,oldPolys)==true then  oldPolyList=join(oldPolyList,{i}); 
+--    	oldPolyList:= new List from oldPolyList;
+    	return({maxAlgInd(F),oldPolys});
+    );
+)
+
+
+-----------------------------------------------------------------------------
+-----------------------------------EXAMPLES----------------------------------
+-----------------------------------------------------------------------------
+
+R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
+Ex2=matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
+strIdentPolys(Ex2,{0},{0})
+System = getCoefficients(Ex2,{0},{0})
+netList System
+
+sol=doMonodromy(System)
+
+------------------------------------------------------------------------
+use R
+Ex1=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}}
+System = getCoefficients(Ex1,{0},{0,1})
+STRI = strIdentPolys(Ex1,{0},{0,1})
+AlgIndSystem = maxAlgInd(matrix {System})
+sol=doMonodromy(AlgIndSystem)

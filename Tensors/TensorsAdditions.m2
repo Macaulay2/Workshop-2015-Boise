@@ -29,7 +29,10 @@ export {
   eigenDiscriminant,
   tensorEigenvectorsCoordinates,
   isSymmetric,
-  polynomialToTensor
+  polynomialToTensor,
+  tensorFromSlices,
+  flattenTensor,
+  factorMap
 }
 
 symmetrize = method()
@@ -61,7 +64,6 @@ contract (Tensor,List,List) := (T,K,L) -> (
     Tslices := apply((#K:0)..<(toSequence KD), i-> (
 	    sliceList := new MutableList from (#D:null);
 	    scan(#K, j->(sliceList#(K#j) = i#j; sliceList#(L#j) = i#j));
-	    --print T_(toList sliceList);
 	    T_(toList sliceList)
 	    ));
      sum toList Tslices
@@ -155,6 +157,8 @@ tensorModule Tensor := T -> class T
 
 tensor Matrix := o -> M -> makeTensor entries M
 
+tensor Vector := o -> V -> makeTensor entries V
+
 multiplicationTensor = method()
 multiplicationTensor Ring := R -> (
     Bmatrix := basis R;
@@ -232,15 +236,46 @@ Tensor ^** Number := (T,n) -> (
     U
     )
 
-///
 tensorFromSlices = method()
 tensorFromSlices List := S -> (
-    
+    Sf := ultimate(flatten,S);
+    D1 := initialDimensions S;
+    fSf := first Sf;
+    D2 := if instance(fSf,Tensor) then tensorDims fSf else {};
+    R := ring fSf;
+    M := tensorModule(R,D1|D2);
+    tensor(M, if instance(fSf,Tensor) then flatten apply(Sf,entries) else Sf)
+    )
 
+flattenTensor = method()
+flattenTensor (Tensor,List) := (T,L) -> (
+   D := tensorDims T;
+   LD := apply(L, k->D#k);
+   Tslices := apply((#L:0)..<(toSequence LD), i-> (
+	   sliceInd := new MutableList from (#D:null);
+	   scan(#L, j->(sliceInd#(L#j) = i#j));
+	   T_(toList sliceInd)
+	   ));
+   U := tensorFromSlices toList Tslices;
+   d := #(tensorDims U);
+   k := min L;
+   w := toList apply(d,i->if i < k then i+1 else if i == k then 0 else i);
+   U@w
+   )
 
 factorMap = method()
 factorMap (Tensor,Matrix,Number) := (T,M,k) -> (
-    
-    slices := apply(
-///
+    D := tensorDims T;
+    if D#k != numcols M then error "dimension mismatch";
+    slices := toList apply(numrows M, i-> contract(T,makeTensor first entries M^{i},k,0));
+    U := tensorFromSlices slices;
+    w := toList apply(#D,i->if i < k then i+1 else if i == k then 0 else i);
+    U@w
+    )
+
+initialDimensions=method()
+initialDimensions List := L -> (d:={};
+     while instance(L,List) do (d=d|{#L},L=L_0);
+     return d)
+
 end

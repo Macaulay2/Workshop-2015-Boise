@@ -607,6 +607,36 @@ getCodim1Intersections(List) := List => F ->(
 )
 
 ------------------------------------------
+simpBoundary = method()
+------------------------------------------
+--Input:
+--F = list of codim i faces
+--E = list of codim i+1 faces
+------------------------------------------
+--Output:
+--B = boundary map matrix
+------------------------------------------
+--Example:
+--F = {{0,1,2},{0,1,3},{1,3,4},{1,2,4},{2,4,5},{0,2,5},{0,3,5}}
+--E = {{0,1},{1,2},{0,2},{3,0},{1,3},{1,4},{2,4},{2,5},{0,5},{3,4},{4,5}}
+--V = {{0},{1},{2},{4}}
+------------------------------------------
+
+simpBoundary(List,List) := Matrix => (F,E) -> (
+    F = apply(F, f-> sort f);
+    E = apply(E, e-> sort e);
+    tempLF := {};
+    rowList := {};
+    apply(F, f-> (
+	    tempLF = hashTable apply(#f, v-> position(E,e-> e == drop(f,{v,v})) => (-1)^v);
+	    rowList = append(rowList,apply(#E, j->if member(j,keys tempLF) then tempLF#j else 0));
+	    )
+	);
+    transpose matrix rowList
+    )
+
+
+------------------------------------------
 getSize = method();
 ------------------------------------------
 --Input: L = List of Lists
