@@ -1,3 +1,32 @@
+newPackage(
+  "FiltAlgScripts",
+  Version => "0.1",
+  Date => "30 May 2015",
+  Authors => {
+      {
+      Name => "Nathan Grieve", 
+      Email => "nathan.grieve@mail.mcgill.ca",
+      HomePage => "http://www.math.mcgill.ca/ngrieve"},             
+    {
+      Name => "Suprajo Das", 
+      Email => "dassuprajo@gmail.com", 
+      HomePage => ""},
+ {
+      Name => "Brent Holmes ", 
+      Email => "brentholmes@ku.edu",
+      HomePage => ""}
+  },
+  Headline => "FiltAlgScripts",
+  DebuggingMode => true
+  )
+
+export {
+  "associatedGraded",
+  "finiteTypeFilteredAlgebra",
+  "grIdeal"
+  }
+
+
 FamilyOfIdeals := new Type of GradedModule  
 
 familyOfIdeals = method()
@@ -50,7 +79,7 @@ finiteTypeFilteredAlgebra(List) := (L) -> (
     S:=R[t];
     genlist := { };
     degreelist := { };
-    for i to #L-1 do ( I = L#i; 
+    for i to #L-1 do ( I := L#i; 
 	genlist = 
 	append(genlist,
 	    apply(I_*,f->promote(f,S)*t_S^(i+1)));
@@ -91,7 +120,6 @@ grIdeal (Ring,RingMap,ZZ,FamilyOfIdeals) := (A,F,n,I) ->(
     trim ideal (B*E)
     )
 
--- to do later 
 
 associatedGraded = method()
 
@@ -102,9 +130,14 @@ associatedGraded(List,ZZ) :=(L,n) ->(
     K:=sum(for i from 0 to n list grIdeal(A,F,i,I));
     trim K
     )
+-- need to check the above
+
 
 end
 
+restart
+installPackage"FiltAlgScripts"
+installPackage("FiltAlgScripts",RemakeAllDocumentation=>true)
 
 restart
 load"FiltAlgScripts.m2"
