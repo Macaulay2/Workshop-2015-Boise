@@ -35,7 +35,9 @@ if version#"VERSION" <= "1.4" then (
 
 export {
     "gameRepresentation",
-    "facetIdeal"
+    "facetIdeal",
+    "facetComplex",
+    "coverDual"
     }
 
 ------------------------------------------
@@ -97,6 +99,18 @@ facetIdeal(SimplicialComplex) := Ideal => Delta -> (
     ideal flatten entries facets(Delta)    
     )
 
+facetComplex = method()
+facetComplex(MonomialIdeal) := SimplicialComplex => facetIdeal ->(
+    simplicialComplex facetIdeal_*	
+    )
+
+coverDual = method()
+coverDual(SimplicialComplex) := SimplicialComplex => Delta ->(
+    I:=facetIdeal(Delta);
+    L:=primaryDecomposition I;
+    K:=for i from 0 to #L-1 list product((L_i)_*);
+    simplicialComplex K
+    )
 ------------------------------------------
 ------------------------------------------
 -- Documentation
