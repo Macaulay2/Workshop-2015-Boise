@@ -39,11 +39,11 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   "Splines",
+   "SplineSet",
        "VertexCoordinates",
        "Regions",
        "SplineModule",
-   "splines",
+   "splineSet",
    "Spline",
    "spline",
    "splineMatrix",
