@@ -365,7 +365,6 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
        *}
        if #(a.terms) > 1 then (
        	   sum ( for t in pairs a.terms list (
-	       << "t" << toString t << endl;
 	       (putInRing({t},A))*b 
 	       )
 	   )
