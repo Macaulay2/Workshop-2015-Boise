@@ -44,9 +44,9 @@ iteratedPieri = (plist,r,l,L,Y) -> (
 -- The main function.  Will export this in the package
 quantumMonomialMultiplication = (r,l,yt1,yt2,Y) -> (
     W:=giambelliDet(l,yt2);
-    print concatenate("giambelliDet(l,yt2) = ",toString(W)) << endl;
+   -- print concatenate("giambelliDet(l,yt2) = ",toString(W)) << endl;
     L:=apply(#W, i -> iteratedPieri(W_i_0,r,l,{ {yt1,1}},Y));
-    for i from 0 to #L-1 do (print concatenate(toString(W_i_1)," ",toString(L_i)) << endl);
+   -- for i from 0 to #L-1 do (print concatenate(toString(W_i_1)," ",toString(L_i)) << endl);
     L=flatten apply(#L, i-> apply(#(L_i), j -> {L_i_j_0,(W_i_1)*(L_i_j_1)}));
     simplify(L,Y)
 )
@@ -59,6 +59,9 @@ load "RingfreeGiambelli.m2"
 
 --Test quantumMonomialMultiplication
 Y=QQ[q]
+
+quantumMonomialMultiplication(2,2,{1},{2,1,1},Y)
+
 quantumPieri(3,2,5,{ {1,{2,2}} },Y)
 quantumMonomialMultiplication(2,5,{2,2},{3,2},Y)
 -- Anders Buch's Maple program gives S[5, 4] + S[4, 3, 2] + S[4, 4, 1] + S[5, 2, 2] + S[5, 3, 1]
