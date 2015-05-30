@@ -10,8 +10,8 @@
 ------------------------------------------
 
 if version#"VERSION" <= "1.4" then (
-    needsPackage "Polyhedra",
-    needsPackage "Graphs"
+    needsPackage "Graphs",
+    needsPackage "Polyhedra"
     )
 
 newPackage select((
@@ -39,6 +39,13 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
+   "Splines",
+       "VertexCoordinates",
+       "Regions",
+       "SplineModule",
+   "splines",
+   "Spline",
+   "spline",
    "splineMatrix",
    "splineModule",
    "InputType",
@@ -53,17 +60,56 @@ export {
    "interiorFaces",
    "splineDimTable",
    "posNum",
-   "posTable",
+   "hilbertCTable",
    "hilbertPolyEval",
    "generalizedSplines"
     }
 
 ------------------------------------------
 ------------------------------------------
--- Methods
+-- Data Types and Constructors
 ------------------------------------------
 ------------------------------------------
 
+--Create an object that gives ALL splines
+--on a given subdivision.
+Splines = new Type of HashTable
+splines = method(Options => {
+	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ})
+
+splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    	AD := splineMatrix(V,F,E,r,opts);
+	K := ker AD;
+	b := #F;
+    	new Splines from {
+	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
+	    symbol VertexCoordinates => V,
+	    symbol Regions => F,
+	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),)
+	}
+)
+
+
+net Splines := S -> S.SplineModule
+
+Spline = new Type of HashTable
+spline = method()
+
+spline(Splines,List) := (S,L) -> (
+    M := S.SplineModule;
+    )
+   
+
+
+------------------------------------------
+------------------------------------------
+-- Methods
+------------------------------------------
+------------------------------------------
 
 ------------------------------------------
 ------------------------------------------
@@ -85,6 +131,21 @@ isHereditary= method()
 
 isHereditary(List,List) := Boolean => (F,E) -> (
     V := unique flatten join F;
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e <= 2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
+
+isHereditary(List) := Boolean => F -> (
+    V := unique flatten join F;
+    E := getCodimIFacesSimplicial(F,1);
     dualV := toList(0..#F-1);
     dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
     if not all(dualE,e-> #e <= 2) then (
@@ -193,7 +254,6 @@ getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
     )
 
 
-
 -----------------------------------------
 -----------------------------------------
 splineMatrix = method(Options => {
@@ -225,7 +285,7 @@ splineMatrix = method(Options => {
 -- BM = matrix with columns corresponding
 -- to facets and linear forms separating facets.
 ------------------------------------------
-splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
+splineMatrix(List,ZZ) := Matrix => opts -> (L,r) -> (
     --Use this if your list L = {V,F,E} contains
     --The inputs as a single list L.
     if opts.InputType === "ByFacets" then (
@@ -347,7 +407,7 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
 ------------------------------------------
 ------------------------------------------
 splineModule = method(Options => {
-	symbol InputType => "ByFacets", 
+	symbol InputType => "ByFacets",
 	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
@@ -406,56 +466,88 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 ------------------------------------------
 -------------------------------------------
 -------------------------------------------
-splineDimTable=method();
--------------------------------------------
--------------------------------------------
------ splineDimTable 
+splineDimTable=method(Options => {
+	symbol InputType => "ByFacets"
+	}
+    );
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
------ "ByModule"
 ----- a= lower bound of dim table
 ----- b= upper bound of dim table
 ----- M= module
---- OR!!!
------ "ByFacets"
------ a= lower bound of range
------ b= upper bound of range
------ L= list of {V,E,F}, list of vertices, edges and faces
------ r= degree of desired continuity
------- Functions that work go below this line
 --------------------------------------------
 ------ Outputs:
 --------------------------------------------
------- A hashTable with the dimensions of the graded pieces
------- of the spline module in the range (a,b)
+------ A net with the degrees between a and b on top row
+------ and corresponding dimensions of graded pieces
+------ of M in bottom row
+-------------------------------------------
 
-splineDimTable(ZZ,ZZ,Module):= (a,b,M)->(
-    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+splineDimTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
+    r1:=prepend("Degree",toList(a..b));
+    r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
+    netList {r1,r2}
     )
-splineDimTable(ZZ,ZZ,List,ZZ):= (a,b,L,r)->(
+
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list {V,F,E}, where V is a list of vertices, F a list of facets, E a list of codim 1 faces
+----- r= degree of desired continuity
+-------------------------------------------
+-----Outputs:
+-------------------------------------------
+-------A table with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+-------------------------------------------
+
+splineDimTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
     M := splineModule(L_0,L_1,L_2,r);
-    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    splineDimTable(a,b,M)
     )
------------------------------------------------------------------
+
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list {V,F}, where V is list of vertices, F a list of facets
+-------------
+-----OR!!
+-------------------------------------------
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list {V,F}, where V is a list of adjacent facets, F a list of forms
+-----------defining codim 1 faces along which adjacent facets meet
+-------------------------------------------
+-------Outputs:
+-------------------------------------------
+-------A table with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+-------------------------------------------
+
+splineDimTable(ZZ,ZZ,List,ZZ):= Net => opts->(a,b,L,r)->(
+    M := splineModule(L_0,L_1,r,opts);
+    splineDimTable(a,b,M)
+    )
+
 
 -------------------------------------------
 -------------------------------------------
 posNum=method();
-posTable=method();
--------------------------------------------
-------------------------------------------- 
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
------ M= module
+----- M, a graded module
 --------------------------------------------
 ------ Outputs:
 --------------------------------------------
------- An integer which is the last degree at
------- which the Hilbert Function of the module
------- disagrees with the Hilbert polynomial of 
------- the module.
+------ The postulation number (largest integer 
+------ for which Hilbert function and polynomial 
+------ of M disagree).
 --------------------------------------------
 posNum(Module):= (N) ->(
     k := regularity N;
@@ -463,11 +555,33 @@ posNum(Module):= (N) ->(
     k
     )
 
-posTable(Module):= (N) ->(
-    k := regularity N +1;
-    hashTable apply(k,i->(i=>(hilbertFunction(i,M),hilbertPolyEval(i,N))))
+------------------------------------------
+-----------------------------------------
+
+hilbertCTable=method();
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- a= an integer, lower bound
+----- b= an integer, upper bound
+----- M= graded module over a polynomial ring
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ A table whose top two rows are the same as
+------ the output of splineDimTable and whose 
+------ third row compares the first two to the
+------ Hilbert Polynomial
+--------------------------------------------
+
+hilbertCTable(ZZ,ZZ,Module):= (a,b,M) ->(
+    r1:=prepend("Degree",toList(a..b));
+    r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
+    r3:=prepend("HilbertPoly",apply(toList(a..b),i->hilbertPolyEval(i,M)));
+    netList {r1,r2,r3}
     )
 ---------------------------------------------
+
 hilbertPolyEval=method();
 ---------------------------------------------
 -------------------------------------------
@@ -483,7 +597,7 @@ hilbertPolyEval=method();
 --------------------------------------------
 
 hilbertPolyEval(ZZ,Module):=(i,M)->(
-    P=hilbertPolynomial(M,Projective=>false);
+    P:=hilbertPolynomial(M,Projective=>false);
     sub(P,(vars ring P)_(0,0)=>i)
     )
 
@@ -492,17 +606,20 @@ hilbertPolyEval(ZZ,Module):=(i,M)->(
 ------------------------------------------
 ------------------------------------------
 -- This method computes the generalized spline module
--- associated to a graph whose edges are labeled by ideals
+-- associated to a graph whose edges are labeled by ideals.
 ------------------------------------------
 --Inputs: 
 ------------------------------------------
 --E = list of edges. Each edge is a list with two vertices.
---    the set of vertices must be exactly the integers 0..n-1.
+----The set of vertices must be the integers 0..n-1.
 --ideals = list of ideals that label the edges. 
---    Must be in same order as the edges.
+----Ideals must be entered in same order as corresponding edges in E.
+----Note that ambient ring must already be defined so that ideals can
+----be entered.
 ------------------------------------------
 --Outputs:
---Module of generalized splines on the graph given by the edgelist
+------------------------------------------
+--Module of generalized splines on the graph given by the edgelist.
 ------------------------------------------
 generalizedSplines = method();
 --assume vertices are 0,...,n-1
@@ -548,6 +665,79 @@ getCodim1Intersections(List) := List => F ->(
 	    s -> any(F_{i+1..n-1}, 
 		f-> all(s, v-> member(v,f)))))
 )
+
+
+
+
+
+------------------------------------------
+simpBoundary = method()
+------------------------------------------
+--Input:
+--F = list of codim i faces
+--E = list of codim i+1 faces
+------------------------------------------
+--Output:
+--B = boundary map matrix
+------------------------------------------
+--Example:
+--F = {{0,1,2},{0,1,3},{1,3,4},{1,2,4},{2,4,5},{0,2,5},{0,3,5}}
+--E = {{0,1},{1,2},{0,2},{3,0},{1,3},{1,4},{2,4},{2,5},{0,5},{3,4},{4,5}}
+--V = {{0},{1},{2},{4}}
+------------------------------------------
+simpBoundary(List,List) := Matrix => (F,E) -> (
+    F = apply(F, f-> sort f);
+    E = apply(E, e-> sort e);
+    tempLF := {};
+    rowList := {};
+    apply(F, f-> (
+	    tempLF = hashTable apply(#f, v-> position(E,e-> e == drop(f,{v,v})) => (-1)^v);
+	    rowList = append(rowList,apply(#E, j->if member(j,keys tempLF) then tempLF#j else 0));
+	    )
+	);
+    transpose matrix rowList
+    )
+
+boundaryComplex = method()
+boundaryComplex(List) := List => F -> (
+    n := #F;
+    d := #(F_0);
+    codim1faces := unique flatten apply(n,i-> subsets(F_i,d-1));
+    select(codim1faces, f-> number(F, g-> all(f, v-> member(v,g))) === 1)
+    )
+
+topologicalBoundaryComplex = method(
+    	Options =>{
+	    symbol InputType => "Simplicial",
+	    symbol Homogenize => true, 
+	    symbol VariableName => getSymbol "t",
+	    symbol CoefficientRing => QQ
+	    }
+    )
+
+topologicalBoundaryComplex(List) := ChainComplex => opts -> F -> (
+    if opts.InputType === "Polyhedral" then (
+	"Not implemented yet."
+	);
+    if opts.InputType === "Simplicial" then (
+	d := (# first F);
+	if opts.Homogenize then (
+	    t := opts.VariableName;
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    varlist := (vars S)_(append(toList(1..d),0));
+	    ) else (
+	    t = opts.VariableName;
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    varlist = (vars S)|(matrix {{sub(1,S)}});
+	    );
+	boundaryF := boundaryComplex(F);
+	C := apply(d, i-> getCodimIFacesSimplicial(F,i));
+	boundaryC := join({{}},apply(d-1, i-> getCodimIFacesSimplicial(boundaryF,i)));
+    	intC := apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)));
+    	chainComplex(reverse apply(#intC-1, c-> simpBoundary(intC_c,intC_(c+1))))**S
+	)
+    )
+
 
 ------------------------------------------
 getSize = method();
@@ -671,6 +861,56 @@ doc ///
 
 ///
 
+doc ///
+    Key
+        isHereditary
+	(isHereditary,List,List)
+	(isHereditary,List)
+    Headline
+    	checks if a complex $\Delta$ is hereditary
+    Usage
+    	B = isHereditary(F,E)
+	B = isHereditary(F)
+    Inputs
+    	F:List
+	    list of facets of F
+	E:List
+	    list of codimension 1 faces of F
+    Outputs
+    	B:Boolean
+	    returns true if F is hereditary
+    Description
+        Text
+	    A complex $\Delta$ is hereditary if it is a pseudomanifold (all 
+	    codimention 1 faces are contained in two facets), and the link of 
+	    each vertex is connected.
+	
+	Text
+	    The hereditary check can take both facets and codimension 1 faces:
+	
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    E = {{2,3},{3,4},{4,5},{5,6}}
+	    isHereditary(F,E)
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{5,6,7}}
+	    E = {{2,3},{3,4},{4,5}}
+	    isHereditary(F,E)
+	    
+	Text
+	    Alternately, if the complex is simplicial, codimension 1 faces can
+	    be computed automatically.
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    isHereditary(F)
+    SeeAlso
+        splineMatrix
+	
+/// 
+
+
 TEST ///
 V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
 F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
@@ -731,3 +971,4 @@ assert(isHereditary(F,E) === true)
 
 
 end
+

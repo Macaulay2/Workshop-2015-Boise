@@ -13,9 +13,8 @@ newPackage ("ToricMaps",
 --needsPackage("NormalToricVarieties");
 --load "coneContain.m2";
 
-export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphism","inverse","isIso"
+export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphismToricMap","inverseToricMap","isIso","compose","isProper"
 		}
-
 -----------
 --NEW TYPES
 -----------
@@ -91,13 +90,13 @@ isCompatible = (Y,X,M) -> (
 );
 
 
-compose := method()
+compose = method()
 
 -- composing maps
-compose (ToricMap, ToricMap) := opts -> (f,g) -> (
+compose (ToricMap, ToricMap) := ToricMap => (f,g) -> (
 		
 		if (not target g === source f) then error "unmatched domains"
-		else return toricMap(source g, target f, (matrix f)*(matrix g))
+		else return toricMap(target f, source g, (matrix f)*(matrix g))
 
 		)
 -- @@ operator (should it be * instead of @@? I do not think so)
@@ -105,7 +104,6 @@ compose (ToricMap, ToricMap) := opts -> (f,g) -> (
 ToricMap @@ ToricMap := ToricMap => (f,g) -> compose(f,g)
 
 cartierCoefficients := method()
-
 
 -- Taken from NormalToricVarieties.m2 (which does not export it)
 cartierCoefficients ToricDivisor := List => D -> (
@@ -168,11 +166,12 @@ pullback (ToricMap, ToricDivisor) := ToricDivisor => (f, D) -> (
 
 ToricMap ^* := f -> D -> pullback(f,D)
 
-isIsomorphism = method()
+isIsomorphismToricMap = method()
 
-isIsomorphism (ToricMap) := Boolean => f -> (
+isIsomorphismToricMap (ToricMap) := f -> (
     if f.isIso =!= null then return f.isIso;
 	m := matrix f;
+	if not (numRows m == numColumns m) then return false;
 	d := det m;
 	if not (d == 1 or d == -1) then (
 		return false;
@@ -188,10 +187,10 @@ isIsomorphism (ToricMap) := Boolean => f -> (
 		);
 	)
 
-inverse = method()
+inverseToricMap = method()
 
-inverse (ToricMap) := (ToricMap) => f -> (
-	if not isIsomorphism(f) then (
+inverseToricMap (ToricMap) := (ToricMap) => f -> (
+	if not isIsomorphismToricMap(f) then (
 		error "map is not invertible."
 		)
 	else (
@@ -203,8 +202,56 @@ blowupMap = method()
 blowupMap (List, NormalToricVariety, List) := ToricMap => (s,X,v) -> (
     return toricMap(X,blowup(s,X,v),id(ZZ^(dim X))));
 
+
 --makeSimplicialMap
 --makeSmoothMap
+
+
+isProper = method()
+
+--input: M, a matrix; X and Y, source and target normal toric varieties
+--output: b, a boolean value, true iff M is a proper map from X to Y
+--The symmdiff idea, with Lfaces, comes directly from the method isComplete
+--from the Polyhedra package.
+isProper (ToricMap) := Boolean => f -> (
+    (X,Y,M) := (source f, target f, matrix f);
+    if not isCompatible(Y,X,M) then return false;  --unnecessary?
+    if dim X != dim Y then return false;
+    imageFan := fan(apply(maxCones(fan(X)),c->posHull(M*rays(c))));
+
+    --finds cones of fan F inside cone C
+    findInteriorCones := (C,F) -> (
+        n:=dim C;
+        return select(cones(n,F),c->contains(C,c));
+    );
+
+    --make a hash table of maxcones in target => equal dimensional
+    --cones mapped from source it contains
+    h := hashTable(toList(apply(maxCones(fan(Y)),c -> (c,findInteriorCones(c,imageFan)))));
+
+    symmDiff := (x,y) -> ((x,y) = (set x,set y); toList ((x-y)+(y-x)));
+
+    for bigCone in maxCones(fan(Y)) do (
+        interiorCones := findInteriorCones(bigCone,imageFan);
+        if interiorCones == {} then return false;
+        Lfaces := {};
+        scan(interiorCones, C -> Lfaces = symmDiff(Lfaces,faces(1,C)));
+        for inner in Lfaces do (
+            isContained := false;
+            for outer in faces(1,bigCone) do (
+                if contains(outer,inner) then (
+                    isContained = true;
+                    break;
+                );
+            );
+            if not isContained then return false;
+        );
+    );
+    return true;
+)
+
+
+
 
 
 end

@@ -1,6 +1,8 @@
 path=append(path,"GitHub/Workshop-2015-Boise/Splines/")
 loadPackage("Polyhedra");
 
+--Given a list of vertices V and facets F, create the polyhedral complex
+--with these vertices and facets
 pComp=method();
 pComp(List, List):=(V,F)->(
 	PList := apply(F,x->(convexHull(transpose matrix V_x)));
@@ -48,7 +50,7 @@ ref(Matrix):=M->(
 halfsort = method(); 
 halfsort(Sequence,List):=(x,y)->(
 	r := numrows(x#0);
-	--Pull out matrices of coordinates of each vertex in a facet: 
+	--Pull out matrices of coordinates of each vertex in a facet:
 	V := apply(y, p-> vertices p);
 	--Select the index of the row of values of product of vertex
 	--matrices with matrix of coefficients of linear forms.
@@ -58,37 +60,56 @@ halfsort(Sequence,List):=(x,y)->(
 	)
     
     
-
+--Containment function for lists--
+subsetL:=(L1,L2)->(
+    all(L1,f->member(f,L2))
+    )
 
 --Inputs: A pure, connected, hereditary polyhedral complex PC of dimension d in R^d (pseudomanifold?). (if a pair of facets X,Y of PC intersect nontrivially then there must be a chain of facets (F0,F1,..,Fn) of PC such that F0=X,Fn=Y, and each consecutive pair of facets Fi and F(i+1) intersect in a codim 1 face of both).
 --Outputs: The boundary complex of PC.
 bComp=method();
 bComp(PolyhedralComplex):=PC->(
-	d=dim PC;
-	Facets=polyhedra(d,PC);
-	Faces=polyhedra(d-1,PC);
+	d :=dim PC;
+	Facets :=polyhedra(d,PC);
+	Faces :=polyhedra(d-1,PC);
 	polyhedralComplex(
 		select(Faces,f->(
-			vf=apply(numcols vertices f,x->(vertices f)_x);
-			L=apply(Facets,F->(
-				vF=apply(numcols vertices F,y->(vertices F)_y);
-				isSubset(set(vf),set(vF)) ));
-			#select(L,j->(j==true))==1)) ))
+			vf=entries transpose Polyhedra$vertices f;
+			#select(Facets,F->(
+				vF=entries transpose Polyhedra$vertices F;
+				subsetL(vf,vF) ))==1
+			)
+		    )
+		)
+	    )
 
+-----------------------------------
+-----------------------------------
+splineComplex=method(Options=> {
+	symbol CheckHereditary => false,
+	symbol Homogenize => true,
+	symbol VariableName => getSymbol "t",
+	symbol CofficientRing => QQ })
+-----------------------------------
+-----------------------------------
 
---The Spline Complex--
-splineComplex=method();
 splineComplex(ZZ,PolyhedralComplex):=(r,PC)->(
 	n:=PC#"ambient dimension"; 
 	d:=dim PC;
-	S:=QQ[t_0..t_n];
+	if opts.Homogenize then (
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    varlist := (vars S)_(append(toList(1..d),0));
+	    ) else (
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    varlist = (vars S)|(matrix {{sub(1,S)}});
+	    );
 	BC:=bComp(PC);
 --Sets up list of interior faces in order of dim--	
 	IntF:=for i from 0 to d list(
 		Faces=polyhedra(i,PC);
 		if i==d then continue Faces;
 		BCP=polyhedra(i,BC);
-		select(Faces,f->(not member(f,set(BCP) ) ) ) );
+		select(Faces,f->(not member(f,BCP ) ) ) );
 --Sets local coordinates on interior faces as the 
 --variables corresponding to indices of leading ones 
 --in a row echelon form for the matrix of hyperplanes defining the face--
@@ -105,7 +126,7 @@ splineComplex(ZZ,PolyhedralComplex):=(r,PC)->(
 		if L2=={} then continue (if L1=={} then (transpose matrix{{}})*matrix{{}} else transpose matrix apply(#L1,x->{}) );			
 		if i==1 then continue transpose matrix apply(L1,l1->(
 			f10=faces(1,l1);
-			I1=select(#f10,x->(member(f10_x,set(L2) ) ));
+			I1=select(#f10,x->(member(f10_x,setL2) ) ));
 			f1=apply(I1,k->f10_k);
 			H1=(hyperplanes(l1))#0 ** QQ; 
 			HS1=halfsort(halfspaces(l1),f10) ** QQ; 

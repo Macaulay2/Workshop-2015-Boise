@@ -73,3 +73,43 @@ isCompatible = (Y,X,M) -> (
     );
     return true;
 );
+
+--input: M, a matrix; X and Y, source and target normal toric varieties
+--output: b, a boolean value, true iff M is a proper map from X to Y
+--The symmdiff idea, with Lfaces, comes directly from the method isComplete
+--from the Polyhedra package. 
+isProper = (Y,X,M) -> (
+    if not isCompatible(Y,X,M) then return false;  --unnecessary?
+    if dim X != dim Y then return false;
+    imageFan := fan(apply(maxCones(fan(X)),c->posHull(M*rays(c))));
+
+    --finds cones of fan F inside cone C
+    findInteriorCones := (C,F) -> (
+        n:=dim C;
+        return select(cones(n,F),c->contains(C,c));
+    );
+
+    --make a hash table of maxcones in target => equal dimensional 
+    --cones mapped from source it contains
+    h = hashTable(toList(apply(maxCones(fan(Y)),c -> (c,interiorCones(c,imageFan)))));
+
+    symmDiff := (x,y) -> ((x,y) = (set x,set y); toList ((x-y)+(y-x)));
+
+    for bigCone in maxCones(fan(Y)) do (
+        interiorCones := findInteriorCones(bigCone,imageFan);
+        if interiorCones == {} then return false;
+        Lfaces := {};
+        scan(interiors, C -> if dim C == n then Lfaces = symmDiff(Lfaces,faces(1,C)));
+        for inside in Lfaces do (
+            isContained := false;
+            for outer in faces(1,bigCone) do (
+                if contains(outer,inner) then (
+                    isContained = true;
+                    break;
+                );
+            );
+            if not isContained then return false;
+        );
+    );
+    return true;
+)
