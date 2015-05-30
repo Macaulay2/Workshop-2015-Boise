@@ -12,15 +12,16 @@ newPackage(
   DebuggingMode => false
 )
 
---needsPackage("PHCpack");
-
 export{
 "characteristicPoly",
 "doMonodromy",
 "getCoefficients",
 "NumLoops",
+"pullCoefficients",
 "restrictRing"
 }
+
+--needsPackage("PHCpack");
 
 loadPackage "PHCpack"
 characteristicPoly = method()
