@@ -270,7 +270,6 @@ factorMap (Tensor,Matrix,Number) := (T,M,k) -> (
     slices := toList apply(numrows M, i-> contract(T,makeTensor first entries M^{i},k,0));
     U := tensorFromSlices slices;
     w := toList apply(#D,i->if i < k then i+1 else if i == k then 0 else i);
-    print(U,w);
     U@w
     )
 
