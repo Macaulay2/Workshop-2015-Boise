@@ -215,6 +215,27 @@ makeMultiIdentifiabilitySystem (List, List) := (IndSystem, ExtraPolys) -> (
   return (IndSystem/(f -> f - phi f), ValueList, ExtraPolys/(f -> f - phi f))
 )
 
+removeDups = method()
+removeDups (List, ZZ) := (Sols, Tolerance) -> (
+  CleanSols := new MutableList;
+  ShortSols := new MutableList;
+  NextIndex := 0;
+  for TestSol in Sols do (
+    ShortenedTestSol := for Index in (TestSol#0)#Coordinates list round(Tolerance, realPart Index) + ii*round(Tolerance, imaginaryPart Index);
+    for i from 0 to NextIndex + 1 do (
+      if i == NextIndex then (
+        ShortSols#NextIndex = ShortenedTestSol;
+        CleanSols#NextIndex = TestSol;
+        NextIndex = NextIndex + 1;
+        break;
+      );
+      if ShortenedTestSol == ShortSols#i then
+        break;
+    );
+  );
+  return(delete(null,new List from CleanSols));
+)
+
 doMultiMonodromy = method(Options => {NumLoops => 20, Tolerance => 4})
 doMultiMonodromy (List, List) := o -> (IndSystem, ExtraPolys) -> (
   (FirstSystem, FirstSolution, EvalExtraPolys) := makeMultiIdentifiabilitySystem(IndSystem, ExtraPolys);
@@ -225,15 +246,15 @@ doMultiMonodromy (List, List) := o -> (IndSystem, ExtraPolys) -> (
     Sols#(i-1) = NewSol;
     Sol := NewSol;
   );
-  TestSols := new List from Sols;
-  --NEED TO DELETE THE DUPLICATE SOLUTIONS
+  TestSols := removeDups(new List from Sols, o.Tolerance);
+  
   --NEED TO CLEAN UP THE CODE SO THAT MutableLists AREN'T USED
   GoodSols := new MutableList;
   for i from 0 to length TestSols - 1 do (
     if tryEvalSol(((TestSols#i)#0)#Coordinates, EvalExtraPolys, o.Tolerance) then
       GoodSols#i = (TestSols#i)#0;
   );
-  return new List from GoodSols;
+  return(delete(null,new List from GoodSols));
 )
 
 doBlackbox = method()
@@ -265,7 +286,6 @@ strIdentPolys (Matrix, List, List) := (A,I,J) ->(
     return("This System is Underdetermined")
   else (
     oldPolys:=toList(set F - set maxAlgInd(F));
-    oldPolyList:= new MutableList from {};
     return({maxAlgInd(F),oldPolys});
   );
 )
@@ -285,7 +305,7 @@ print "END"
 --##########################################################################--
 -- TESTS
 --##########################################################################
-
+end
 TEST/// 
   R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
   Ex2 = matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
