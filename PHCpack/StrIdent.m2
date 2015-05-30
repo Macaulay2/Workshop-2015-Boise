@@ -15,10 +15,12 @@ newPackage(
 export{
 "characteristicPoly",
 "doMonodromy",
+"doMultiMonodromy",
 "getCoefficients",
 "NumLoops",
 "pullCoefficients",
-"restrictRing"
+"restrictRing",
+"tryEvalSol"
 }
 
 --needsPackage("PHCpack");
@@ -190,6 +192,39 @@ doMonodromy (List) := o -> (System) -> (
   print "One solution found for given variable ordering:";
   print gens ring (System#0);
   print Sol;
+)
+
+tryEvalSol = method()
+tryEvalSol (List, List) := (NewSol, ExtraPolys) -> (
+  ValueMap := for i from 0 to (length NewSol - 1) list ((gens(ring (ExtraPolys#0)))#i => NewSol#i);
+  Tolerance := 4;
+  for Poly in ExtraPolys do (
+    TestValue := Poly.sub(ValueMap);
+    if ((round(Tolerance, realPart TestValue) != 0)
+    or (round(Tolerance, imaginaryPart TestValue) != 0)) then
+      return false;
+  );
+  return true;
+)
+
+doMultiMonodromy = method(Options => {NumLoops => 5, Tolerance => 4})
+doMultiMonodromy (List, List) := o -> (IndSystem, ExtraPolys) -> (
+  (FirstSystem, FirstSolution) := makeIdentifiabilitySystem(IndSystem);
+  print FirstSolution;
+  Sol := {point({for v in FirstSolution list v#1})};
+  Sols := new MutableList;
+  for i from 1 to o.NumLoops do (
+    NewSol := doOneLoop(FirstSystem, (makeIdentifiabilitySystem(IndSystem))#0, Sol);
+    Sols#(i-1) = NewSol;
+    Sol := NewSol;
+  );
+  TestSols := new List from Sols;
+  GoodSols := new MutableList;
+  --need to kill duplicates within some tolerance
+  for i from 0 to length TestSols do (
+    if tryEvalSol((TestSols#i)#Coordinates, ExtraPolys) then
+      GoodSols#i = TestSols#i;
+  );
 )
 
 doBlackbox = method()

@@ -13,9 +13,8 @@ newPackage ("ToricMaps",
 --needsPackage("NormalToricVarieties");
 --load "coneContain.m2";
 
-export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphism","inverse","isIso"
+export{"ToricMap","checkCompatibility","toricMap","pullback","isIsomorphismToricMap","inverseToricMap","isIso","compose"
 		}
-
 -----------
 --NEW TYPES
 -----------
@@ -106,7 +105,6 @@ ToricMap @@ ToricMap := ToricMap => (f,g) -> compose(f,g)
 
 cartierCoefficients := method()
 
-
 -- Taken from NormalToricVarieties.m2 (which does not export it)
 cartierCoefficients ToricDivisor := List => D -> (
 	X := variety D;
@@ -168,11 +166,12 @@ pullback (ToricMap, ToricDivisor) := ToricDivisor => (f, D) -> (
 
 ToricMap ^* := f -> D -> pullback(f,D)
 
-isIsomorphism = method()
+isIsomorphismToricMap = method()
 
-isIsomorphism (ToricMap) := Boolean => f -> (
+isIsomorphismToricMap (ToricMap) := f -> (
     if f.isIso =!= null then return f.isIso;
 	m := matrix f;
+	if not (numRows m == numColumns m) then return false;
 	d := det m;
 	if not (d == 1 or d == -1) then (
 		return false;
@@ -188,10 +187,10 @@ isIsomorphism (ToricMap) := Boolean => f -> (
 		);
 	)
 
-inverse = method()
+inverseToricMap = method()
 
-inverse (ToricMap) := (ToricMap) => f -> (
-	if not isIsomorphism(f) then (
+inverseToricMap (ToricMap) := (ToricMap) => f -> (
+	if not isIsomorphismToricMap(f) then (
 		error "map is not invertible."
 		)
 	else (

@@ -1,19 +1,54 @@
 
 
+
 runMaple = (runMaplePrefix,script) -> (
     filename := temporaryFileName()|currentTime()|".mpl";
     filename << script << endl << close;
     toString(get(concatenate("!",runMaplePrefix," ",filename)))
 );
 
+{*
 parseCoefficient = (f,t,Y) -> (
     if t=="" then return value (first select(///([0-9]*q?)S\[///|t|///\]///,"\\1",f));
     t=first select(///([0-9]*q?)S\[///|t|///\]///,"\\1",f);
     if t=="" then return 1_Y;
+    if t=="q" then return Y_0;
     if last(t)=="q" then return value( concatenate(substring(0,#t-1,t),"*q") );
     return (1_Y)*(value t);    
 );
+*}
 
+stringToTerms = (f) -> (
+    answer:={};    
+    i:=0;
+    while i < #f do (
+        if f_i == "+" then (
+	    answer=append(answer,substring(0,i,f));
+	    f=substring(i+1,#f,f);
+	    i=0;
+	) else i=i+1;
+    if i==#f then answer=append(answer,f)
+    );
+    return answer
+);
+
+f="q^2*S[1,1]+2*S[2]+S[]"
+
+parseTerm = (t,Y) -> (
+    i:=0;
+    while i < #f do (
+        if t_i == "S" then break else i=i+1   
+    );   
+    coeff:=substring(0,i,t);
+    if coeff=="" then coeff="1";
+    yt:=concatenate("{",substring(i+2,#t-i-3,t),"}");
+    if last(coeff)=="*" then coeff=substring(0,#coeff-1,coeff);
+    {value yt,(1_Y)*(value coeff)}    
+)
+
+
+
+{*
 getTerms = (s,Y) -> (
     f := replace(" ","",first select(";\n *(.*)","\\1",s));
     T := select(///S\[([0-9,]*)\]///,"\\1",f);
@@ -22,7 +57,13 @@ getTerms = (s,Y) -> (
     );
     new HashTable from h
 );
+*}
 
+getTerms = (s,Y) -> (
+    f := replace(" ","",first select(";\n *(.*)","\\1",s));
+    T := stringToTerms f;
+    new HashTable from apply(T, t -> parseTerm(t,Y))
+)
 
 
 maple="/Library/Frameworks/Maple.framework/Versions/2015/bin/maple";
@@ -31,8 +72,13 @@ qcalclib="/Users/davids/Desktop/Dropbox/Boise/qcalc.mpl";
 
 --Note: changed on May 28 to match pieriFirstSum and pieriSecondSum
 callqcalc = (r,l,expr,Y) -> (
-    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|toString(r+1)|","|toString(l+r+1)|"): qtoS("|expr|");";
+    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|toString(r+1)|","|toString(l+r+1)|"): lprint(qtoS("|expr|"));";
     getTerms(runMaple(maple,mapleScript),Y)   
+)
+
+callqcalcNoParse = (r,l,expr) -> (
+    mapleScript = ///read("///|qcalclib|///"): with(qcalc): Gr(///|toString(r+1)|","|toString(l+r+1)|"): lprint(qtoS("|expr|"));";
+    runMaple(maple,mapleScript)   
 )
 
 qcalcMonomialMultiplication = (r,l,yt1,yt2,Y) -> (
