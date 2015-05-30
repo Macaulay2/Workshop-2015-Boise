@@ -349,7 +349,7 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
    A == A := (a,b) -> a.terms === b.terms;
    
    A * A := (a,b) -> (
-       --<< a << " *  " << b << endl;
+       --<< net a << " *  " << net b << endl;
        {*
        if #(a.terms) == 1 and #(b.terms) == 1 and #(first keys a.terms) == 1 then (
        	   coeff := (first values a.terms) * (first values b.terms);
@@ -364,9 +364,12 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
        ) else promote(1,R)
        *}
        if #(a.terms) > 1 then (
-       	   sum ( for t in pairs a.terms list (putInRing({t},(a.terms)#(t#0),A))*b )
+       	   sum ( for t in pairs a.terms list (
+	       (putInRing({t},A))*b 
+	       )
+	   )
        ) else if #(b.terms) > 1 then (
-       	   sum ( for t in pairs b.terms list a*(putInRing({t},(b.terms)#(t#0),A)) )
+       	   sum ( for t in pairs b.terms list a*(putInRing({t},A)) )
        ) else (
        	   (at,ac) := first pairs a.terms;
        	   (bt,bc) := first pairs b.terms;
@@ -418,7 +421,7 @@ net QCRing := A -> (
 ---------------------------------------------
 
 QCRingElement _ List := (q,l) -> (
-    q.terms#l
+    if (q.terms)#?l then q.terms#l else 0
 )
 
 toString QCRingElement := q -> (
@@ -446,7 +449,8 @@ restart
 uninstallPackage "QuantumCohomology"
 --installPackage "QuantumCohomology"
 debug needsPackage "QuantumCohomology"
-QH = qcRing(3,4,"s","q")
+QH = qcRing(2,5,"s","q")
+e = (s_{1})^6
 e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
 s_{1} * s_{2}
 (5*s_{1}) * s_{2}
@@ -482,4 +486,4 @@ s_{1} * s_{2}
 (s_{1} + s_{2}) * (s_{2} + s_{1})
 
 
-((s_{1} + s_{2}) * (s_{2} + s_{1}))^3
+((s_{1} + s_{2}) * (s_{2} + s_{3,1}))^3

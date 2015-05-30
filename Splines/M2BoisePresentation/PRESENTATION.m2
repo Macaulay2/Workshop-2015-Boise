@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ------ Examples for SplineMatrix
 ------ SmallExample:Two Dimensional Star of Vertex--
 --Input Coordinate List
@@ -29,6 +30,16 @@ F={{0,1,2,3},{0,1,4,5},{1,2,5,6},{2,3,6,7},{0,3,4,7}};
 E={{0,1},{1,2},{2,3},{0,3},{0,4},{1,5},{2,6},{3,7}};
 M=splineModule(V,F,E,0);
 --We output the dimensions of the graded pieces of M in a nice way
+=======
+------ Examples for cube
+R = QQ[x,y];
+V={{-1,-1},{-1,1},{1,1},{1,-1},{-2,-2},{-2,2},{2,2},{2,-2}};
+F={{0,1,2,3},{0,1,4,5},{1,2,5,6},{2,3,6,7},{0,3,4,7}};
+E={{0,1},{1,2},{2,3},{0,3},{0,4},{1,5},{2,6},{3,7}};
+
+splineMatrix(V,F,E,2)
+M=splineModule(V,F,E,2)
+>>>>>>> origin/master
 splineDimTable(0,8,M)
 --and we compare these dimensions to the values of the hilbert polynomial
 hilbertCTable(0,8,M)
