@@ -1,0 +1,2 @@
+\beamer@endinputifotherversion {3.19pt}
+\beamer@sectionintoc {1}{Background}{2}{0}{1}
