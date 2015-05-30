@@ -19,7 +19,8 @@ F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};
 E = {{0,1},{0,2},{0,3},{0,4},{0,5}};
 
 S = splines(V,F,E,0)
-gens S
+gens S.SplineModule
+
 
 --Schlegel Diagram Triangular Prism (nonsimplicial)--
 V={{-1,-1},{0,1},{1,-1},{-2,-2},{0,2},{2,-2}};
