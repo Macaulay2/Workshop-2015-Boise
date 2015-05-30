@@ -109,6 +109,19 @@ tensorEigenvectors (Tensor,Number,Symbol) := (T,k,x) -> (
     tensorEigenvectors(T,k,S,S_0)
     );
 
+SingularVectorTuples := (T)-> (
+ K := ring T;
+ d:=tensorDims(T);
+ myVars:=for i from 0 to #d-1 list toList(x_(i,0)..x_(i,d#i-1));
+ S:=K[flatten flatten myVars];
+ myVars=for i from 0 to #d-1 list toList(x_(i,0)..x_(i,d#i-1));
+ f:=tensorToMultilinearForm(T,S);
+ L:=for k in 0..#d-1 list for ind in (k,0)..(k,d#k-1) list ind;
+ L=sum for i in 0..(#L-1) list minors(2,contract(matrix({myVars#i}),f)||matrix({myVars#i}));
+ myVarsId=for i in myVars list ideal i;
+ L=fold(saturate, join({L},myVarsId))
+)
+
 tensorToPolynomial = method()
 tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     R := ring T;
@@ -270,7 +283,6 @@ factorMap (Tensor,Matrix,Number) := (T,M,k) -> (
     slices := toList apply(numrows M, i-> contract(T,makeTensor first entries M^{i},k,0));
     U := tensorFromSlices slices;
     w := toList apply(#D,i->if i < k then i+1 else if i == k then 0 else i);
-    print(U,w);
     U@w
     )
 

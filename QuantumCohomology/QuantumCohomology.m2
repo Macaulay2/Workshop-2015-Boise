@@ -4,8 +4,8 @@ newPackage("QuantumCohomology",
      Date => "May 27, 2015",
      Authors => {
 	  {Name => "Corey Harris",
-	   HomePage => "",
-	   Email => ""},
+	   HomePage => "http://coreyharris.name",
+	   Email => "charris@math.fsu.edu"},
    	  {Name => "Anna Kazanova",
 	   HomePage => "https://sites.google.com/site/annakazanova/",
 	   Email => "kazanova@uga.edu"},    
@@ -210,7 +210,7 @@ Implement Giambelli without putting things in a ring first
 
 *}
 
-load "PieriSums.m2";
+--load "PieriSums.m2";
 
 
 -- This function takes an exponent vector of a monomial to 
@@ -230,6 +230,7 @@ expToList = (v) -> (
 -- in an abstract ring that the user should never see
 -- and then use it to write out the Pieri multiplications that we need to do
 giambelliDet = (l,yt) -> (
+    s := getSymbol "s";
     S := QQ(monoid[s_1..s_l]);
     M:=matrix apply(#yt, i -> apply(#yt, j -> if yt_i+j-i > l then 0_S else if yt_i+j-i< 0 then 0_S else if yt_i+j-i == 0 then 1_S else S_(s_(yt_i+j-i))));
     L:=listForm(det(M));
@@ -347,8 +348,8 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
 
    A == A := (a,b) -> a.terms === b.terms;
    
-   A * A := (b,a) -> (
-       --<< a << " *  " << b << endl;
+   A * A := (a,b) -> (
+       --<< net a << " *  " << net b << endl;
        {*
        if #(a.terms) == 1 and #(b.terms) == 1 and #(first keys a.terms) == 1 then (
        	   coeff := (first values a.terms) * (first values b.terms);
@@ -363,13 +364,16 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
        ) else promote(1,R)
        *}
        if #(a.terms) > 1 then (
-	   s
+       	   sum ( for t in pairs a.terms list (
+	       (putInRing({t},A))*b 
+	       )
+	   )
        ) else if #(b.terms) > 1 then (
-       	   s
+       	   sum ( for t in pairs b.terms list a*(putInRing({t},A)) )
        ) else (
        	   (at,ac) := first pairs a.terms;
        	   (bt,bc) := first pairs b.terms;
-           ac*bc*quantumMonomialMultiplication(r,l,at,bt,R)
+           putInRing(quantumMultiplication(r,l,at,bt,R),ac*bc,A)
        )
    );
    
@@ -386,7 +390,7 @@ use QCRing := A -> (
 
 putInRing = method()
 putInRing (List,QCRing) := (lst, A) -> (
-    termlist := new HashTable from apply(lst, l -> l => 1);
+    termlist := new HashTable from lst;
     new A from {(symbol ring) => A,
 	        (symbol cache) => new CacheTable from {},
 		(symbol terms) => termlist}
@@ -394,7 +398,7 @@ putInRing (List,QCRing) := (lst, A) -> (
 
 putInRing (List,ZZ,QCRing) :=
 putInRing (List,RingElement,QCRing) := (lst, z, A) -> (
-    termlist := new HashTable from apply(lst, l -> l => sub(z,A.CoefficientRing));
+    termlist := new HashTable from apply(lst, l -> (l#0, sub(z,A.CoefficientRing)*sub(l#1,A.CoefficientRing)));
     new A from {(symbol ring) => A,
 	        (symbol cache) => new CacheTable from {},
 		(symbol terms) => termlist}
@@ -411,6 +415,15 @@ net QCRing := A -> (
     else net A.CoefficientRing | net A.generators
 )
 
+
+---------------------------------------------
+-- QCRingElement methods
+---------------------------------------------
+
+QCRingElement _ List := (q,l) -> (
+    if (q.terms)#?l then q.terms#l else 0
+)
+
 toString QCRingElement := q -> (
     A := q.ring;
     C := A.CoefficientRing;
@@ -419,9 +432,12 @@ toString QCRingElement := q -> (
 
 net QCRingElement := q -> (
     s := q.ring.sName;
-    sum ( for t in pairs q.terms list (
-    	    (key, coeff) := t;
+    sum ( for key in sort(keys q.terms) list (
+    	if #key == 1 then (q.terms)#key * (hold s)_(first key)
+	else (
+    	    coeff := (q.terms)#key;
     	    (coeff)*((hold s)_(toSequence key))
+	)
     ))
 )
 
@@ -433,8 +449,15 @@ restart
 uninstallPackage "QuantumCohomology"
 --installPackage "QuantumCohomology"
 debug needsPackage "QuantumCohomology"
-QH = qcRing(3,4,"s","q")
+QH = qcRing(2,5,"s","q")
+e = (s_{1})^6
 e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
+s_{1} * s_{2}
+(5*s_{1}) * s_{2}
+(s_{1} + s_{2,1}) * s_{2}
+(s_{2}) * (s_{1} + s_{2,1}) 
+s_{4,4,4,4} * s_{4,4,4,4}
+
 toString e
 --QH.generators
 3 * QH_{3,2}
@@ -457,7 +480,10 @@ e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
 (4/3*s_{2,1})*(3*q*s_{1})
 (4/3*s_{1})*(3*q*s_{2,1})
 
+s_{1} * s_{2}
 (s_{1} + s_{2}) * (s_{1})
 (s_{1}) * (s_{2} + s_{1})
 (s_{1} + s_{2}) * (s_{2} + s_{1})
 
+
+((s_{1} + s_{2}) * (s_{2} + s_{3,1}))^3

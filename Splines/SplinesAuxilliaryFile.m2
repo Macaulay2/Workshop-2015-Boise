@@ -67,8 +67,8 @@ subsetL:=(L1,L2)->(
 
 --Inputs: A pure, connected, hereditary polyhedral complex PC of dimension d in R^d (pseudomanifold?). (if a pair of facets X,Y of PC intersect nontrivially then there must be a chain of facets (F0,F1,..,Fn) of PC such that F0=X,Fn=Y, and each consecutive pair of facets Fi and F(i+1) intersect in a codim 1 face of both).
 --Outputs: The boundary complex of PC.
-bComp=method();
-bComp(PolyhedralComplex):=PC->(
+boundaryComplex=method();
+boundaryComplex(PolyhedralComplex):=PC->(
 	d :=dim PC;
 	Facets :=polyhedra(d,PC);
 	Faces :=polyhedra(d-1,PC);
