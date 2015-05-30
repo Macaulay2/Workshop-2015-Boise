@@ -916,7 +916,7 @@ doc ///
     Key
         splineModule
     Headline
-        compute the module of all splines on partition $\Delta$
+        compute the module of all splines on partition complex
     Usage
         M = splineModule(V,F,E,r)
 	M = splineModule(V,F,r)
