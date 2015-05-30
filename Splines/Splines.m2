@@ -10,8 +10,8 @@
 ------------------------------------------
 
 if version#"VERSION" <= "1.4" then (
-    needsPackage "Polyhedra",
-    needsPackage "Graphs"
+    needsPackage "Graphs",
+    needsPackage "Polyhedra"
     )
 
 newPackage select((
@@ -53,7 +53,7 @@ export {
    "interiorFaces",
    "splineDimTable",
    "posNum",
-   "posTable",
+   "hilbertCTable",
    "hilbertPolyEval",
    "generalizedSplines"
     }
@@ -347,7 +347,7 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
 ------------------------------------------
 ------------------------------------------
 splineModule = method(Options => {
-	symbol InputType => "ByFacets", 
+	symbol InputType => "ByFacets",
 	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
@@ -406,56 +406,88 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 ------------------------------------------
 -------------------------------------------
 -------------------------------------------
-splineDimTable=method();
--------------------------------------------
--------------------------------------------
------ splineDimTable 
+splineDimTable=method(Options => {
+	symbol InputType => "ByFacets"
+	}
+    );
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
------ "ByModule"
 ----- a= lower bound of dim table
 ----- b= upper bound of dim table
 ----- M= module
---- OR!!!
------ "ByFacets"
------ a= lower bound of range
------ b= upper bound of range
------ L= list of {V,E,F}, list of vertices, edges and faces
------ r= degree of desired continuity
------- Functions that work go below this line
 --------------------------------------------
 ------ Outputs:
 --------------------------------------------
------- A hashTable with the dimensions of the graded pieces
------- of the spline module in the range (a,b)
+------ A net with the degrees between a and b on top row
+------ and corresponding dimensions of graded pieces
+------ of M in bottom row
+-------------------------------------------
 
-splineDimTable(ZZ,ZZ,Module):= (a,b,M)->(
-    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+splineDimTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
+    r1:=prepend("Degree",toList(a..b));
+    r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
+    netList {r1,r2}
     )
-splineDimTable(ZZ,ZZ,List,ZZ):= (a,b,L,r)->(
+
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list {V,F,E}, where V is a list of vertices, F a list of facets, E a list of codim 1 faces
+----- r= degree of desired continuity
+-------------------------------------------
+-----Outputs:
+-------------------------------------------
+-------A table with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+-------------------------------------------
+
+splineDimTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
     M := splineModule(L_0,L_1,L_2,r);
-    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    splineDimTable(a,b,M)
     )
------------------------------------------------------------------
+
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list {V,F}, where V is list of vertices, F a list of facets
+-------------
+-----OR!!
+-------------------------------------------
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list {V,F}, where V is a list of adjacent facets, F a list of forms
+-----------defining codim 1 faces along which adjacent facets meet
+-------------------------------------------
+-------Outputs:
+-------------------------------------------
+-------A table with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+-------------------------------------------
+
+splineDimTable(ZZ,ZZ,List,ZZ):= Net => opts->(a,b,L,r)->(
+    M := splineModule(L_0,L_1,r,opts);
+    splineDimTable(a,b,M)
+    )
+
 
 -------------------------------------------
 -------------------------------------------
 posNum=method();
-posTable=method();
--------------------------------------------
-------------------------------------------- 
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
------ M= module
+----- M, a graded module
 --------------------------------------------
 ------ Outputs:
 --------------------------------------------
------- An integer which is the last degree at
------- which the Hilbert Function of the module
------- disagrees with the Hilbert polynomial of 
------- the module.
+------ The postulation number (largest integer 
+------ for which Hilbert function and polynomial 
+------ of M disagree).
 --------------------------------------------
 posNum(Module):= (N) ->(
     k := regularity N;
@@ -463,11 +495,33 @@ posNum(Module):= (N) ->(
     k
     )
 
-posTable(Module):= (N) ->(
-    k := regularity N +1;
-    hashTable apply(k,i->(i=>(hilbertFunction(i,M),hilbertPolyEval(i,N))))
+------------------------------------------
+-----------------------------------------
+
+hilbertCTable=method();
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- a= an integer, lower bound
+----- b= an integer, upper bound
+----- M= graded module over a polynomial ring
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ A table whose top two rows are the same as
+------ the output of splineDimTable and whose 
+------ third row compares the first two to the
+------ Hilbert Polynomial
+--------------------------------------------
+
+hilbertCTable(ZZ,ZZ,Module):= (a,b,M) ->(
+    r1:=prepend("Degree",toList(a..b));
+    r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
+    r3:=prepend("HilbertPoly",apply(toList(a..b),i->hilbertPolyEval(i,M)));
+    netList {r1,r2,r3}
     )
 ---------------------------------------------
+
 hilbertPolyEval=method();
 ---------------------------------------------
 -------------------------------------------
@@ -483,7 +537,7 @@ hilbertPolyEval=method();
 --------------------------------------------
 
 hilbertPolyEval(ZZ,Module):=(i,M)->(
-    P=hilbertPolynomial(M,Projective=>false);
+    P:=hilbertPolynomial(M,Projective=>false);
     sub(P,(vars ring P)_(0,0)=>i)
     )
 
@@ -492,17 +546,20 @@ hilbertPolyEval(ZZ,Module):=(i,M)->(
 ------------------------------------------
 ------------------------------------------
 -- This method computes the generalized spline module
--- associated to a graph whose edges are labeled by ideals
+-- associated to a graph whose edges are labeled by ideals.
 ------------------------------------------
 --Inputs: 
 ------------------------------------------
 --E = list of edges. Each edge is a list with two vertices.
---    the set of vertices must be exactly the integers 0..n-1.
+----The set of vertices must be the integers 0..n-1.
 --ideals = list of ideals that label the edges. 
---    Must be in same order as the edges.
+----Ideals must be entered in same order as corresponding edges in E.
+----Note that ambient ring must already be defined so that ideals can
+----be entered.
 ------------------------------------------
 --Outputs:
---Module of generalized splines on the graph given by the edgelist
+------------------------------------------
+--Module of generalized splines on the graph given by the edgelist.
 ------------------------------------------
 generalizedSplines = method();
 --assume vertices are 0,...,n-1
