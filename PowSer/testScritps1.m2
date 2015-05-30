@@ -96,17 +96,7 @@ powerFamilyOfIdeals(FamilyOfIdeals,ZZ) := Ideal => (H,i) -> (
 -- (a) I_i > I_(i+1)
 -- (b) I_i I_j < I_(i+j) for all i,j
 
-checkHypothesis = method()
 
-checkHypothesis(FamilyofIdeals) := Boolean => (F) -> (
-	check:= true;
-	while check==true do (
-		for i from 0 to (#F)-1
-			(if isSubset(F#(i+1),F#i)==false then check:=false;))
-	while check==true do (
-		for i from 0 to (#F)-1(
-			for j from i+1 to #F
-				(if isSubset((F#i)*(F#j),F#(i+j))==false then check:=false;)))
-	if check==false then error"List does not satisfy hypothesis"
+--
 
-)
+

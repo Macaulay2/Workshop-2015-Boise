@@ -1,0 +1,49 @@
+
+-------------------------------------------
+-------------------------------------------
+posNum=method();
+posTable=method();
+-------------------------------------------
+------------------------------------------- 
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- M= module
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ An integer which is the last degree at
+------ which the Hilbert Function of the module
+------ disagrees with the Hilbert polynomial of 
+------ the module.
+--------------------------------------------
+posNum(Module):= (N) ->(
+    k := regularity N;
+    while hilbertFunction(k,N)==hilbertPolyEval(k,N) do	(k=k-1);
+    k
+    )
+
+posTable(Module):= (N) ->(
+    k := regularity N +1;
+    hashTable apply(k,i->(i=>(hilbertFunction(i,M),hilbertPolyEval(i,N))))
+    )
+---------------------------------------------
+hilbertPolyEval=method();
+---------------------------------------------
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- i= integer at which you will evaluate the Hilbert polynomial
+----- M= module
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ An Hilbert polynomial of the module M
+------ evaluated at i.
+--------------------------------------------
+
+hilbertPolyEval(ZZ,Module):=(i,M)->(
+    P=hilbertPolynomial(M,Projective=>false);
+    sub(P,(vars ring P)_(0,0)=>i)
+    )
+

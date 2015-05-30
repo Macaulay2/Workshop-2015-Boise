@@ -20,7 +20,9 @@ newPackage select((
         Date => "27. May 2015",
         Authors => {
             {Name => "Mike DiPasquale", Email => "midipasq@gmail.com", HomePage => "http://illinois.edu/~dipasqu1"},
-            {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://cs.hood.edu/~whieldon"}
+            {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://cs.hood.edu/~whieldon"},
+	    {Name => "Eliana Duarte", Email => "emduart2@illinois.edu", HomePage => "http://illinois.edu/~emduart2"},
+	    {Name => "Daniel Irving Bernstein", Email=> "dibernst@ncsu.edu", HomePage =>"http://www4.ncsu.edu/~dibernst"}
         },
         Headline => "Package for computing topological boundary maps and piecewise continuous splines on polyhedral complexes.",
         Configuration => {},
@@ -49,6 +51,7 @@ export {
    "getCodimIFacesPolytope",
    "getCodimIFacesSimplicial",
    "interiorFaces"
+   "generalizedSplines"
     }
 
 ------------------------------------------
@@ -391,8 +394,44 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
     	AD := splineMatrix(V,F,r,opts);
 	K := ker AD;
 	b := #F;
-    	submatrix(gens K, toList(0..b-1),)
+	if opts.InputType==="ByLinearForms" then (
+		b = #(unique flatten V)
+		);
+    	image submatrix(gens K, toList(0..b-1),)
 )
+
+
+
+------------------------------------------
+------------------------------------------
+-- This method computes the generalized spline module
+-- associated to a graph whose edges are labeled by ideals
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--E = list of edges. Each edge is a list with two vertices.
+--    the set of vertices must be exactly the integers 0..n-1.
+--ideals = list of ideals that label the edges. 
+--    Must be in same order as the edges.
+------------------------------------------
+--Outputs:
+--Module of generalized splines on the graph given by the edgelist
+------------------------------------------
+generalizedSplines = method();
+--assume vertices are 0,...,n-1
+generalizedSplines(List,List) := Module => (E,ideals) ->(
+    S := ring first ideals;
+    vertices := unique flatten E;
+    n := #vertices;
+    T := directSum(apply(ideals,I->coker gens I));
+--Boundary Map from Edges to vertices (this encodes spline conditions)
+    M := matrix apply(E,
+	e->apply(n,
+	    v->if(v===first e) then 1
+	    else if(v===last e) then -1
+	    else 0));
+   ker(map(T,S^n,sub(M,S)))
+);
 
 ------------------------------------------
 ------------------------------------------

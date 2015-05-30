@@ -1,55 +1,17 @@
 {* 
 Ringfree Giambelli
 
-Implement Giambelli without putting things in a ring first,
-if this can be done??
+Implement Giambelli without putting things in a ring first
 
 *}
 
---Old stuff
-complementaryDiagram = (r,l,yt) -> (
-    while #yt <= r do yt = append(yt,0);    
-    reverse apply(#yt, i -> l-yt_i)
-);
-
---this function was originally called pieritest
-pieriFirstSum = (p, r, l, yt) -> (
-    if #yt == 0 then (
-	return {{p}}
-    );
-    if r == 0 then (
-        return {{yt#0+p}}	
-    );
-    b:=0;
-    if #yt==r+1 then b=yt#r;
-    ilist := reverse(toList(max(0,p-yt#0+b)..min(p,l-yt#0)));
-    sublist := apply(ilist, i -> (
-        M :=  pieriFirstSum(p-i,r-1,yt#0,drop(yt,1));
-	apply(M,a -> prepend(yt#0+i,a))
-    ));
-    return flatten sublist
-)
-
-pieriSecondSum = (p,r,l,yt) -> (
-    if (#yt < r+1) or (#yt == r+1 and yt_r == 0) then return {};    
-    yt=apply(#yt, i -> yt_i -1); 
-    cyt:=complementaryDiagram(r,yt#0,yt);
-    C:=pieriFirstSum(l-p,r,cyt#0,cyt);
-    delete(0,apply(#C, i-> complementaryDiagram(r,yt#0,C_i))) 
-);
+load "PieriSums.m2";
 
 
-{*
-
-giambelliDet = (l,yt) -> (
-    M:=apply(#yt, i -> apply(#yt, j -> if yt_i+j-i > l then null else if yt_i+j-i< 0 then null else yt_i+j-i));
-    if #M==1 then return {M_0};
-    
-);
-*} 
-end
-
---Want: {0,2,1,3,0} |-> {2,2,3,4,4,4}
+-- This function takes an exponent vector of a monomial to 
+-- a product of generators written out that many times
+-- e.g. the exponent vector of x_2^2*x_3*x_4^3 is {0,2,1,3,0} 
+-- and we map this to {2,2,3,4,4,4} 
 expToList = (v) -> (
     answer:={};
     j:=0;
@@ -59,28 +21,60 @@ expToList = (v) -> (
     flatten answer
 );
 
+-- We compute the determinant of the Giambelli matrix 
+-- in an abstract ring that the user should never see
+-- and then use it to write out the Pieri multiplications that we need to do
 giambelliDet = (l,yt) -> (
-    S:=QQ[s_1..s_l];  
-    M:=matrix apply(#yt, i -> apply(#yt, j -> if yt_i+j-i > l then 0 else if yt_i+j-i< 0 then 0 else if yt_i+j-i == 0 then 1_S else s_(yt_i+j-i)));
+    S := QQ(monoid[s_1..s_l]);
+    M:=matrix apply(#yt, i -> apply(#yt, j -> if yt_i+j-i > l then 0_S else if yt_i+j-i< 0 then 0_S else if yt_i+j-i == 0 then 1_S else S_(s_(yt_i+j-i))));
     L:=listForm(det(M));
     apply(#L, i -> { expToList(L_i_0),L_i_1})
 );
 
+-- This function multiplies an element g represented by the list L
+-- by several horizontal strips, given in plist
+iteratedPieri = (plist,r,l,L,Y) -> (
+    plist = reverse plist;
+    for i from 0 to #plist-1 do (
+        L=quantumPieri(plist_i,r,l,L,Y)
+    );    
+    L
+);
+
+-- The main function.  Will export this in the package
+quantumMonomialMultiplication = (r,l,yt1,yt2,Y) -> (
+    W:=giambelliDet(l,yt2);
+    print concatenate("giambelliDet(l,yt2) = ",toString(W)) << endl;
+    L:=apply(#W, i -> iteratedPieri(W_i_0,r,l,{ {yt1,1}},Y));
+    for i from 0 to #L-1 do (print concatenate(toString(W_i_1)," ",toString(L_i)) << endl);
+    L=flatten apply(#L, i-> apply(#(L_i), j -> {L_i_j_0,(W_i_1)*(L_i_j_1)}));
+    simplify(L,Y)
+)
+end
 
 restart
 break
 load "RingfreeGiambelli.m2"
-giambelliMatrix(5,{3,2})
-M=giambelliMatrix(5,{3,2,1,1})
-M_0_3 == null
 
 
+--Test quantumMonomialMultiplication
+Y=QQ[q]
+quantumPieri(3,2,5,{ {1,{2,2}} },Y)
+quantumMonomialMultiplication(2,5,{2,2},{3,2},Y)
+-- Anders Buch's Maple program gives S[5, 4] + S[4, 3, 2] + S[4, 4, 1] + S[5, 2, 2] + S[5, 3, 1]
 
+TEST ///
+   Y=QQ[q];
+   L={{{5, 4}, 1_Y}, {{5, 3, 1}, 1_Y}, {{5, 2, 2}, 1_Y}, {{4, 4, 1}, 1_Y}, {{4, 3, 2}, 1_Y}};
+   assert(set(quantumMonomialMultiplication(2,5,{2,2},{3,2},Y)) === set(L) )
+///
 
+quantumMonomialMultiplication(2,5,{2,2},{3,2,1},Y)
+--Anders Buch's Maple program gives S[5, 4, 1] + S[5, 3, 2] + S[4, 4, 2] + S[4, 3, 3] 
 
-
-
-
-
-
+TEST ///
+   Y=QQ[q];
+   L={{{4, 4, 2}, 1_Y}, {{5, 4, 1}, 1_Y}, {{5, 3, 2}, 1_Y}, {{4, 3, 3}, 1_Y}};
+   assert(set(quantumMonomialMultiplication(2,5,{2,2},{3,2,1},Y)) === set(L) )
+///
 
