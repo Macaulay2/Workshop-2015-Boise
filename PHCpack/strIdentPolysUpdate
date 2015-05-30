@@ -1,0 +1,20 @@
+strIdentPolys = (A,I,J) ->(
+F:=getCoefficients(A,I,J);
+sup := for f in F list(support f);
+flatsup :=unique flatten sup;
+Jac := jacobian(matrix{F});
+varcount := #(gens ring F#0);
+ranpoint := for i from 0 to (varcount-1) list((ring F#0)_i => random(QQ));
+JacSub := sub(Jac,ranpoint);
+valid :=1;
+if rank JacSub < varcount then (valid=0;return("This System is Unidentifiable"););
+if #(flatsup) == #F and valid==1 then return({F,{}})
+else if #(flatsup) > #F then return("This System is Unidentifiable")
+else if valid==1 then (
+    	oldPolys:=toList(set F - set maxAlgInd(F));
+	oldPolyList:= new MutableList from {};
+--	for i from 0 to (#F-1) do if member(F#i,oldPolys)==true then  oldPolyList=join(oldPolyList,{i}); 
+--    	oldPolyList:= new List from oldPolyList;
+    	return({maxAlgInd(F),oldPolys});
+    );
+)
