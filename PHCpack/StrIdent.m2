@@ -131,7 +131,7 @@ getCoefficients (Matrix, List, List) := (B,I,J) -> (
       else if j!=i then ( --otherwise use a derivative trick
         AnewMM := mutableMatrix(A);
         use SS;
-        AnewMM_(i,j) := y;
+        AnewMM_(i,j) = y;
         Anew := matrix(AnewMM);
         chAnew := characteristicPoly(Anew);
         allCoeff = join(allCoeff,pullCoefficients(diff(y,chAnew)));
@@ -243,6 +243,43 @@ doBlackbox (List) := (System) -> (
   return solveSystem((makeIdentifiabilitySystem(System))#0);
 )
 
+loadPackage "EliminationMatrices"
+maxAlgInd = method()
+maxAlgInd (List) := (F) -> (
+  M := matrix {F};    
+  JM := jacobian(M);
+  mCol := maxCol(JM);
+  Indices := mCol#1;
+  linIndlist := for i in Indices list M_(0,i); 
+  return(linIndlist);   
+)
+
+strIdentPolys = method()
+strIdentPolys (Matrix, List, List) := (A,I,J) ->(
+  F:=getCoefficients(A,I,J);
+  sup := for f in F list(support f);
+  flatsup :=unique flatten sup;
+  if #(flatsup) == #F then 
+    return({F,{}})
+  else if #(flatsup) > #F then 
+    return("This System is Underdetermined")
+  else (
+    oldPolys:=toList(set F - set maxAlgInd(F));
+    oldPolyList:= new MutableList from {};
+    return({maxAlgInd(F),oldPolys});
+  );
+)
+
+R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
+Ex2=matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
+strIdentPolys(Ex2,{0},{0})
+
+R := CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44];
+Ex1:=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}};
+STRI := strIdentPolys(Ex1,{0},{0,1});
+print STRI	
+print doMultiMonodromy (STRI#0, STRI#1)
+print "ASDF"
 
 --##########################################################################--
 -- TESTS
