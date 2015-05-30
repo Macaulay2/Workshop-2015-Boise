@@ -85,8 +85,8 @@ new QCPolynomialRing from List := (QCPolynomialRing, inits) -> new QCPolynomialR
 
 qcRing = method()
 qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
-    varList := possibleTableaux(r,l);
-    R:=QQ(monoid[getSymbol q]);
+   varList := possibleTableaux(r,l);
+   R:=QQ(monoid[getSymbol q]);
    -- get the symbols associated to the list that is passed in, in case the variables have been used earlier.
    if #varList == 0 then error "Expected at least one variable.";
    if #varList == 1 and class varList#0 === Sequence then varList = toList first varList;
@@ -173,6 +173,12 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
        	   coeff := (first values a.terms) * (first values b.terms);
 	   termkeys := pieriProduct(first first keys a.terms, r, l, first keys b.terms);
 	   putInRing(termkeys,coeff,A)
+       ) else if #(a.terms) == 1 and #(b.terms) == 1 and #(first keys b.terms) == 1 then (
+	   a*b
+       ) else if #(a.terms) > 1 then (
+       	   sum ( for t in keys a.terms list (putInRing({t},(a.terms)#t,A))*b )
+       ) else if #(b.terms) > 1 then (
+       	   sum ( for t in keys b.terms list a*(putInRing({t},(b.terms)#t,A)) )
        ) else promote(1,R)
    );
 
@@ -192,8 +198,10 @@ putInRing (List,QCRing) := (lst, A) -> (
 	        (symbol cache) => new CacheTable from {},
 		(symbol terms) => termlist}
 )
-putInRing (List,ZZ,QCRing) := (lst, z, A) -> (
-    termlist := new HashTable from apply(lst, l -> l => z);
+
+putInRing (List,ZZ,QCRing) :=
+putInRing (List,RingElement,QCRing) := (lst, z, A) -> (
+    termlist := new HashTable from apply(lst, l -> l => sub(z,A.CoefficientRing));
     new A from {(symbol ring) => A,
 	        (symbol cache) => new CacheTable from {},
 		(symbol terms) => termlist}
@@ -229,5 +237,9 @@ QH_{4} / 0
 3*QH_{4} == QH_{4}+QH_{4}
 
 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
-s_{2,1}*s_{1}
+(4/3*s_{2,1})*(3*q*s_{1})
+(4/3*s_{1})*(3*q*s_{2,1})
+
+(s_{1} + s_{2}) * (s_{1})
+(s_{1}) * (s_{2} + s_{1})
 
