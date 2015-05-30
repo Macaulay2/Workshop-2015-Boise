@@ -17,6 +17,7 @@ export{
 "doMonodromy",
 "doMultiMonodromy",
 "getCoefficients",
+"makeMultiIdentifiabilitySystem",
 "NumLoops",
 "pullCoefficients",
 "restrictRing",
@@ -207,9 +208,17 @@ tryEvalSol (List, List) := (NewSol, ExtraPolys) -> (
   return true;
 )
 
+makeMultiIdentifiabilitySystem = method()
+makeMultiIdentifiabilitySystem (List, List) := (IndSystem, ExtraPolys) -> (
+  R := ring ideal IndSystem;
+  ValueList := for v in R.gens list (v => random(CC));
+  phi := map(CC, R, ValueList);
+  return (IndSystem/(f -> f - phi f), ValueList, ExtraPolys/(f -> f - phi f))
+)
+
 doMultiMonodromy = method(Options => {NumLoops => 5, Tolerance => 4})
 doMultiMonodromy (List, List) := o -> (IndSystem, ExtraPolys) -> (
-  (FirstSystem, FirstSolution) := makeIdentifiabilitySystem(IndSystem);
+  (FirstSystem, FirstSolution, EvalExtraPolys) := makeMultiIdentifiabilitySystem(IndSystem, ExtraPolys);
   print FirstSolution;
   Sol := {point({for v in FirstSolution list v#1})};
   Sols := new MutableList;
@@ -222,7 +231,7 @@ doMultiMonodromy (List, List) := o -> (IndSystem, ExtraPolys) -> (
   GoodSols := new MutableList;
   --need to kill duplicates within some tolerance
   for i from 0 to length TestSols do (
-    if tryEvalSol((TestSols#i)#Coordinates, ExtraPolys) then
+    if tryEvalSol((TestSols#i)#Coordinates, EvalExtraPolys) then
       GoodSols#i = TestSols#i;
   );
 )
