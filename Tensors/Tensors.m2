@@ -15,7 +15,8 @@ newPackage(
 	     "PHCpack"
 	     },
     	Headline => "tensors",
-	AuxiliaryFiles => true
+	AuxiliaryFiles => true,
+	DebuggingMode => true 
     	)
  --Macaulay2-1.4/share/Macaulay2/Core/matrix1.m2 
  --needs to replaced for this package to work 
@@ -671,6 +672,36 @@ tensorEigenvectorsCoordinates (Tensor,ZZ,Symbol) := (T,k,x) -> (
     solveSystem(F)
     )
 
+---------------------
+--Multiplication tensors
+--------------------- 
+multiplicationTensor = method()
+multiplicationTensor Ring := R -> (
+    Bmatrix := basis R;
+    B := flatten entries Bmatrix;
+    K := coefficientRing R;
+    V := tensorModule(K, {#B});
+    L := for i from 0 to #B-1 list (
+	for j from 0 to #B-1 list (
+	    pVect := sub(last coefficients(B#i * B#j, Monomials=>Bmatrix), K);
+	    pTens := makeTensor flatten entries pVect;
+	    V_(1:i) ** V_(1:j) ** pTens
+	    )
+	);
+    sum flatten L
+    )
+
+
+matrixMultiplicationTensor = method()
+matrixMultiplicationTensor (Ring,ZZ,ZZ,ZZ) := (R,l,m,n) -> (
+    M := tensorModule(R,{l*m,m*n,l*n});
+    T := 0_M;
+    for ijk in (0,0,0)..<(l,m,n) do (
+	(i,j,k) := ijk;
+	T = T + M_(i*m + j, j*n + k, i*n + k);
+	);
+    T
+    )
 
 --------
 TEST///

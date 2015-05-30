@@ -202,7 +202,6 @@ blowupMap = method()
 blowupMap (List, NormalToricVariety, List) := ToricMap => (s,X,v) -> (
     return toricMap(X,blowup(s,X,v),id(ZZ^(dim X))));
 
-
 --makeSimplicialMap
 --makeSmoothMap
 
@@ -216,7 +215,6 @@ isProper = method()
 isProper (ToricMap) := Boolean => f -> (
     (X,Y,M) := (source f, target f, matrix f);
     if not isCompatible(Y,X,M) then return false;  --unnecessary?
-    if dim X != dim Y then return false;
     imageFan := fan(apply(maxCones(fan(X)),c->posHull(M*rays(c))));
 
     --finds cones of fan F inside cone C
@@ -232,7 +230,7 @@ isProper (ToricMap) := Boolean => f -> (
     symmDiff := (x,y) -> ((x,y) = (set x,set y); toList ((x-y)+(y-x)));
 
     for bigCone in maxCones(fan(Y)) do (
-        interiorCones := findInteriorCones(bigCone,imageFan);
+        interiorCones := unique(findInteriorCones(bigCone,imageFan));
         if interiorCones == {} then return false;
         Lfaces := {};
         scan(interiorCones, C -> Lfaces = symmDiff(Lfaces,faces(1,C)));
