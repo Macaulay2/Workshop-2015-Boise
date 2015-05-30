@@ -401,24 +401,6 @@ putInRing (List,RingElement,QCRing) := (lst, z, A) -> (
 		(symbol terms) => termlist}
 )
 
-putInRing2 = method()
-putInRing2 (List,QCRing) := (lst, A) -> (
-    termlist := new HashTable from apply(lst, l -> l => 1);
-    new A from {(symbol ring) => A,
-	        (symbol cache) => new CacheTable from {},
-		(symbol terms) => termlist}
-)
-
-putInRing2 (List,ZZ,QCRing) :=
-putInRing2 (List,RingElement,QCRing) := (lst, z, A) -> (
-    termlist := new HashTable from apply(lst, l -> l => sub(z,A.CoefficientRing));
-    new A from {(symbol ring) => A,
-	        (symbol cache) => new CacheTable from {},
-		(symbol terms) => termlist}
-)
-
-
-
 
 QCPolynomialRing _ List := (A,l) -> A.generators#(position(A.generatorSymbols,a -> a === l));
 
@@ -428,6 +410,15 @@ net QCRing := A -> (
     ReverseDictionary := value Core#"private dictionary"#"ReverseDictionary";
     if hasAttribute(A,ReverseDictionary) then toString getAttribute(A,ReverseDictionary)
     else net A.CoefficientRing | net A.generators
+)
+
+
+---------------------------------------------
+-- QCRingElement methods
+---------------------------------------------
+
+QCRingElement _ List := (q,l) -> (
+    q.terms#l
 )
 
 toString QCRingElement := q -> (
