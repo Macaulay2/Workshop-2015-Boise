@@ -55,12 +55,13 @@ finiteTypeFilteredAlgebra(List) := (L) -> (
 	append(genlist,
 	    apply(I_*,f->promote(f,S)*t_S^(i+1)));
 	)   ;
-  myList := flatten genlist;
-   degreeList := apply(myList, i-> degree i);
-   n:= #myList;
-       T:= R[x_1..x_n, Degrees => degreeList, Join=> false];
-       f := map(S,T,myList);
-       return ker f
+    myList := flatten genlist;
+    degreeList := apply(myList, i-> degree i);
+    n:= #myList;
+    T:= R[x_1..x_n, Degrees => degreeList, Join=> false];
+    A := QQ[gens T, Degrees => degreeList/first];
+    f := map(S,T,myList);
+    (ker f, A, f)
     )
 
 -- want to write script to check if a family of ideals {I_0,..,I_l} satisfies the conditions:
@@ -73,7 +74,34 @@ finiteTypeFilteredAlgebra(List) := (L) -> (
 
 --
 -- construct the "associated graded object"
+grIdeal = method()
+grIdeal (Ring,RingMap,ZZ,FamilyOfIdeals) := (A,F,n,I) ->(
+    In := I^n;
+    In1 := I^(n+1);
+    S:= source F;
+    B := sub (basis (n,A),S);
+    B' := F B;
+    RT:=ring B';
+    R := coefficientRing RT;
+    B'' := sub (B',RT_0 => 1_R);
+    (B,B'');
+    C := (B'')//(gens In);
+    D := map(In/In1, source C, C);
+    E := sub (gens ker D,S);
+    trim ideal (B*E)
+    )
+
 -- to do later 
+
+associatedGraded = method()
+
+associatedGraded(List,ZZ) :=(L,n) ->(
+    I := familyOfIdeals(L);
+    (J,A,F):=finiteTypeFilteredAlgebra(L);
+    S:= ring J;
+    K:=sum(for i from 0 to n list grIdeal(A,F,i,I));
+    trim K
+    )
 
 end
 
@@ -86,6 +114,13 @@ R=QQ[X,Y]
 I1=ideal(X^2,Y)
 I2=ideal(X^2,Y^2)
 L:={I1,I2}
+associatedGraded(L,2)
+associatedGraded(L,3)
+associatedGraded(L,4)
+associatedGraded(L,5)
+associatedGraded(L,10)
+minimalPresentation oo
+(gens ring oo)/degree
 H=familyOfIdeals(L)
 L
 H^0
@@ -95,7 +130,18 @@ H^3
 H^4
 H^3
 
-J=finiteTypeFilteredAlgebra(L)
+(J,A,F)=finiteTypeFilteredAlgebra(L)
+F
+finiteTypeFilteredAlgebra(L)
+grIdeal(A,F,1,H)
+grIdeal(A,F,2,H)
+grIdeal(A,F,3,H)
+compactMatrixForm = false
+grIdeal(A,ring J,2,H)
+gens o21
+
+A
+describe A
 isHomogeneous(J)
 netList J_*
 
@@ -107,3 +153,4 @@ R = QQ[x,y]
 S=R[a,b,Degrees=>{{1,1},{2,1}}, Join=>false]
 degree a
 degree x_S
+
