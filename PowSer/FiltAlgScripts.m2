@@ -23,14 +23,14 @@ FamilyOfIdeals^ZZ := Ideal =>(H,n) -> (
     if (N-1) > max L then error"N-1 not yet made";
     --I := H#(max L);
     genlist := {};
-    if N==0 then return H.ring;
+    if N==0 then return ideal(1_(H.ring));
     if N>0 and L#?(N-1) then return H#N
      else  ( for i from 1 to N-1 do (
 	  for j from 1 to N-1 do (
 	     (if i+j==N then genlist = append(genlist, (H#i)*(H#j)););
 	     );
 	 );
-     return H#N= ideal genlist	
+     return H#N= trim ideal genlist	
     )
 )
 
@@ -58,9 +58,9 @@ finiteTypeFilteredAlgebra(List) := (L) -> (
   myList := flatten genlist;
    degreeList := apply(myList, i-> degree i);
    n:= #myList;
-       T:= R[x_1..x_n, Degrees => degreeList];
+       T:= R[x_1..x_n, Degrees => degreeList, Join=> false];
        f := map(S,T,myList);
-       return Q := T/ker f
+       return ker f
     )
 
 -- want to write script to check if a family of ideals {I_0,..,I_l} satisfies the conditions:
@@ -75,3 +75,35 @@ finiteTypeFilteredAlgebra(List) := (L) -> (
 -- construct the "associated graded object"
 -- to do later 
 
+end
+
+restart
+load"FiltAlgScripts.m2"
+
+
+R=QQ[X,Y]
+
+I1=ideal(X^2,Y)
+I2=ideal(X^2,Y^2)
+L:={I1,I2}
+H=familyOfIdeals(L)
+L
+H^0
+H^1
+H^2
+H^3
+H^4
+H^3
+
+J=finiteTypeFilteredAlgebra(L)
+isHomogeneous(J)
+netList J_*
+
+S= ring J / J -- the "rees Hilbert series"
+hilbertSeries(S)
+
+--
+R = QQ[x,y]
+S=R[a,b,Degrees=>{{1,1},{2,1}}, Join=>false]
+degree a
+degree x_S
