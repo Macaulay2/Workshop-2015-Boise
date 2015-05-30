@@ -791,13 +791,25 @@ beginDocumentation()
 -- Front Page
 doc ///
     Key
-        Splines
+        AlgebraicSplines
     Headline
         a package for building splines and computing bases
     Description
         Text
             This package provides methods for computations with piecewise polynomial functions (splines) over
 	    polytopal complexes.
+	Text
+	    @SUBSECTION "Definitions"@
+	Text
+	    Let $\Delta$ be a partition (simplicial,polytopal,cellular,rectilinear, etc.) of a space $\RR^n$.
+	    The spline module $S_d^{r}(\Delta)$ is the module of all functions $f\in C^r(\Delta)$ such that
+	    $f$ is a polynomial of degree $d$ when restricted to each face $\sigma\in\Delta$.
+	Text
+	
+	Text
+	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well
+	    as defining new types @TO Splines@ and @TO Spline@ that contain geometric data 
+	    for $\Delta$ (if entered) and details on the associated spline module $S_d^r(\Delta)$.
         Text
             @SUBSECTION "Other acknowledgements"@
             --
@@ -915,8 +927,10 @@ doc ///
 doc ///
     Key
         splineModule
+	(splineModule,List,List,List,ZZ)
+	(splineModule,List,List,ZZ)
     Headline
-        compute the module of all splines on partition $\Delta$
+        compute the module of all splines on partition of a space
     Usage
         M = splineModule(V,F,E,r)
 	M = splineModule(V,F,r)
@@ -944,6 +958,30 @@ doc ///
         I'm not sure if this is fully documented yet.
 ///
 
+doc ///
+    Key
+        Splines
+	VertexCoordinates
+	Regions
+	SplineModule
+    Headline
+    	a class for splines (piecewise polynomial functions on subdivisions)
+    Description
+    	Text
+	    This class is a type of @TO "HashTable"@ that stores information on
+	    a subdivision $\Delta$ of ${\mathbb R}^n$, given by a set of vertex
+	    coordinates and a list of facets (and possibly edges), along with a
+	    module of all splines on $\Delta$ of continuity $r$.
+	Example
+	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};
+	    F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};
+	    E = {{0,1},{0,2},{0,3},{0,4},{0,5}};
+	    S = splines(V,F,E,1) -- splines in R^2 with smoothness 1
+    SeeAlso
+        splines
+	Spline
+	spline
+///
 
 TEST ///
 V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
