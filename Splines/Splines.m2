@@ -225,7 +225,7 @@ splineMatrix = method(Options => {
 -- BM = matrix with columns corresponding
 -- to facets and linear forms separating facets.
 ------------------------------------------
-splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
+splineMatrix(List,ZZ) := Matrix => opts -> (L,r) -> (
     --Use this if your list L = {V,F,E} contains
     --The inputs as a single list L.
     if opts.InputType === "ByFacets" then (
@@ -606,6 +606,10 @@ getCodim1Intersections(List) := List => F ->(
 		f-> all(s, v-> member(v,f)))))
 )
 
+
+
+
+
 ------------------------------------------
 simpBoundary = method()
 ------------------------------------------
@@ -621,7 +625,6 @@ simpBoundary = method()
 --E = {{0,1},{1,2},{0,2},{3,0},{1,3},{1,4},{2,4},{2,5},{0,5},{3,4},{4,5}}
 --V = {{0},{1},{2},{4}}
 ------------------------------------------
-
 simpBoundary(List,List) := Matrix => (F,E) -> (
     F = apply(F, f-> sort f);
     E = apply(E, e-> sort e);
@@ -633,6 +636,46 @@ simpBoundary(List,List) := Matrix => (F,E) -> (
 	    )
 	);
     transpose matrix rowList
+    )
+
+boundaryComplex = method()
+boundaryComplex(List) := List => F -> (
+    n := #F;
+    d := #(F_0);
+    codim1faces := unique flatten apply(n,i-> subsets(F_i,d-1));
+    select(codim1faces, f-> number(F, g-> all(f, v-> member(v,g))) === 1)
+    )
+
+topologicalBoundaryComplex = method(
+    	Options =>{
+	    symbol InputType => "Simplicial",
+	    symbol Homogenize => true, 
+	    symbol VariableName => getSymbol "t",
+	    symbol CoefficientRing => QQ
+	    }
+    )
+
+topologicalBoundaryComplex(List) := ChainComplex => opts -> F -> (
+    if opts.InputType === "Polyhedral" then (
+	"Not implemented yet."
+	);
+    if opts.InputType === "Simplicial" then (
+	d := (# first F);
+	if opts.Homogenize then (
+	    t := opts.VariableName;
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    varlist := (vars S)_(append(toList(1..d),0));
+	    ) else (
+	    t = opts.VariableName;
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    varlist = (vars S)|(matrix {{sub(1,S)}});
+	    );
+	boundaryF := boundaryComplex(F);
+	C := apply(d, i-> getCodimIFacesSimplicial(F,i));
+	boundaryC := join({{}},apply(d-1, i-> getCodimIFacesSimplicial(boundaryF,i)));
+    	intC := apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)));
+    	chainComplex(reverse apply(#intC-1, c-> simpBoundary(intC_c,intC_(c+1))))**S
+	)
     )
 
 
