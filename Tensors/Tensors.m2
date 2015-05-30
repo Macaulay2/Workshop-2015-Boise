@@ -1,10 +1,15 @@
 newPackage(
 	"Tensors",
-    	Version => "0.1", 
-    	Date => "August 5, 2012",
+    	Version => "0.2.0", 
+    	Date => "May 30, 2015",
     	Authors => {
 	     {Name => "Andrew Critch", Email => "critch@math.berkeley.edu", HomePage => "http://www.acritch.com/"},
-	     {Name => "Claudiu Raicu", Email => "claudiu@math.berkeley.edu", HomePage => "http://math.berkeley.edu/~claudiu/"}
+	     {Name => "Claudiu Raicu", Email => "claudiu@math.berkeley.edu", HomePage => "http://math.berkeley.edu/~claudiu/"},
+	     {Name => "Hirotachi Abo"},
+	     {Name => "Roberto Barrera"},
+	     {Name => "Robert Krone"},
+	     {Name => "Benjamin Reames"},
+	     {Name => "Zach Teitler"}
 	     },
     	Headline => "tensors",
 	AuxiliaryFiles => true
