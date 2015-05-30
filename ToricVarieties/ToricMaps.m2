@@ -90,13 +90,13 @@ isCompatible = (Y,X,M) -> (
 );
 
 
-compose := method()
+compose = method()
 
 -- composing maps
-compose (ToricMap, ToricMap) := opts -> (f,g) -> (
+compose (ToricMap, ToricMap) := ToricMap => (f,g) -> (
 		
 		if (not target g === source f) then error "unmatched domains"
-		else return toricMap(source g, target f, (matrix f)*(matrix g))
+		else return toricMap(target f, source g, (matrix f)*(matrix g))
 
 		)
 -- @@ operator (should it be * instead of @@? I do not think so)

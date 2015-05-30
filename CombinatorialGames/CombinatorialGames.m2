@@ -96,7 +96,7 @@ gameRepresentation(SimplicialComplex,List,List) := String => (Delta,L,R) -> (
 
 facetIdeal = method()
 facetIdeal(SimplicialComplex) := Ideal => Delta -> (
-    ideal flatten entries facets(Delta)    
+    monomialIdeal flatten entries facets(Delta)    
     )
 
 facetComplex = method()

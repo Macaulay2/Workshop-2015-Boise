@@ -15,7 +15,7 @@ if version#"VERSION" <= "1.4" then (
     )
 
 newPackage select((
-    "Splines",
+    "AlgebraicSplines",
         Version => "0.1.0", 
         Date => "27. May 2015",
         Authors => {
@@ -39,6 +39,13 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
+   "Splines",
+       "VertexCoordinates",
+       "Regions",
+       "SplineModule",
+   "splines",
+   "Spline",
+   "spline",
    "splineMatrix",
    "splineModule",
    "InputType",
@@ -60,10 +67,51 @@ export {
 
 ------------------------------------------
 ------------------------------------------
--- Methods
+-- Data Types and Constructors
 ------------------------------------------
 ------------------------------------------
 
+--Create an object that gives ALL splines
+--on a given subdivision.
+Splines = new Type of HashTable
+splines = method(Options => {
+	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ})
+
+splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    	AD := splineMatrix(V,F,E,r,opts);
+	K := ker AD;
+	b := #F;
+    	new Splines from {
+	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
+	    symbol VertexCoordinates => V,
+	    symbol Regions => F,
+	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),)
+	}
+)
+
+
+net Splines := S -> S.SplineModule
+
+
+Spline = new Type of HashTable
+
+spline = method()
+spline(Splines,List) := (S,L) -> (
+    M := S.SplineModule;
+    
+    )
+   
+
+
+------------------------------------------
+------------------------------------------
+-- Methods
+------------------------------------------
+------------------------------------------
 
 ------------------------------------------
 ------------------------------------------
@@ -85,6 +133,21 @@ isHereditary= method()
 
 isHereditary(List,List) := Boolean => (F,E) -> (
     V := unique flatten join F;
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e <= 2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
+
+isHereditary(List) := Boolean => F -> (
+    V := unique flatten join F;
+    E := getCodimIFacesSimplicial(F,1);
     dualV := toList(0..#F-1);
     dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
     if not all(dualE,e-> #e <= 2) then (
@@ -193,7 +256,6 @@ getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
     )
 
 
-
 -----------------------------------------
 -----------------------------------------
 splineMatrix = method(Options => {
@@ -225,7 +287,7 @@ splineMatrix = method(Options => {
 -- BM = matrix with columns corresponding
 -- to facets and linear forms separating facets.
 ------------------------------------------
-splineMatrix(List,ZZ) := Matrix -> opts -> (L,r) -> (
+splineMatrix(List,ZZ) := Matrix => opts -> (L,r) -> (
     --Use this if your list L = {V,F,E} contains
     --The inputs as a single list L.
     if opts.InputType === "ByFacets" then (
@@ -606,6 +668,10 @@ getCodim1Intersections(List) := List => F ->(
 		f-> all(s, v-> member(v,f)))))
 )
 
+
+
+
+
 ------------------------------------------
 simpBoundary = method()
 ------------------------------------------
@@ -621,7 +687,6 @@ simpBoundary = method()
 --E = {{0,1},{1,2},{0,2},{3,0},{1,3},{1,4},{2,4},{2,5},{0,5},{3,4},{4,5}}
 --V = {{0},{1},{2},{4}}
 ------------------------------------------
-
 simpBoundary(List,List) := Matrix => (F,E) -> (
     F = apply(F, f-> sort f);
     E = apply(E, e-> sort e);
@@ -633,6 +698,46 @@ simpBoundary(List,List) := Matrix => (F,E) -> (
 	    )
 	);
     transpose matrix rowList
+    )
+
+boundaryComplex = method()
+boundaryComplex(List) := List => F -> (
+    n := #F;
+    d := #(F_0);
+    codim1faces := unique flatten apply(n,i-> subsets(F_i,d-1));
+    select(codim1faces, f-> number(F, g-> all(f, v-> member(v,g))) === 1)
+    )
+
+topologicalBoundaryComplex = method(
+    	Options =>{
+	    symbol InputType => "Simplicial",
+	    symbol Homogenize => true, 
+	    symbol VariableName => getSymbol "t",
+	    symbol CoefficientRing => QQ
+	    }
+    )
+
+topologicalBoundaryComplex(List) := ChainComplex => opts -> F -> (
+    if opts.InputType === "Polyhedral" then (
+	"Not implemented yet."
+	);
+    if opts.InputType === "Simplicial" then (
+	d := (# first F);
+	if opts.Homogenize then (
+	    t := opts.VariableName;
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    varlist := (vars S)_(append(toList(1..d),0));
+	    ) else (
+	    t = opts.VariableName;
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    varlist = (vars S)|(matrix {{sub(1,S)}});
+	    );
+	boundaryF := boundaryComplex(F);
+	C := apply(d, i-> getCodimIFacesSimplicial(F,i));
+	boundaryC := join({{}},apply(d-1, i-> getCodimIFacesSimplicial(boundaryF,i)));
+    	intC := apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)));
+    	chainComplex(reverse apply(#intC-1, c-> simpBoundary(intC_c,intC_(c+1))))**S
+	)
     )
 
 
@@ -758,6 +863,88 @@ doc ///
 
 ///
 
+doc ///
+    Key
+        isHereditary
+	(isHereditary,List,List)
+	(isHereditary,List)
+    Headline
+    	checks if a complex $\Delta$ is hereditary
+    Usage
+    	B = isHereditary(F,E)
+	B = isHereditary(F)
+    Inputs
+    	F:List
+	    list of facets of F
+	E:List
+	    list of codimension 1 faces of F
+    Outputs
+    	B:Boolean
+	    returns true if F is hereditary
+    Description
+        Text
+	    A complex $\Delta$ is hereditary if it is a pseudomanifold (all 
+	    codimention 1 faces are contained in two facets), and the link of 
+	    each vertex is connected.
+	
+	Text
+	    The hereditary check can take both facets and codimension 1 faces:
+	
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    E = {{2,3},{3,4},{4,5},{5,6}}
+	    isHereditary(F,E)
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{5,6,7}}
+	    E = {{2,3},{3,4},{4,5}}
+	    isHereditary(F,E)
+	    
+	Text
+	    Alternately, if the complex is simplicial, codimension 1 faces can
+	    be computed automatically.
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    isHereditary(F)
+    SeeAlso
+        splineMatrix
+	
+/// 
+
+doc ///
+    Key
+        splineModule
+    Headline
+        compute the module of all splines on partition $\Delta$
+    Usage
+        M = splineModule(V,F,E,r)
+	M = splineModule(V,F,r)
+    Inputs
+        V:List
+	    V = list of coordinates of vertices
+	F:List
+	    F = list of facets
+	E:List
+	    E = list of codimension 1 faces (interior or not)
+	r:ZZ
+	    r = desired degree of smoothness
+    Outputs
+        M:Module
+	    M = module of splines on $\Delta$
+    Description
+        Text
+	    This is some text.
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}}
+	    F = {{0,1,2},{0,2,3}}
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
+	    splineModule(V,F,E,1)
+    Caveat
+        I'm not sure if this is fully documented yet.
+///
+
+
 TEST ///
 V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
 F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
@@ -818,3 +1005,4 @@ assert(isHereditary(F,E) === true)
 
 
 end
+
