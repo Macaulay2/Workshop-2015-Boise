@@ -418,7 +418,7 @@ net QCRing := A -> (
 ---------------------------------------------
 
 QCRingElement _ List := (q,l) -> (
-    q.terms#l
+    if (q.terms)#?l then q.terms#l else 0
 )
 
 toString QCRingElement := q -> (
@@ -482,4 +482,4 @@ s_{1} * s_{2}
 (s_{1} + s_{2}) * (s_{2} + s_{1})
 
 
-((s_{1} + s_{2}) * (s_{2} + s_{1}))^3
+((s_{1} + s_{2}) * (s_{2} + s_{3,1}))^3
