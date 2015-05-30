@@ -85,7 +85,7 @@ splineSet(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
 	K := ker AD;
 	b := #F;
-    	new Splines from {
+    	new SplineSet from {
 	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
 	    symbol VertexCoordinates => V,
 	    symbol Regions => F,
