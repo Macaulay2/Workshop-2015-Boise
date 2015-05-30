@@ -1,7 +1,7 @@
 {* 
-PieriSecondSum
+Implement the quantum Pieri rule
 
-Implement the second sum in the quantum Pieri rule 
+We do the first and second sums in the quantum Pieri rule separately
 
 *}
 
@@ -13,30 +13,22 @@ the solutions instead of recursing
 *}
 
 {* 
-We're not even going to try using Polyhedra package to enumerate
-the possible mu's this time.  It was too slow for the first sum.
+Note: we tried using the Polyhedra package to enumerate the possible
+mu's in the first sum.  It was extremely slow.  We did not even try 
+to do this for the second sum.  Actually we think enumerating the points 
+was OK, what took so long was creating the polytopes.  
 *}
 
 
-
-
-{*First try:
-Strategy:
-0. If there is no full column, then the second sum is zero
-1. Remove a full column
-2. Construct the complementary diagram cyt
-3. Apply pieritest to cyt
-4. Take complement of all these
-
-
+{*
+For the first sum in quantum Pieri: 
+Our strategy is recursive
+For each allowed of mu_1, compute the possible 
+diagrams with the new bounding rectangle of width
+lambda_1 and adding p-(mu_1-lambda_1) boxes
 *}
 
-complementaryDiagram = (r,l,yt) -> (
-    while #yt <= r do yt = append(yt,0);    
-    reverse apply(#yt, i -> l-yt_i)
-);
-
---this function was originally called pieritest
+-- This function was originally called pieritest
 pieriFirstSum = (p, r, l, yt) -> (
     if #yt == 0 then (
 	return {{p}}
@@ -54,40 +46,61 @@ pieriFirstSum = (p, r, l, yt) -> (
     return flatten sublist
 )
 
+
+{* For the second sum in quantum Pieri, our strategy is:
+
+0. If there is no full column, then the second sum is zero
+1. Remove a full column
+2. Construct the complementary diagram cyt
+3. Apply pieritest to cyt
+4. Take complement of all these
+
+*}
+
+complementaryDiagram = (r,l,yt) -> (
+    while #yt <= r do yt = append(yt,0);    
+    reverse apply(#yt, i -> l-yt_i)
+);
+
+-- corrected bug May 29; when forming C, use yt#0 as l
+-- (not cyt#0 like we had previously)
 pieriSecondSum = (p,r,l,yt) -> (
     if (#yt < r+1) or (#yt == r+1 and yt_r == 0) then return {};    
     yt=apply(#yt, i -> yt_i -1); 
     cyt:=complementaryDiagram(r,yt#0,yt);
-    C:=pieriFirstSum(l-p,r,cyt#0,cyt);
+    C:=pieriFirstSum(l-p,r,yt#0,cyt);
     apply(#C, i-> complementaryDiagram(r,yt#0,C_i))  
 );
 
 {*
-Format for an element: list of pairs
-{coefficient as an element in QQ[q], partition as a list of integers}
+Now put them together.
 
-L= { {1+q,{2,1,1}}, {-3,{3,2}} }
+Let Y be the name in our package for the quantum coefficient ring, probably either ZZ[q] or QQ[q]
+
+Then our format to represent an element in the quantum cohomology ring 
+in a ringfree way is as a list of pairs
+{partition as a list of integers,coefficient as an element in Y}
+
+Example: (1+q)*s_{2,1,1} - 3*s_{3,2} is represented as 
+L= { {{2,1,1},1+q}, {{3,2},-3} }
 
 *}
 
---let Y be the name in our package for the quantum coefficient ring, probably either ZZ[q] or QQ[q]
+
 quantumPieriOneTerm = (p,r,l,T,Y) -> (
-    P1:=pieriFirstSum(p,r,l,T_1);    
-    P2:=pieriSecondSum(p,r,l,T_1);
-    P1=apply(#P1, i -> {T_0,delete(0,P1_i)});
-    P2=apply(#P2, i -> {(Y_0)*(T_0),delete(0,P2_i)});
+    P1:=pieriFirstSum(p,r,l,T_0);    
+    P2:=pieriSecondSum(p,r,l,T_0);
+    P1=apply(#P1, i -> {delete(0,P1_i),T_1});
+    P2=apply(#P2, i -> {delete(0,P2_i),(Y_0)*(T_1)});
     return flatten {P1,P2}
 );
 
 simplify = (L,Y) -> (
-    H:=partition(last,L);
-    L=apply(keys H, k -> {first sum(H#k), k});
-    select(L, k -> k_0 != 0_Y)
-    --delete(null, apply(#L, i -> if L_i_0 != 0 then L_i))
+    H:=partition(first,L);
+    L=apply(keys H, k -> { k, (1_Y)*(last sum(H#k))});
+    select(L, k -> last(k) != 0_Y)
 );
 
-
-    
 --Do each term, then combine them
 quantumPieri = (p,r,l,L,Y) -> (
     if p==0 then return simplify(L,Y);
@@ -99,29 +112,18 @@ end
 restart
 break
 load "PieriSums.m2";
+pieriFirstSum(0,2,2,{2,1,1})
+pieriSecondSum(1,2,2,{2,1,1})
+
+quantumPieriOneTerm(1,2,2,{{2,1,1},1},Y)
+quantumPieri(1,2,2,{{{2,1,1},1}},Y)
+
+
 Y = QQ[q];
-L = { {1+q,{5,1,1}}, {-3,{3,2}} };
+L = { {{5,1,1},1+q}, {{3,2},-3} };
 quantumPieriOneTerm(2,2,5,L_0,Y)
+quantumPieriOneTerm(2,2,5,L_1,Y)
 quantumPieri(2,2,5,L,Y)
-
-
-
-
-
-Z = { {1+q,{5,1,1}}, {-3,{3,2}}, {-3+q^2,{5,1,1} }};
-simplify(Z)
-Z = { {1+q,{5,1,1}}, {-3,{3,2}}, {-1-q,{5,1,1} }};
-
-
-
-
-
-complementaryDiagram(2,5,{4,3,2})
-complementaryDiagram(3,2,{2,2,1})
-
-pieriSecondSum(4,3,4,{3,3,2,1})
-pieriSecondSum(3,3,4,{3,3,2,1})
-pieriSecondSum(2,3,4,{3,3,2,1})
 
 --Test pieri against Anders's program
 callqcalc(2,4,"S[3]*S[3,2,1]")

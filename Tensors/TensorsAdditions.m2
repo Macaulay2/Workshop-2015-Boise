@@ -27,22 +27,23 @@ export {
   tensorToMultilinearForm,
   multiplicationTensor,
   eigenDiscriminant,
-<<<<<<< HEAD
   tensorEigenvectorsCoordinates,
-  isSymmetric
-=======
-  tensorEigenvectorsCoordinate,
+  isSymmetric,
   polynomialToTensor
->>>>>>> 509061b12f225378053a0a496cff6d1aabe12e25
 }
 
 symmetrize = method()
-symmetrize (Tensor) := (T) -> (
+symmetrize (Tensor) := (T) -> symmetrize(T,toList (0..#(tensorDims T)-1))
+symmetrize (Tensor,List) := (T,L) -> (
     d := #(tensorDims T);
     R := ring T;
-    L := apply(permutations d, p->T@p);
-    (1_R/(d!))*(sum L)
-);
+    S := apply(permutations L, p->(
+	    ind := new MutableList from (0..d-1);
+	    scan(#L, j->(ind#(L#j) = p#j));
+	    T@(toList ind)
+	    ));
+    (1_R/((#L)!))*(sum S)
+    )
 
 isSymmetric = method()
 isSymmetric Tensor := T -> (
@@ -52,17 +53,37 @@ isSymmetric Tensor := T -> (
     all(S, s->T@s == T)
     )
 
-contract (Tensor,Number,Number) := (T,k,l) -> (
-    d := #(tensorDims T);
-    n := (tensorDims T)#k;
-    m := (tensorDims T)#l;
-    assert(n == m);
-    Tslices := apply((0,0)..(n-1,n-1), ij-> (
-	sliceList := toList apply(d, p->(if p==k then ij#0 else if p==l then ij#1 else null));
-	T_sliceList
-	));
-    sum toList Tslices
-    );
+contract (Tensor,List,List) := (T,K,L) -> (
+    D := tensorDims T;
+    KD := apply(K, k->D#k);
+    LD := apply(L, k->D#k);
+    if KD != LD then error "dimension mismatch";
+    Tslices := apply((#K:0)..<(toSequence KD), i-> (
+	    sliceList := new MutableList from (#D:null);
+	    scan(#K, j->(sliceList#(K#j) = i#j; sliceList#(L#j) = i#j));
+	    --print T_(toList sliceList);
+	    T_(toList sliceList)
+	    ));
+     sum toList Tslices
+     );
+contract (Tensor,Number,Number) := (T,k,l) -> contract(T,{k},{l})
+contract (Tensor,Tensor,List,List) := (T,U,K,L) -> (
+    Td := tensorDims T;
+    Ud := tensorDims U;
+    KD := apply(K, k->Td#k);
+    LD := apply(L, k->Ud#k);
+    if KD != LD then error "dimension mismatch";
+    slices := apply((#K:0)..<(toSequence KD), i-> (
+	    TsliceList := new MutableList from (#Td:null);
+	    UsliceList := new MutableList from (#Ud:null);
+	    scan(#K, j->(TsliceList#(K#j) = i#j; UsliceList#(L#j) = i#j));
+	    Tslice := T_(toList TsliceList);
+	    Uslice := U_(toList UsliceList);
+	    if #K == #Td or #K == #Ud then Tslice*Uslice else Tslice**Uslice
+	    ));
+     sum toList slices
+     );
+contract (Tensor,Tensor,Number,Number) := (T,U,k,l) -> contract(T,U,{k},{l})
 
 tensorEigenvectors = method()
 tensorEigenvectors (Tensor,Number,Ring,RingElement) := (T,k,S,x) -> (
@@ -101,30 +122,25 @@ tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
     D := tensorDims T;
     n := D#0;
     xpos := position(gens S, y->y==x);
-    f := 0_S;
-    for ind in (#D:0)..(#D:n-1) do (
-	mon := product toList apply(#ind, j->S_(xpos + ind#j));
-	f = f + sub(T_ind,S)*mon;
-	);
-    f
+    xTen := makeTensor(take(gens S,{xpos,xpos+n-1}));
+    U := xTen ^** #D;
+    L := toList (0..#D-1);
+    contract(sub(T,S),U,L,L)
     );
 
 tensorToMultilinearForm = method()
 tensorToMultilinearForm (Tensor,Ring) := (T,S) -> tensorToMultilinearForm(T,S,S_0)
 tensorToMultilinearForm (Tensor,Ring,RingElement) := (T,S,x) -> (
     D := tensorDims T;
-    vs := gens S;
-    xpos := position(vs, y->y==x);
-    varLists := for n in D list (
-	take(vs, {xpos, xpos + n -1})) do (
+    xpos := position(gens S, y->y==x);
+    U := null;
+    for n in D do (
+	u := makeTensor(take(gens S, {xpos, xpos + n -1}));
+	if U === null then U = u else U = U**u;
 	xpos = xpos + n;
 	);
-    f := 0_S;
-    for ind in (#D:0)..<(toSequence D) do (
-	mon := product toList apply(#ind, j->varLists#j#(ind#j));
-	f = f + sub(T_ind,S)*mon;
-	);
-    f
+    L := toList (0..#D-1);
+    contract(sub(T,S),U,L,L)
     );
 tensorToMultilinearForm (Tensor,Symbol) := (T,x) -> (
     R := ring T;
@@ -135,7 +151,7 @@ tensorToMultilinearForm (Tensor,Symbol) := (T,x) -> (
     )
     
 
-tensorModule Tensor := T -> tensorModule(ring T, tensorDims T)
+tensorModule Tensor := T -> class T
 
 tensor Matrix := o -> M -> makeTensor entries M
 
@@ -202,4 +218,29 @@ polynomialToTensor (RingElement ) := (f) -> (
     symmetrize(sum T)
     )
 
+substitute (Tensor,Thing) := (T,S) -> (
+    E := entries T;
+    E = apply(E, e->sub(e,S));
+    M := tensorModule(ring first E,tensorDims T);
+    tensor(M,E)
+    )
+
+Tensor ^** Number := (T,n) -> (
+    if n == 0 then return 1_(ring T);
+    U := T;
+    for i from 1 to n-1 do U = U**T;
+    U
+    )
+
+///
+tensorFromSlices = method()
+tensorFromSlices List := S -> (
+    
+
+
+factorMap = method()
+factorMap (Tensor,Matrix,Number) := (T,M,k) -> (
+    
+    slices := apply(
+///
 end

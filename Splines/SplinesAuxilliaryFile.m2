@@ -47,15 +47,18 @@ ref(Matrix):=M->(
 --so that they appear in same order as codim 1 faces of polyhedron --
 halfsort = method(); 
 halfsort(Sequence,List):=(x,y)->(
-	r := numrows(x#0); 
-	L := apply(toList(0..r-1), i-> (
-		position(toList(0..r-1), j->
-		    {(x#1)_(i,0)} == unique flatten entries ((x#0)^{i} * vertices(y_j))
-		    )
-		)
-	    );
-	matrix apply(L,i-> flatten entries (x#0)^{i})
+	r := numrows(x#0);
+	--Pull out matrices of coordinates of each vertex in a facet: 
+	V := apply(y, p-> vertices p);
+	--Select the index of the row of values of product of vertex
+	--matrices with matrix of coefficients of linear forms.
+	tempL := apply(#V, v-> apply(entries ((x#0)*(V_v)), r-> unique r));
+	L := apply(tempL, l-> position(l, p-> #p===1));
+	(x#0)^L
 	)
+    
+    
+
 
 --Inputs: A pure, connected, hereditary polyhedral complex PC of dimension d in R^d (pseudomanifold?). (if a pair of facets X,Y of PC intersect nontrivially then there must be a chain of facets (F0,F1,..,Fn) of PC such that F0=X,Fn=Y, and each consecutive pair of facets Fi and F(i+1) intersect in a codim 1 face of both).
 --Outputs: The boundary complex of PC.

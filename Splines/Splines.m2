@@ -20,7 +20,9 @@ newPackage select((
         Date => "27. May 2015",
         Authors => {
             {Name => "Mike DiPasquale", Email => "midipasq@gmail.com", HomePage => "http://illinois.edu/~dipasqu1"},
-            {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://cs.hood.edu/~whieldon"}
+            {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://cs.hood.edu/~whieldon"},
+	    {Name => "Eliana Duarte", Email => "emduart2@illinois.edu", HomePage => "http://illinois.edu/~emduart2"},
+	    {Name => "Daniel Irving Bernstein", Email=> "dibernst@ncsu.edu", HomePage =>"http://www4.ncsu.edu/~dibernst"}
         },
         Headline => "Package for computing topological boundary maps and piecewise continuous splines on polyhedral complexes.",
         Configuration => {},
@@ -48,7 +50,12 @@ export {
    "VariableName",
    "getCodimIFacesPolytope",
    "getCodimIFacesSimplicial",
-   "interiorFaces"
+   "interiorFaces",
+   "splineDimTable",
+   "posNum",
+   "posTable",
+   "hilbertPolyEval",
+   "generalizedSplines"
     }
 
 ------------------------------------------
@@ -391,8 +398,127 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
     	AD := splineMatrix(V,F,r,opts);
 	K := ker AD;
 	b := #F;
+	if opts.InputType==="ByLinearForms" then (
+		b = #(unique flatten V)
+		);
     	image submatrix(gens K, toList(0..b-1),)
 )
+------------------------------------------
+-------------------------------------------
+-------------------------------------------
+splineDimTable=method();
+-------------------------------------------
+-------------------------------------------
+----- splineDimTable 
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- "ByModule"
+----- a= lower bound of dim table
+----- b= upper bound of dim table
+----- M= module
+--- OR!!!
+----- "ByFacets"
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list of {V,E,F}, list of vertices, edges and faces
+----- r= degree of desired continuity
+------ Functions that work go below this line
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ A hashTable with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+
+splineDimTable(ZZ,ZZ,Module):= (a,b,M)->(
+    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    )
+splineDimTable(ZZ,ZZ,List,ZZ):= (a,b,L,r)->(
+    M := splineModule(L_0,L_1,L_2,r);
+    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    )
+-----------------------------------------------------------------
+
+-------------------------------------------
+-------------------------------------------
+posNum=method();
+posTable=method();
+-------------------------------------------
+------------------------------------------- 
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- M= module
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ An integer which is the last degree at
+------ which the Hilbert Function of the module
+------ disagrees with the Hilbert polynomial of 
+------ the module.
+--------------------------------------------
+posNum(Module):= (N) ->(
+    k := regularity N;
+    while hilbertFunction(k,N)==hilbertPolyEval(k,N) do	(k=k-1);
+    k
+    )
+
+posTable(Module):= (N) ->(
+    k := regularity N +1;
+    hashTable apply(k,i->(i=>(hilbertFunction(i,M),hilbertPolyEval(i,N))))
+    )
+---------------------------------------------
+hilbertPolyEval=method();
+---------------------------------------------
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- i= integer at which you will evaluate the Hilbert polynomial
+----- M= module
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ An Hilbert polynomial of the module M
+------ evaluated at i.
+--------------------------------------------
+
+hilbertPolyEval(ZZ,Module):=(i,M)->(
+    P=hilbertPolynomial(M,Projective=>false);
+    sub(P,(vars ring P)_(0,0)=>i)
+    )
+
+
+
+------------------------------------------
+------------------------------------------
+-- This method computes the generalized spline module
+-- associated to a graph whose edges are labeled by ideals
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--E = list of edges. Each edge is a list with two vertices.
+--    the set of vertices must be exactly the integers 0..n-1.
+--ideals = list of ideals that label the edges. 
+--    Must be in same order as the edges.
+------------------------------------------
+--Outputs:
+--Module of generalized splines on the graph given by the edgelist
+------------------------------------------
+generalizedSplines = method();
+--assume vertices are 0,...,n-1
+generalizedSplines(List,List) := Module => (E,ideals) ->(
+    S := ring first ideals;
+    vertices := unique flatten E;
+    n := #vertices;
+    T := directSum(apply(ideals,I->coker gens I));
+--Boundary Map from Edges to vertices (this encodes spline conditions)
+    M := matrix apply(E,
+	e->apply(n,
+	    v->if(v===first e) then 1
+	    else if(v===last e) then -1
+	    else 0));
+   ker(map(T,S^n,sub(M,S)))
+);
 
 ------------------------------------------
 ------------------------------------------
@@ -480,11 +606,6 @@ doc ///
         Text
             This package provides methods for computations with piecewise polynomial functions (splines) over
 	    polytopal complexes.
-    	Text
-	    @SUBSECTION "Definitions"@
-	    If $\Delta \subseteq {\mathbb R}^n$ is a heredetary (polytopal, simplicial, etc) complex, 
-	    a spline $f \in S_d^{r+1}(\Delta)$ is a function such that $f$ is polynomial of degree
-	    $d$ on each facet $\sigma\in\Delta$ and $f$ has smoothness $r$ ($f\in C^{r}$.)
         Text
             @SUBSECTION "Other acknowledgements"@
             --
@@ -510,7 +631,7 @@ doc ///
         compute matrix giving adjacent regions and continuity level
     Usage
     	S = splineMatrix(V,F,E,r)
-	S = splineMatrix(B,L,r,InputType=>"ByLinearForms")
+	S = splineMatrix(B,L,r)
     Inputs
     	V:List
 	    list of coordinates of vertices of Delta
@@ -532,10 +653,8 @@ doc ///
     Description
         Text
 	    This creates the basic spline matrix that has splines as
-	    its kernel. Note that the ambient ring of the appropriate
-	    dimension needs to be defined.
+	    its kernel.
 	Example
-	    R = QQ[x,y,z]
 	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
             F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
             E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph

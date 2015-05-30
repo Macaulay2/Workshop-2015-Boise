@@ -1,7 +1,8 @@
 
 -------------------------------------------
 -------------------------------------------
-postNum=method();
+posNum=method();
+posTable=method();
 -------------------------------------------
 ------------------------------------------- 
 -------------------------------------------
@@ -16,10 +17,15 @@ postNum=method();
 ------ disagrees with the Hilbert polynomial of 
 ------ the module.
 --------------------------------------------
-postNum(Module):= (N) ->(
+posNum(Module):= (N) ->(
     k := regularity N;
     while hilbertFunction(k,N)==hilbertPolyEval(k,N) do	(k=k-1);
     k
+    )
+
+posTable(Module):= (N) ->(
+    k := regularity N +1;
+    hashTable apply(k,i->(i=>(hilbertFunction(i,M),hilbertPolyEval(i,N))))
     )
 ---------------------------------------------
 hilbertPolyEval=method();
