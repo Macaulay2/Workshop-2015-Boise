@@ -39,6 +39,11 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
+   "Spline",
+       "VertexCoordinates",
+       "Regions",
+       "SplineModule",
+   "spline",
    "splineMatrix",
    "splineModule",
    "InputType",
@@ -64,6 +69,26 @@ export {
 ------------------------------------------
 ------------------------------------------
 
+Spline = new Type of HashTable
+spline = method(Options => {
+	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ})
+
+spline(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+    	AD := splineMatrix(V,F,E,r,opts);
+	K := ker AD;
+	b := #F;
+    	new Spline from {
+    	    symbol VertexCoordinates => V,
+	    symbol Regions => F,
+	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),),
+	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"}
+	}
+)
+
 
 ------------------------------------------
 ------------------------------------------
@@ -85,6 +110,21 @@ isHereditary= method()
 
 isHereditary(List,List) := Boolean => (F,E) -> (
     V := unique flatten join F;
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e <= 2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
+
+isHereditary(List) := Boolean => F -> (
+    V := unique flatten join F;
+    E := getCodimIFacesSimplicial(F,1);
     dualV := toList(0..#F-1);
     dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
     if not all(dualE,e-> #e <= 2) then (
@@ -191,7 +231,6 @@ getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
     d := getSize(F);
     unique flatten apply(F, f-> subsets(f,d-i))
     )
-
 
 
 -----------------------------------------
@@ -801,6 +840,56 @@ doc ///
 
 ///
 
+doc ///
+    Key
+        isHereditary
+	(isHereditary,List,List)
+	(isHereditary,List)
+    Headline
+    	checks if a complex $\Delta$ is hereditary
+    Usage
+    	B = isHereditary(F,E)
+	B = isHereditary(F)
+    Inputs
+    	F:List
+	    list of facets of F
+	E:List
+	    list of codimension 1 faces of F
+    Outputs
+    	B:Boolean
+	    returns true if F is hereditary
+    Description
+        Text
+	    A complex $\Delta$ is hereditary if it is a pseudomanifold (all 
+	    codimention 1 faces are contained in two facets), and the link of 
+	    each vertex is connected.
+	
+	Text
+	    The hereditary check can take both facets and codimension 1 faces:
+	
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    E = {{2,3},{3,4},{4,5},{5,6}}
+	    isHereditary(F,E)
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{5,6,7}}
+	    E = {{2,3},{3,4},{4,5}}
+	    isHereditary(F,E)
+	    
+	Text
+	    Alternately, if the complex is simplicial, codimension 1 faces can
+	    be computed automatically.
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    isHereditary(F)
+    SeeAlso
+        splineMatrix
+	
+/// 
+
+
 TEST ///
 V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
 F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
@@ -861,3 +950,4 @@ assert(isHereditary(F,E) === true)
 
 
 end
+
