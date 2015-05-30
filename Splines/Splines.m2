@@ -50,7 +50,11 @@ export {
    "VariableName",
    "getCodimIFacesPolytope",
    "getCodimIFacesSimplicial",
-   "interiorFaces"
+   "interiorFaces",
+   "splineDimTable",
+   "posNum",
+   "posTable",
+   "hilbertPolyEval",
    "generalizedSplines"
     }
 
@@ -399,6 +403,89 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 		);
     	image submatrix(gens K, toList(0..b-1),)
 )
+------------------------------------------
+-------------------------------------------
+-------------------------------------------
+splineDimTable=method();
+-------------------------------------------
+-------------------------------------------
+----- splineDimTable 
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- "ByModule"
+----- a= lower bound of dim table
+----- b= upper bound of dim table
+----- M= module
+--- OR!!!
+----- "ByFacets"
+----- a= lower bound of range
+----- b= upper bound of range
+----- L= list of {V,E,F}, list of vertices, edges and faces
+----- r= degree of desired continuity
+------ Functions that work go below this line
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ A hashTable with the dimensions of the graded pieces
+------ of the spline module in the range (a,b)
+
+splineDimTable(ZZ,ZZ,Module):= (a,b,M)->(
+    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    )
+splineDimTable(ZZ,ZZ,List,ZZ):= (a,b,L,r)->(
+    M := splineModule(L_0,L_1,L_2,r);
+    hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
+    )
+-----------------------------------------------------------------
+
+-------------------------------------------
+-------------------------------------------
+posNum=method();
+posTable=method();
+-------------------------------------------
+------------------------------------------- 
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- M= module
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ An integer which is the last degree at
+------ which the Hilbert Function of the module
+------ disagrees with the Hilbert polynomial of 
+------ the module.
+--------------------------------------------
+posNum(Module):= (N) ->(
+    k := regularity N;
+    while hilbertFunction(k,N)==hilbertPolyEval(k,N) do	(k=k-1);
+    k
+    )
+
+posTable(Module):= (N) ->(
+    k := regularity N +1;
+    hashTable apply(k,i->(i=>(hilbertFunction(i,M),hilbertPolyEval(i,N))))
+    )
+---------------------------------------------
+hilbertPolyEval=method();
+---------------------------------------------
+-------------------------------------------
+-----Inputs:
+-------------------------------------------
+----- i= integer at which you will evaluate the Hilbert polynomial
+----- M= module
+--------------------------------------------
+------ Outputs:
+--------------------------------------------
+------ An Hilbert polynomial of the module M
+------ evaluated at i.
+--------------------------------------------
+
+hilbertPolyEval(ZZ,Module):=(i,M)->(
+    P=hilbertPolynomial(M,Projective=>false);
+    sub(P,(vars ring P)_(0,0)=>i)
+    )
 
 
 
