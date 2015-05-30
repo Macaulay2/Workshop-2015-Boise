@@ -1,7 +1,0 @@
-restart
-R = QQ[x,t, Degrees=>{{1,0},{0,1}}];
-S= QQ[A,B,C, Degrees=>{{1,0},{2,1},{3,2}}];
-F=map(R,S,{x,x^2*t,x^3*t^2})
-ker F
-T=S/(ker F)
-hilbertSeries(T)

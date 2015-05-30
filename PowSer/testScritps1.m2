@@ -55,6 +55,7 @@ multiplyIdeals(Ideal,Ideal,Ideal) :=(I,J,K) ->(
 )
 
 
+
 FamilyOfIdeals := new Type of GradedModule  
 
 familyOfIdeals = method()
