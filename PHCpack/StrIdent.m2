@@ -12,15 +12,16 @@ newPackage(
   DebuggingMode => false
 )
 
---needsPackage("PHCpack");
-
 export{
 "characteristicPoly",
 "doMonodromy",
 "getCoefficients",
 "NumLoops",
+"pullCoefficients",
 "restrictRing"
 }
+
+--needsPackage("PHCpack");
 
 loadPackage "PHCpack"
 characteristicPoly = method()
@@ -48,14 +49,14 @@ pullCoefficients (RingElement) := (f) -> (
   x := (gens ring f)#0;
   --loop through powers of x
   while k <= degree(x,f) do (
-	  --find coefficient of x^k
+    --find coefficient of x^k
     C := coefficient(x^k,f);
-	  --if its a bad value (0,1,-1), don't include it
-	  if not (C == 0 or C==1 or C==-1) then (
-	    CoeffList#t = C;
+    --if its a bad value (0,1,-1), don't include it
+    if not (C == 0 or C==1 or C==-1) then (
+      CoeffList#t = C;
       t=t+1;
     );
-	  k = k+1;
+    k = k+1;
   );
   return(CoeffList);
 )
@@ -72,7 +73,7 @@ restrictRing (Matrix) := (A) -> (
       (mapList#i = (gens SbRing)#t; t=t+1;)
     else 
       mapList#i=0;
-	    i = i+1; 
+      i = i+1; 
   );
   MapList := new List from mapList;
   phi := map(SbRing,ring A,MapList);
@@ -117,21 +118,21 @@ getCoefficients (Matrix, List, List) := (B,I,J) -> (
     j := J#jindex;
     for iindex from 0 to (#I - 1) do
     --scroll through outputs
-  	(
-	    i := I#iindex;
-	    --if i=j then collect relevant polynomials quickly via a submatrix
-	    if j==i then (
+    (
+      i := I#iindex;
+      --if i=j then collect relevant polynomials quickly via a submatrix
+      if j==i then (
         chAjj := characteristicPoly(submatrix'(A,{j},{j})); 
         allCoeff = join(allCoeff,pullCoefficients(chAjj));
       )
       else if j!=i then ( --otherwise use a derivative trick
         AnewMM := mutableMatrix(A);
         use SS;
-	      AnewMM_(i,j) := y;
-		    Anew := matrix(AnewMM);
-		    chAnew := characteristicPoly(Anew);
-		    allCoeff = join(allCoeff,pullCoefficients(diff(y,chAnew)));
-		  );
+        AnewMM_(i,j) := y;
+        Anew := matrix(AnewMM);
+        chAnew := characteristicPoly(Anew);
+        allCoeff = join(allCoeff,pullCoefficients(diff(y,chAnew)));
+      );
     );
   );
   AllCoeff := new List from allCoeff;

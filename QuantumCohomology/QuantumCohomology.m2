@@ -1,0 +1,270 @@
+newPackage("QuantumCohomology",
+     Headline => "Quantum Cohomology for the modern world",
+     Version => "0.01",
+     Date => "May 27, 2015",
+     Authors => {
+	  {Name => "Dave Swinarski",
+	   HomePage => "",
+	   Email => ""},
+	  {Name => "Anna Kazanova",
+	   HomePage => "",
+	   Email => ""},
+	  {Name => "Robert Williams",
+	   HomePage => "",
+	   Email => ""},
+	  {Name => "Corey Harris",
+	   HomePage => "",
+	   Email => ""}},
+     --AuxiliaryFiles => true,
+     AuxiliaryFiles => false,
+     DebuggingMode => true,
+     CacheExampleOutput =>true
+     )
+
+export {
+    generatorSymbols,
+    qcRing,
+    sName
+}
+
+QCRing = new Type of Ring
+QCPolynomialRing = new Type of QCRing
+QCRingElement = new Type of HashTable
+
+globalAssignment QCRing
+
+
+removeZeroes = myHash -> select(myHash, c -> c != 0)
+
+possibleTableaux := (r,l) ->(
+    MyList:= toList((r+1):0)..toList((r+1):l);
+    desc := L -> (
+	if #L < 2 then return true;
+    	if L#0 < L#1 then (
+	    return false
+    	    )
+    	else (
+	    return desc(drop(L,1))
+    	    )
+	);
+    NewList:= for i in MyList list(
+    	if desc(i) then (
+	    i
+    	    )
+    	else (
+	    "drop me"
+   	    )
+	);
+    NewList=delete("drop me", NewList);
+    NewList=  for i in NewList list (
+    	delete(0,i)
+	);
+    NewList
+)
+
+
+pieriProduct = (p, r, l, yt) -> (
+    if #yt == 0 then (
+	return {{p}}
+    );
+    if r == 0 then (
+        return {{yt#0+p}}	
+    );
+    b:=0;
+    if #yt==r+1 then b=yt#r;
+    ilist := reverse(toList(max(0,p-yt#0+b)..min(p,l-yt#0)));
+    sublist := apply(ilist, i -> (
+        M :=  pieriProduct(p-i,r-1,yt#0,drop(yt,1));
+	apply(M,a -> prepend(yt#0+i,a))
+    ));
+    return flatten sublist
+)
+
+
+new QCPolynomialRing from List := (QCPolynomialRing, inits) -> new QCPolynomialRing of QCRingElement from new HashTable from inits
+
+qcRing = method()
+qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
+   varList := possibleTableaux(r,l);
+   R:=QQ(monoid[getSymbol q]);
+   -- get the symbols associated to the list that is passed in, in case the variables have been used earlier.
+   if #varList == 0 then error "Expected at least one variable.";
+   if #varList == 1 and class varList#0 === Sequence then varList = toList first varList;
+   --varList = varList / baseName;
+   if r < 0 then error "Expected a non-negative subdimension";
+   if l < 1 then error "Expected a possitive dimension for the vector space";
+   if s == q then error "s and q should be different";
+   A := new QCPolynomialRing from {(symbol generators) => {},
+                                   (symbol generatorSymbols) => varList,
+				   (symbol CoefficientRing) => R,
+                                   (symbol cache) => new CacheTable from {},
+				   (symbol baseRings) => {ZZ},
+				   (symbol sName) => getSymbol s
+                                   };
+   newVars := for v in varList list (
+       new A from {(symbol terms) => new HashTable from {v => 1},
+	       	   (symbol ring) => A,
+		   (symbol cache) => new CacheTable from {}
+	           }
+   );
+   
+   --newGens := apply(varList, v -> v <- putInRing({v},A,1));
+
+   A#(symbol generators) = newVars;
+   
+   promote(ZZ,A) := (z,A) -> (
+       new A from hashTable {(symbol ring, A),
+                            (symbol terms, new HashTable from {{} => sub(z,R)})}
+   );
+   
+   promote(QQ,A) := (z,A) -> (
+       new A from hashTable {(symbol ring, A),
+                            (symbol terms, new HashTable from {{} => sub(z,R)})}
+   );
+
+  addVals := (c,d) -> (
+      e := c+d;
+      if e == 0 then continue else e
+  ); 
+
+   multVals := (c,d) -> c*d;
+   
+
+   A + A := (f,g) -> (
+      newHash := removeZeroes merge(f.terms,g.terms,addVals);     
+      if newHash === hashTable {} then newHash = (promote(0,f.ring)).terms;
+      new A from hashTable {(symbol ring, f.ring),
+                            (symbol terms, newHash)}   
+   );
+   
+   ZZ * A := (z,a) -> (
+       new A from hashTable {(symbol ring, a.ring),
+	                     (symbol terms, applyValues(a.terms,x -> z*x))}
+   );
+   A * ZZ := (a,z) -> z*a;
+   A - A := (c,d) -> c + (-1)*d;
+   - A := (a) -> (-1)*a;
+   A + ZZ := (a,z) -> a + promote(z,A);
+   ZZ + A := (z,a) -> a + z;
+   A / ZZ := (a,z) -> (1/z) * a;
+
+   QQ * A := (z,a) -> (
+       new A from hashTable {(symbol ring, a.ring),
+	                     (symbol terms, applyValues(a.terms,x -> z*x))}
+   );
+   A * QQ := (a,z) -> z*a;
+   A + QQ := (a,z) -> a + promote(z,A);
+   QQ + A := (z,a) -> a + z;
+   A / QQ := (a,z) -> (1/z) * a;
+   
+   R * A := (z,a) -> (
+       new A from hashTable {(symbol ring, a.ring),
+	                     (symbol terms, applyValues(a.terms,x -> z*x))}
+   );
+   A * R := (a,z) -> z*a;
+   A + R := (a,z) -> a + promote(z,A);
+   R + A := (z,a) -> a + z;
+
+   A == A := (a,b) -> a.terms === b.terms;
+   
+   A * A := (b,a) -> (
+       --<< a << " *  " << b << endl;
+       if #(a.terms) == 1 and #(b.terms) == 1 and #(first keys a.terms) == 1 then (
+       	   coeff := (first values a.terms) * (first values b.terms);
+	   termkeys := pieriProduct(first first keys a.terms, r, l, first keys b.terms);
+	   putInRing(termkeys,coeff,A)
+       ) else if #(a.terms) == 1 and #(b.terms) == 1 and #(first keys b.terms) == 1 then (
+	   a*b
+       ) else if #(a.terms) > 1 then (
+       	   sum ( for t in keys a.terms list (putInRing({t},(a.terms)#t,A))*b )
+       ) else if #(b.terms) > 1 then (
+       	   sum ( for t in keys b.terms list a*(putInRing({t},(b.terms)#t,A)) )
+       ) else promote(1,R)
+   );
+
+   A
+)
+   
+use QCRing := A -> (
+    scan(A.generatorSymbols, A.generators, (l,val) -> (A.sName)_l <- val);
+    getSymbol(toString (A.CoefficientRing)_0) <- (A.CoefficientRing)_0;
+    A
+)
+
+putInRing = method()
+putInRing (List,QCRing) := (lst, A) -> (
+    termlist := new HashTable from apply(lst, l -> l => 1);
+    new A from {(symbol ring) => A,
+	        (symbol cache) => new CacheTable from {},
+		(symbol terms) => termlist}
+)
+
+putInRing (List,ZZ,QCRing) :=
+putInRing (List,RingElement,QCRing) := (lst, z, A) -> (
+    termlist := new HashTable from apply(lst, l -> l => sub(z,A.CoefficientRing));
+    new A from {(symbol ring) => A,
+	        (symbol cache) => new CacheTable from {},
+		(symbol terms) => termlist}
+)
+
+
+QCPolynomialRing _ List := (A,l) -> A.generators#(position(A.generatorSymbols,a -> a === l));
+
+net QCRing := A -> (
+    hasAttribute := value Core#"private dictionary"#"hasAttribute";
+    getAttribute := value Core#"private dictionary"#"getAttribute";
+    ReverseDictionary := value Core#"private dictionary"#"ReverseDictionary";
+    if hasAttribute(A,ReverseDictionary) then toString getAttribute(A,ReverseDictionary)
+    else net A.CoefficientRing | net A.generators
+)
+
+toString QCRingElement := q -> (
+    A := q.ring;
+    C := A.CoefficientRing;
+    concatenate between("+",apply(keys q.terms, k -> toString(q.terms#k)|"*"|toString(A.sName_k)))
+)
+
+net QCRingElement := q -> (
+    s := q.ring.sName;
+    sum ( for t in pairs q.terms list (
+    	    (key, coeff) := t;
+    	    (coeff)*((hold s)_(toSequence key))
+    ))
+)
+
+-- leadTerm QCPolynomialRing := 
+
+end
+
+restart
+uninstallPackage "QuantumCohomology"
+--installPackage "QuantumCohomology"
+debug needsPackage "QuantumCohomology"
+QH = qcRing(3,4,"s","q")
+e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
+toString e
+--QH.generators
+3 * QH_{3,2}
+QH_{3,2} * 3
+QH_{3,2,2} + QH_{3,2,1} + QH_{3,2,1} - QH_{3,2,2}
+QH_{4,2} + 86
+7 + QH_{4,2}
+3/2 * QH_{3,2}
+QH_{3,2} * (3/7)
+QH_{3,2,2} + QH_{3,2,1} + QH_{3,2,1} - QH_{3,2,2}
+QH_{4,2} + 86/3
+7/3 + QH_{4,2}
+QH_{3,1} / 2
+3*QH_{3,1} / (2/7)
+try QH_{4} / 0
+2*QH_{4} == QH_{4}+QH_{4}
+3*QH_{4} == QH_{4}+QH_{4}
+
+e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
+(4/3*s_{2,1})*(3*q*s_{1})
+(4/3*s_{1})*(3*q*s_{2,1})
+
+(s_{1} + s_{2}) * (s_{1})
+(s_{1}) * (s_{2} + s_{1})
+(s_{1} + s_{2}) * (s_{2} + s_{1})
+

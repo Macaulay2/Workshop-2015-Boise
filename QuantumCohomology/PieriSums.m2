@@ -112,6 +112,13 @@ end
 restart
 break
 load "PieriSums.m2";
+pieriFirstSum(0,2,2,{2,1,1})
+pieriSecondSum(1,2,2,{2,1,1})
+
+quantumPieriOneTerm(1,2,2,{{2,1,1},1},Y)
+quantumPieri(1,2,2,{{{2,1,1},1}},Y)
+
+
 Y = QQ[q];
 L = { {{5,1,1},1+q}, {{3,2},-3} };
 quantumPieriOneTerm(2,2,5,L_0,Y)
