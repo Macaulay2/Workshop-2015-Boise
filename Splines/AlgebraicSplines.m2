@@ -15,7 +15,7 @@ if version#"VERSION" <= "1.4" then (
     )
 
 newPackage select((
-    "Splines",
+    "AlgebraicSplines",
         Version => "0.1.0", 
         Date => "27. May 2015",
         Authors => {
@@ -39,11 +39,11 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   "SplineSet",
+   "Splines",
        "VertexCoordinates",
        "Regions",
        "SplineModule",
-   "splineSet",
+   "splines",
    "Spline",
    "spline",
    "splineMatrix",
@@ -73,19 +73,19 @@ export {
 
 --Create an object that gives ALL splines
 --on a given subdivision.
-SplineSet = new Type of HashTable
-splineSet = method(Options => {
+Splines = new Type of HashTable
+splines = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ})
 
-splineSet(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
 	K := ker AD;
 	b := #F;
-    	new SplineSet from {
+    	new Splines from {
 	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
 	    symbol VertexCoordinates => V,
 	    symbol Regions => F,
@@ -94,12 +94,12 @@ splineSet(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 )
 
 
-net SplineSet := S -> S.SplineModule
+net Splines := S -> S.SplineModule
 
 Spline = new Type of HashTable
 spline = method()
 
-spline(SplineSet,List) := (S,L) -> (
+spline(Splines,List) := (S,L) -> (
     M := S.SplineModule;
     )
    
