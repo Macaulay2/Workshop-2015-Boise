@@ -105,15 +105,19 @@ associatedGraded(List,ZZ) :=(L,n) ->(
 
 end
 
+
 restart
 load"FiltAlgScripts.m2"
 
+
+--Example 1 --
 
 R=QQ[X,Y]
 
 I1=ideal(X^2,Y)
 I2=ideal(X^2,Y^2)
-L:={I1,I2}
+L={I1,I2}
+associatedGraded(L,1)
 associatedGraded(L,2)
 associatedGraded(L,3)
 associatedGraded(L,4)
@@ -122,6 +126,7 @@ associatedGraded(L,10)
 minimalPresentation oo
 (gens ring oo)/degree
 H=familyOfIdeals(L)
+H^3
 L
 H^0
 H^1
@@ -140,17 +145,54 @@ compactMatrixForm = false
 grIdeal(A,ring J,2,H)
 gens o21
 
-A
-describe A
-isHomogeneous(J)
-netList J_*
+-- Example 2
+restart
+load"FiltAlgScripts.m2"
 
-S= ring J / J -- the "rees Hilbert series"
-hilbertSeries(S)
+R=QQ[X,Y,Z]
+
+I1=ideal(X,Y,Z^2)
+I2=ideal(X^2,Y,Z^2)
+I3=ideal(X^2,X*Y,Y^2,Y*Z^2,X*Z)
+L={I1,I2,I3}
+associatedGraded(L,1)
+associatedGraded(L,2)
+associatedGraded(L,3)
+associatedGraded(L,4)
+associatedGraded(L,5)
+
+
+-- Example 3
+
+restart
+load"FiltAlgScripts.m2"
+
+R=QQ[X,Y,Z,W]
+
+I1=ideal(X^2,Y^2,Z^3,W)
+I2=ideal(X^2,Y^4,Z^3,W^5,Y^2*W^4)
+L={I1,I2}
+associatedGraded(L,1)
+associatedGraded(L,2)
+associatedGraded(L,3)
+associatedGraded(L,4)
+associatedGraded(L,5)
+associatedGraded(L,10)
+
+
 
 --
+--
+--irrelevant scratch
 R = QQ[x,y]
 S=R[a,b,Degrees=>{{1,1},{2,1}}, Join=>false]
 degree a
 degree x_S
 
+A
+describe A
+isHomogeneous(J)
+netList J_*
+
+--S= ring J / J -- the "rees Hilbert series"
+hilbertSeries(S)
