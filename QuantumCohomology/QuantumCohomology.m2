@@ -33,7 +33,6 @@ QCRingElement = new Type of HashTable
 
 globalAssignment QCRing
 
-
 removeZeroes = myHash -> select(myHash, c -> c != 0)
 
 possibleTableaux := (r,l) ->(
@@ -169,6 +168,7 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
    
    A * A := (b,a) -> (
        --<< a << " *  " << b << endl;
+       {*
        if #(a.terms) == 1 and #(b.terms) == 1 and #(first keys a.terms) == 1 then (
        	   coeff := (first values a.terms) * (first values b.terms);
 	   termkeys := pieriProduct(first first keys a.terms, r, l, first keys b.terms);
@@ -180,7 +180,19 @@ qcRing (ZZ,ZZ,String,String) := (r,l,s,q) -> (
        ) else if #(b.terms) > 1 then (
        	   sum ( for t in keys b.terms list a*(putInRing({t},(b.terms)#t,A)) )
        ) else promote(1,R)
+       *}
+       if #(a.terms) > 1 then (
+	   s
+       ) else if #(b.terms) > 1 then (
+       	   s
+       ) else (
+       	   (at,ac) := first pairs a.terms;
+       	   (bt,bc) := first pairs b.terms;
+           ac*bc*quantumMonomialMultiplication(r,l,at,bt,R)
+       )
    );
+   
+   A ^ ZZ := (a,n) -> product toList (n:a);
 
    A
 )
