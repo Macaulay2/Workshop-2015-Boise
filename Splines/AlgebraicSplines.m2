@@ -40,12 +40,13 @@ if version#"VERSION" <= "1.4" then (
 
 export {
    "Splines",
-       "VertexCoordinates",
-       "Regions",
-       "SplineModule",
+   "VertexCoordinates",
+   "Regions",
+   "SplineModule",
    "splines",
    "Spline",
    "spline",
+   "formsList",
    "splineMatrix",
    "splineModule",
    "InputType",
@@ -62,7 +63,8 @@ export {
    "posNum",
    "hilbertCTable",
    "hilbertPolyEval",
-   "generalizedSplines"
+   "generalizedSplines",
+   "issimplicial"
     }
 
 ------------------------------------------
@@ -193,7 +195,7 @@ getCodim1FacesPolytope = method()
 ------------------------------------------
 --Inputs: 
 ------------------------------------------
---F = list of facets of a polytope
+--F = list of facets of a polytopal complex
 ------------------------------------------
 --Outputs:
 -----------------------------------------
@@ -254,6 +256,79 @@ getCodimIFacesSimplicial(List,ZZ) := List => (F,i) -> (
     d := getSize(F);
     unique flatten apply(F, f-> subsets(f,d-i))
     )
+
+------------------------------------------
+------------------------------------------
+getCodim1Intersections = method();
+------------------------------------------
+------------------------------------------
+--Code to Compute Codim 1 Intersections:
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = facets of a pure simplicial complex 
+--(as lists of vertices)
+------------------------------------------
+--Outputs:
+------------------------------------------
+--the codimension-1 (interior) intersections
+------------------------------------------
+getCodim1Intersections(List) := List => F ->(
+    n := #F;
+    d := #(F_0);
+    --For each non-final facet, construct all codimension 1 subsets.
+    codim1faces := apply(n-1, i -> subsets(F_i,d-1));
+    --Check if a codimension 1 subset is contained in another facet,
+    --store it as a codim 1 intersection.
+    sort flatten apply(#codim1faces, i -> 
+	select(codim1faces_i, 
+	    s -> any(F_{i+1..n-1}, 
+		f-> all(s, v-> member(v,f)))))
+)
+
+-----------------------------------------
+
+formsList=method(Options=>{
+	symbol Homogenize => true,
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ
+	}
+    )
+----------------------------------------------------
+--This method returns a list of forms corresponding to codimension one faces
+--------
+--Input:
+--V= vertex list
+--E= codim 1 face list
+--r= smoothness parameter
+--------
+--Output:
+--List of forms defining input list of codimension one faces 
+--raised to (r+1) power
+------------------------------------------------------------
+
+formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
+    --To homogenize, we append a 1 as the final coordinate of each vertex coord in list V.
+    --If not homogenizing, still need 1s for computing equations
+    d := #(first V);
+    t := opts.VariableName;
+    V = apply(V, v-> append(v,1));
+    if opts.Homogenize then (
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    varlist := (vars S)_(append(toList(1..d),0));
+	    ) else (
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    varlist = (vars S)|(matrix {{sub(1,S)}});
+	    );
+    varCol := transpose varlist;
+    M := (transpose(matrix(S,V)));
+    mM := numrows M;
+    minorList := apply(E, e-> gens gb minors(mM,M_e|varCol));
+    if any(minorList, I-> ideal I === ideal 1) then (
+    	error "Some vertices on entered face are not in codimension 1 face."
+	    );
+    flatten apply(minorList, m -> (m_(0,0))^(r+1))
+)
 
 
 -----------------------------------------
@@ -328,26 +403,14 @@ splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 	E = E_indx;
 	facetEdgeH = facetEdgeH_indx;
 	--Compute top boundary map for complex:
-	BM := matrix apply(facetEdgeH, i-> apply(#F, j-> if (j === first i) then 1 else if (j===last i) then -1 else 0));
-	--To homogenize, we append a 1 as the final coordinate of each vertex coord in list V.
-	--If not homogenizing, leave vertex coordinates V as is.
-	t := opts.VariableName;
-	V = apply(V, v-> append(v,1));
-	if opts.Homogenize then (
-	    S := (opts.CoefficientRing)[t_0..t_d];
-	    varlist := (vars S)_(append(toList(1..d),0));
-	    ) else (
-	    S = (opts.CoefficientRing)[t_1..t_d];
-	    varlist = (vars S)|(matrix {{sub(1,S)}});
-	    );
-	varCol := transpose varlist;
-	M := (transpose(matrix(S,V)));
-	mM := numrows M;
-	minorList := apply(E, e-> gens gb minors(mM,M_e|varCol));
-	if any(minorList, I-> ideal I === ideal 1) then (
-	    error "Some vertices on entered face are not in codimension 1 face."
-	    );
-	T := diagonalMatrix(flatten apply(minorList, m -> (m_(0,0))^(r+1)));
+	BM := matrix apply(
+	    facetEdgeH, i-> apply(
+		#F, j-> if (
+		    j === first i) then 1 else if (
+		    j===last i) then -1 else 0));
+	--List of forms definining interior codim one faces (raised to (r+1) power)
+	flist := formsList(V,E,r);
+	T := diagonalMatrix(flist);
 	splineM := BM|T;
 	) else if opts.InputType === "ByLinearForms" then (
 	 print "Wrong inputs, put in lists of adjacent facets and linear forms and continuity r."
@@ -639,38 +702,6 @@ generalizedSplines(List,List) := Module => (E,ideals) ->(
    ker(map(T,S^n,sub(M,S)))
 );
 
-------------------------------------------
-------------------------------------------
-getCodim1Intersections = method();
-------------------------------------------
-------------------------------------------
---Code to Compute Codim 1 Intersections:
-------------------------------------------
---Inputs: 
-------------------------------------------
---F = facets of a pure simplicial complex 
---(as lists of vertices)
-------------------------------------------
---Outputs:
-------------------------------------------
---the codimension-1 (interior) intersections
-------------------------------------------
-getCodim1Intersections(List) := List => F ->(
-    n := #F;
-    d := #(F_0);
-    --For each non-final facet, construct all codimension 1 subsets.
-    codim1faces := apply(n-1, i -> subsets(F_i,d-1));
-    --Check if a codimension 1 subset is contained in another facet,
-    --store it as a codim 1 intersection.
-    sort flatten apply(#codim1faces, i -> 
-	select(codim1faces_i, 
-	    s -> any(F_{i+1..n-1}, 
-		f-> all(s, v-> member(v,f)))))
-)
-
-
-
-
 
 ------------------------------------------
 simpBoundary = method()
@@ -680,7 +711,7 @@ simpBoundary = method()
 --E = list of codim i+1 faces
 ------------------------------------------
 --Output:
---B = boundary map matrix
+--B = boundary map matrix between codim i and codim i+1 faces
 ------------------------------------------
 --Example:
 --F = {{0,1,2},{0,1,3},{1,3,4},{1,2,4},{2,4,5},{0,2,5},{0,3,5}}
@@ -700,13 +731,70 @@ simpBoundary(List,List) := Matrix => (F,E) -> (
     transpose matrix rowList
     )
 
+------------------------------------------
+polyBoundary = method()
+------------------------------------------
+--Input:
+--F = list of codim i faces of polyhedral complex
+--E = list of codim i+1 faces of polyhedral complex
+------------------------------------------
+--Output:
+--B = boundary map matrix between codim i and codim i+1 faces
+------------------------------------------
+--Example:
+--Coming!!!
+------------------------------------------
+polyBoundary(List,List):=Matrix => (F,E)->(
+    print("Not Implemented Yet");
+    )
+
+------------------------------------------
+
+--Containment function for lists--
+subsetL:=(L1,L2)->(
+    all(L1,f->member(f,L2))
+    )
+
 boundaryComplex = method()
+------------------------------------------
+--Input:
+--F= list of facets of a simplicial complex
+----which is a pseudomanifold (Important!)
+------------------------------------------
+--Output:
+--A list of codim one faces on the boundary
+------------------------------------------
 boundaryComplex(List) := List => F -> (
     n := #F;
     d := #(F_0);
     codim1faces := unique flatten apply(n,i-> subsets(F_i,d-1));
     select(codim1faces, f-> number(F, g-> all(f, v-> member(v,g))) === 1)
     )
+------------------------------------------
+--Input:
+--PC= a polyhedral complex which is a 
+--pseudomanifold (Important!)
+------------------------------------------
+--Output:
+--A polyhedral complex which is the boundary
+--of the input polyhedral complex
+------------------------------------------
+boundaryComplex(PolyhedralComplex):=PolyhedralComplex => PC->(
+	d :=dim PC;
+	Facets :=polyhedra(d,PC);
+	Faces :=polyhedra(d-1,PC);
+	polyhedralComplex(
+		select(Faces,f->(
+			vf := entries transpose Polyhedra$vertices f;
+			#select(Facets,F->(
+				vF := entries transpose Polyhedra$vertices F;
+				subsetL(vf,vF) ))==1
+			)
+		    )
+		)
+	    )
+
+------------------------------------------------
 
 topologicalBoundaryComplex = method(
     	Options =>{
@@ -716,6 +804,17 @@ topologicalBoundaryComplex = method(
 	    symbol CoefficientRing => QQ
 	    }
     )
+------------------------------------------------
+---This method computes the cellular chain complex of a simplicial or
+---polyhedral(not implemented yet) complex with coefficients in a polynomial
+---ring.
+------------------------------------------------
+---Inputs (if simplicial): A list of facets
+------------------------------------------------
+---Outputs: The cellular chain complex whose homology
+--- is the homology of the simplicial complex relative
+--- to its boundary.
+--------------------------------------------------
 
 topologicalBoundaryComplex(List) := ChainComplex => opts -> F -> (
     if opts.InputType === "Polyhedral" then (
@@ -739,6 +838,33 @@ topologicalBoundaryComplex(List) := ChainComplex => opts -> F -> (
     	chainComplex(reverse apply(#intC-1, c-> simpBoundary(intC_c,intC_(c+1))))**S
 	)
     )
+
+------------------------------------------
+fIdeal=method(Options=> {
+	symbol InputType => "Simplicial"
+	--symbol InputType => "Polyhedra"
+	}
+    );
+------------------------------------------
+----Inputs: (Simplicial Method)
+----V = list of vertices
+----F = list of facets
+----E = a face of the complex (V,F)
+----r = smoothness parameter
+------------------------------------------
+----Output: The ideal generated by (r+1)st
+----- powers of linear forms defining interior
+----- codim one faces containing E
+-----------------------------------------
+
+fIdeal(List,List,List,ZZ):=Ideal=>opts->(V,F,E,r)->(
+    if opts.InputType === "Polyhedral" then (
+	"Not implemented yet."
+	);
+    if opts.InputType === "Simplicial" then(
+    codim1Int:=getCodim1Intersections(F);    
+        );
+)
 
 
 ------------------------------------------
