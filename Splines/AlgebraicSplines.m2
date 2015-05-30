@@ -96,11 +96,13 @@ splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 
 net Splines := S -> S.SplineModule
 
-Spline = new Type of HashTable
-spline = method()
 
+Spline = new Type of HashTable
+
+spline = method()
 spline(Splines,List) := (S,L) -> (
     M := S.SplineModule;
+    
     )
    
 
@@ -909,6 +911,38 @@ doc ///
         splineMatrix
 	
 /// 
+
+doc ///
+    Key
+        splineModule
+    Headline
+        compute the module of all splines on partition $\Delta$
+    Usage
+        M = splineModule(V,F,E,r)
+	M = splineModule(V,F,r)
+    Inputs
+        V:List
+	    V = list of coordinates of vertices
+	F:List
+	    F = list of facets
+	E:List
+	    E = list of codimension 1 faces (interior or not)
+	r:ZZ
+	    r = desired degree of smoothness
+    Outputs
+        M:Module
+	    M = module of splines on $\Delta$
+    Description
+        Text
+	    This is some text.
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}}
+	    F = {{0,1,2},{0,2,3}}
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
+	    splineModule(V,F,E,1)
+    Caveat
+        I'm not sure if this is fully documented yet.
+///
 
 
 TEST ///
