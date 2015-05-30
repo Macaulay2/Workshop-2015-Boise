@@ -8,7 +8,6 @@ L={V,F,E}
 splineMatrix(V,F,E,1)
 M=splineModule(V,F,E,2)
 splineDimTable(0,8,M)
-posTable M
 posNum M
 
 adjFacets = {{0,1},{1,2},{2,3},{3,4},{0,4}};

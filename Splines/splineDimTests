@@ -31,7 +31,7 @@ splineDimTable(ZZ,ZZ,List,ZZ):= (a,b,L,r)->(
     M := splineModule(L_0,L_1,L_2,r);
     hashTable apply(toList(a..b),i->(i=>hilbertFunction(i,M)))
     )
-
+-----------------------------------------------------------------
 
 
 
