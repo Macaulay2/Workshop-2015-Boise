@@ -39,10 +39,12 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   "Spline",
+   "Splines",
        "VertexCoordinates",
        "Regions",
        "SplineModule",
+   "splines",
+   "Spline",
    "spline",
    "splineMatrix",
    "splineModule",
@@ -65,30 +67,49 @@ export {
 
 ------------------------------------------
 ------------------------------------------
--- Methods
+-- Data Types and Constructors
 ------------------------------------------
 ------------------------------------------
 
-Spline = new Type of HashTable
-spline = method(Options => {
+--Create an object that gives ALL splines
+--on a given subdivision.
+Splines = new Type of HashTable
+splines = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ})
 
-spline(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
 	K := ker AD;
 	b := #F;
-    	new Spline from {
-    	    symbol VertexCoordinates => V,
+    	new Splines from {
+	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
+	    symbol VertexCoordinates => V,
 	    symbol Regions => F,
-	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),),
-	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"}
+	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),)
 	}
 )
 
+
+net Splines := S -> S.SplineModule
+
+Spline = new Type of HashTable
+spline = method()
+
+spline(Splines,List) := (S,L) -> (
+    M := S.SplineModule;
+    )
+   
+
+
+------------------------------------------
+------------------------------------------
+-- Methods
+------------------------------------------
+------------------------------------------
 
 ------------------------------------------
 ------------------------------------------
