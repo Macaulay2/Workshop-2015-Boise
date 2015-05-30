@@ -210,15 +210,39 @@ putInRing (List,RingElement,QCRing) := (lst, z, A) -> (
 
 QCPolynomialRing _ List := (A,l) -> A.generators#(position(A.generatorSymbols,a -> a === l));
 
+net QCRing := A -> (
+    hasAttribute := value Core#"private dictionary"#"hasAttribute";
+    getAttribute := value Core#"private dictionary"#"getAttribute";
+    ReverseDictionary := value Core#"private dictionary"#"ReverseDictionary";
+    if hasAttribute(A,ReverseDictionary) then toString getAttribute(A,ReverseDictionary)
+    else net A.CoefficientRing | net A.generators
+)
+
+toString QCRingElement := q -> (
+    A := q.ring;
+    C := A.CoefficientRing;
+    concatenate between("+",apply(keys q.terms, k -> toString(q.terms#k)|"*"|toString(A.sName_k)))
+)
+
+net QCRingElement := q -> (
+    s := q.ring.sName;
+    sum ( for t in pairs q.terms list (
+    	    (key, coeff) := t;
+    	    (coeff)*((hold s)_(toSequence key))
+    ))
+)
+
 -- leadTerm QCPolynomialRing := 
 
 end
 
 restart
 uninstallPackage "QuantumCohomology"
-installPackage "QuantumCohomology"
-needsPackage "QuantumCohomology"
+--installPackage "QuantumCohomology"
+debug needsPackage "QuantumCohomology"
 QH = qcRing(3,4,"s","q")
+e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
+toString e
 --QH.generators
 3 * QH_{3,2}
 QH_{3,2} * 3
@@ -232,14 +256,15 @@ QH_{4,2} + 86/3
 7/3 + QH_{4,2}
 QH_{3,1} / 2
 3*QH_{3,1} / (2/7)
-QH_{4} / 0
+try QH_{4} / 0
 2*QH_{4} == QH_{4}+QH_{4}
 3*QH_{4} == QH_{4}+QH_{4}
 
-3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
+e = 3*q*s_{2,1}+(43/3)*(q^4*s_{4,2,1})
 (4/3*s_{2,1})*(3*q*s_{1})
 (4/3*s_{1})*(3*q*s_{2,1})
 
 (s_{1} + s_{2}) * (s_{1})
 (s_{1}) * (s_{2} + s_{1})
+(s_{1} + s_{2}) * (s_{2} + s_{1})
 
