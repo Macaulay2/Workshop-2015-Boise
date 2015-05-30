@@ -662,10 +662,11 @@ topologicalBoundaryComplex(List) := ChainComplex => opts -> F -> (
     if opts.InputType === "Simplicial" then (
 	d := (# first F);
 	if opts.Homogenize then (
+	    t := opts.VariableName;
 	    S := (opts.CoefficientRing)[t_0..t_d];
-	    --S = QQ[t_0..t_d]
 	    varlist := (vars S)_(append(toList(1..d),0));
 	    ) else (
+	    t = opts.VariableName;
 	    S = (opts.CoefficientRing)[t_1..t_d];
 	    varlist = (vars S)|(matrix {{sub(1,S)}});
 	    );
