@@ -919,7 +919,7 @@ solveSystem  List := List =>  o->system -> (
   -- OUT: solutions to the system, a list of Points
   -- fixed removing of nonzero slack variables
   -- for overdetermined systems (JV 2015/05/27)
-  
+
   if instance(ring ideal system, FractionField) then
      error "ring is a fraction field, use solveRationalSystem";
     
@@ -933,7 +933,11 @@ solveSystem  List := List =>  o->system -> (
   infile := filename|"PHCinput";
   outfile := filename|"PHCoutput";
   solnsfile := filename|"PHCsolns";
+  local newR;
   R := ring ideal system;
+
+  stdio << "*** variables in the ring : " << gens R << " ***" << endl;
+
   n := #system;
   if n < numgens R then
     error "the system is underdetermined, positive dimensional";
@@ -945,15 +949,15 @@ solveSystem  List := List =>  o->system -> (
       stdio << "adding " << nSlacks
             << " slack variables to overdetermined system" << endl;
     slackVars := apply(nSlacks, i->getSymbol("OOOO"|toString i));
-    newR := CC(monoid[gens R, slackVars]);
+    newR = (coefficientRing R)(gens R | slackVars);
     rM := random(CC^n,CC^nSlacks);
     system = apply(#system, i->sub(system#i,newR)
       +(rM^{i}*transpose submatrix'(vars newR,toList(0..numgens R - 1)))_(0,0))
-  ) else newR=R; 
+  ) else newR=R; -- needed for parsing the solutions
 
   -- writing data to the corresponding files:    
   systemToFile(system,infile);
-  
+
   -- launching blackbox solver:
   execstr := PHCexe|" -b " |infile|" "|outfile;
   ret := run(execstr);
@@ -974,6 +978,9 @@ solveSystem  List := List =>  o->system -> (
   else (
     slackRing := (coefficientRing R)(gens R | slackVars);
     result = parseSolutions(solnsfile, slackRing);
+
+    stdio << "*** after parseSolutions, ring has " << gens R << " ***" << endl;
+
     if o.Verbose then
       stdio << "computed " << #result
             << " solutions of system with slack variables" << endl;
@@ -982,6 +989,7 @@ solveSystem  List := List =>  o->system -> (
       stdio << "after filtering nonsolutions : "
             << #result << " solutions left" << endl;
     scan(result, (sol -> sol#Coordinates = take(sol#Coordinates, numgens R)));
+    newR = (coefficientRing R)(gens R) -- put variables back in original ring
   );
   result
 )
@@ -1112,9 +1120,6 @@ topWitnessSet (List,ZZ) := o->(system,dimension) -> (
                   ideal(take(e,{#e-dimension,#e-1})),g);
   return (w,ns);
 )
-
-
-
 
 ----------------------------------
 --------  TRACK PATHS  -----------
