@@ -1,8 +1,8 @@
 
 newPackage(
   "PHCpack",
-  Version => "1.6.3", 
-  Date => "27 May 2015",
+  Version => "1.6.4", 
+  Date => "31 May 2015",
   Authors => {
     {Name => "Elizabeth Gross",
      Email => "egross7@uic.edu",
@@ -14,7 +14,9 @@ newPackage(
      Email => "jan@math.uic.edu",
      HomePage => "http://www.math.uic.edu/~jan"},
     {Name => "Contributing Author: Anton Leykin",
-     HomePage => "http://www.math.gatech.edu/~leykin"}
+     HomePage => "http://www.math.gatech.edu/~leykin"},
+    {Name => "Contributing Author: Jeff Sommars",
+     HomePage => "http://www.math.uic.edu/~sommars"}
   },
   Headline => "Interface to PHCpack",
   Configuration => { 
@@ -58,7 +60,6 @@ export {
   "nonZeroFilter",
   "numericalIrreducibleDecomposition",
   "numThreads",
-  "parseSolutions",
   "refineSolutions",
   "seeProgress",
   "solveRationalSystem",
@@ -452,17 +453,18 @@ witnessSuperSetsFilter (MutableList,List) := (witsets,pts) -> (
   return toList(result);
 )
 
-
 --##########################################################################--
 -- EXPORTED METHODS
 --
 -- NOTE:
 -- trackPaths and refineSolutions are methods adapted 
--- from  NumericalAlgebraicGEometry/PHCpack.interface.m2
+-- from NumericalAlgebraicGEometry/PHCpack.interface.m2
 --##########################################################################--
------------------------------------------------
-------------  CASCADE  ------------------------
------------------------------------------------
+
+--------------
+-- CASCADE  --
+--------------
+
 cascade = method(TypicalValue => NumericalVariety, Options => {StartDimension => -1,Verbose => false})
 cascade (List) := o -> (system) -> (
   -- IN: system, a polynomial system;
@@ -556,9 +558,9 @@ cascade (List) := o -> (system) -> (
   numericalVariety(toList (apply(result,i-> last i)))
 )
 
------------------------------------------------
--------- CONSTRUCT EMBEDDING ------------------
------------------------------------------------
+-------------------------
+-- CONSTRUCT EMBEDDING --
+-------------------------
  
 constructEmbedding = method(TypicalValue => List,Options => {Verbose => false})
 constructEmbedding (List, ZZ) := o->  (system, dimension) -> (
@@ -612,9 +614,9 @@ constructEmbedding (List, ZZ) := o->  (system, dimension) -> (
   return systemFromFile(PHCoutputFile);
 )
 
----------------------------------------------
------------  FACTOR WITNESS SET --------------
----------------------------------------------
+------------------------
+-- FACTOR WITNESS SET --
+------------------------
 
 factorWitnessSet = method(TypicalValue=>List, Options => {Verbose => false})
 factorWitnessSet (WitnessSet ) := o->  w -> (
@@ -664,9 +666,9 @@ factorWitnessSet (WitnessSet ) := o->  w -> (
   return numericalVariety(toList(result));
 )
 
-----------------------------
----- IS COORDINATE ZERO ----
-----------------------------
+------------------------
+-- IS COORDINATE ZERO --
+------------------------
 
 isCoordinateZero = method(TypicalValue => Boolean)
 isCoordinateZero (Point,ZZ,RR) := (sol,k,tol) -> (
@@ -679,10 +681,10 @@ isCoordinateZero (Point,ZZ,RR) := (sol,k,tol) -> (
   return abs(L_k)<=tol; 
 )
 
+---------------------------
+-- IS WITNESS SET MEMBER --
+---------------------------
 
-----------------------------------------------
-----------IS WITNESS SET MEMBER  -------------
-----------------------------------------------
 isWitnessSetMember = method(TypicalValue => Boolean, Options => {Verbose => false})
 isWitnessSetMember (WitnessSet,Point) := o-> (witset,testpoint) -> (
   -- IN: witset, a witness set for a positive dimensional solution set,
@@ -726,10 +728,9 @@ isWitnessSetMember (WitnessSet,Point) := o-> (witset,testpoint) -> (
   return result;
 )
 
-
------------------------------------
--------- MIXED VOLUME -------------
------------------------------------
+------------------
+-- MIXED VOLUME --
+------------------
 
 mixedVolume = method(Options => {StableMixedVolume => false, StartSystem => false, Verbose => false})
 mixedVolume  List := Sequence => opt -> system -> (
@@ -755,7 +756,8 @@ mixedVolume  List := Sequence => opt -> system -> (
   
   filename := getFilename();
   if opt.Verbose then
-    stdio   << "using temporary files " << filename|"PHCinput" << " and " << filename|"PHCoutput" << endl;
+    stdio << "using temporary files " << filename|"PHCinput"
+          << " and " << filename|"PHCoutput" << endl;
   infile := filename|"PHCinput";
   outfile := filename|"PHCoutput";
   cmdfile := filename|"PHCcommands";
@@ -805,7 +807,9 @@ mixedVolume  List := Sequence => opt -> system -> (
   );
   local result;
   if not opt.StartSystem then (
-    if opt.StableMixedVolume then result = (mixvol, stabmv) else result = mixvol;
+    if opt.StableMixedVolume
+     then result = (mixvol, stabmv)
+     else result = mixvol;
   )
   else (
     solsfile := startfile | ".sols";
@@ -822,9 +826,9 @@ mixedVolume  List := Sequence => opt -> system -> (
   result
 )
 
--------------------------------------------
-------------NON ZERO FILTER----------------
--------------------------------------------
+---------------------
+-- NON ZERO FILTER --
+---------------------
 
 nonZeroFilter = method(TypicalValue => List)
 nonZeroFilter (List,ZZ,RR) := (sols,k,tol) -> (
@@ -836,24 +840,25 @@ nonZeroFilter (List,ZZ,RR) := (sols,k,tol) -> (
   return select(sols,t->(not isCoordinateZero(t,k,tol)));
 )
 
--------------------------------------------
---NUMERICAL IRREDUCIBLE DECOMPOSITION------
--------------------------------------------
+-----------------------------------------
+-- NUMERICAL IRREDUCIBLE DECOMPOSITION --
+-----------------------------------------
 
 numericalIrreducibleDecomposition=method(TypicalValue=>NumericalVariety, Options=>{StartDimension=>-1})
 numericalIrreducibleDecomposition (List) := o -> (L) -> (
   --IN: an ideal, top dimension
   --OUT: a NumericalVariety
-setRandomSeed(random ZZ);
-startdim:=o.StartDimension;  
-W:=cascade(L,StartDimension=>startdim);
-witsets:=apply(keys W, i->if i!=0 then (factorWitnessSet((W#i)_0))#i else W#i);
-numericalVariety(flatten witsets)  
-  )
+  setRandomSeed(random ZZ);
+  startdim:=o.StartDimension;  
+  W:=cascade(L,StartDimension=>startdim);
+  witsets := apply(keys W, 
+    i->if i!=0 then (factorWitnessSet((W#i)_0))#i else W#i);
+  numericalVariety(flatten witsets)  
+)
 
------------------------------------
------ REFINING SOLUTIONS ----------
------------------------------------
+------------------------
+-- REFINING SOLUTIONS --
+------------------------
 
 refineSolutions = method(TypicalValue=>List, Options => {Verbose => false})
 refineSolutions (List,List,ZZ) := o-> (f,sols,dp) -> (
@@ -908,9 +913,9 @@ refineSolutions (List,List,ZZ) := o-> (f,sols,dp) -> (
   result
 )
 
-----------------------------------
------- SOLVE SYSTEM --------------
-----------------------------------
+------------------
+-- SOLVE SYSTEM --
+------------------
 
 solveSystem = method(TypicalValue => List, Options => {Verbose => false})
 solveSystem  List := List =>  o->system -> (
@@ -919,7 +924,7 @@ solveSystem  List := List =>  o->system -> (
   -- OUT: solutions to the system, a list of Points
   -- fixed removing of nonzero slack variables
   -- for overdetermined systems (JV 2015/05/27)
-  
+
   if instance(ring ideal system, FractionField) then
      error "ring is a fraction field, use solveRationalSystem";
     
@@ -933,7 +938,11 @@ solveSystem  List := List =>  o->system -> (
   infile := filename|"PHCinput";
   outfile := filename|"PHCoutput";
   solnsfile := filename|"PHCsolns";
+  local newR;
   R := ring ideal system;
+
+  stdio << "*** variables in the ring : " << gens R << " ***" << endl;
+
   n := #system;
   if n < numgens R then
     error "the system is underdetermined, positive dimensional";
@@ -945,15 +954,15 @@ solveSystem  List := List =>  o->system -> (
       stdio << "adding " << nSlacks
             << " slack variables to overdetermined system" << endl;
     slackVars := apply(nSlacks, i->getSymbol("OOOO"|toString i));
-    newR := CC(monoid[gens R, slackVars]);
+    newR = (coefficientRing R)(gens R | slackVars);
     rM := random(CC^n,CC^nSlacks);
     system = apply(#system, i->sub(system#i,newR)
       +(rM^{i}*transpose submatrix'(vars newR,toList(0..numgens R - 1)))_(0,0))
-  ) else newR=R; 
+  ) else newR=R; -- needed for parsing the solutions
 
   -- writing data to the corresponding files:    
   systemToFile(system,infile);
-  
+
   -- launching blackbox solver:
   execstr := PHCexe|" -b " |infile|" "|outfile;
   ret := run(execstr);
@@ -974,6 +983,9 @@ solveSystem  List := List =>  o->system -> (
   else (
     slackRing := (coefficientRing R)(gens R | slackVars);
     result = parseSolutions(solnsfile, slackRing);
+
+    stdio << "*** after parseSolutions, ring has " << gens R << " ***" << endl;
+
     if o.Verbose then
       stdio << "computed " << #result
             << " solutions of system with slack variables" << endl;
@@ -982,13 +994,14 @@ solveSystem  List := List =>  o->system -> (
       stdio << "after filtering nonsolutions : "
             << #result << " solutions left" << endl;
     scan(result, (sol -> sol#Coordinates = take(sol#Coordinates, numgens R)));
+    newR = (coefficientRing R)(gens R) -- put variables back in original ring
   );
   result
 )
 
-------------------------------------
-------SOLVE RATIONAL SYSTEM--------
------------------------------------
+---------------------------
+-- SOLVE RATIONAL SYSTEM --
+---------------------------
 
 solveRationalSystem = method(TypicalValue => List, Options => {Verbose => false})
 solveRationalSystem  List :=  o-> system -> (
@@ -1042,9 +1055,9 @@ solveRationalSystem  List :=  o-> system -> (
   result
 )
 
------------------------------------
------- TO LAURENT POLYNOMIAL ------
------------------------------------
+---------------------------
+-- TO LAURENT POLYNOMIAL --
+---------------------------
 
 toLaurentPolynomial = method(TypicalValue => List)
 toLaurentPolynomial (List, Symbol) := (system, var) -> (
@@ -1087,9 +1100,10 @@ toLaurentPolynomial (List, Symbol) := (system, var) -> (
   system=apply(system,f-> sub(f,P)); 
   system
 )
------------------------------------------------
-------------  TOP WITNESS SET  ----------------
------------------------------------------------
+
+---------------------
+-- TOP WITNESS SET --
+---------------------
  
 topWitnessSet = method( Options => {Verbose => false})
 topWitnessSet (List,ZZ) := o->(system,dimension) -> (
@@ -1113,12 +1127,9 @@ topWitnessSet (List,ZZ) := o->(system,dimension) -> (
   return (w,ns);
 )
 
-
-
-
-----------------------------------
---------  TRACK PATHS  -----------
-----------------------------------
+-----------------
+-- TRACK PATHS --
+-----------------
 
 trackPaths = method(TypicalValue => List, Options=>{gamma=>0, tDegree=>2, Verbose => false, numThreads=>0, seeProgress=>false})
 trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
@@ -1155,7 +1166,8 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   Tsolsfile := temporaryFileName() | "PHCtargetsols";
   batchfile := temporaryFileName() | "PHCbat";
   if o.Verbose then
-    stdio   << "using temporary files " << outfile << " and " << Tsolsfile << endl;
+    stdio << "using temporary files " << outfile
+          << " and " << Tsolsfile << endl;
   
   if n < numgens R then error "the system is underdetermined";
   
@@ -1200,7 +1212,8 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
     close bat;
   );
 
-  run(PHCexe|" -p "|(if o.numThreads > 1 then ("-t"|o.numThreads) else "")|"<"|batchfile|" >phc_session.log");
+  run(PHCexe|" -p "|(if o.numThreads > 1 then 
+     ("-t"|o.numThreads) else "")|"<"|batchfile|" >phc_session.log");
   run(PHCexe|" -z "|outfile|" "|Tsolsfile);
   
   -- parse and output the solutions
@@ -1228,10 +1241,9 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
   return result;
 )
 
-
------------------------------------------------
------------- ZERO FILTER -----------------------
------------------------------------------------
+-----------------
+-- ZERO FILTER --
+-----------------
 
 zeroFilter = method(TypicalValue => List)
 zeroFilter (List,ZZ,RR) := (sols,k,tol) -> (
@@ -1242,8 +1254,6 @@ zeroFilter (List,ZZ,RR) := (sols,k,tol) -> (
   --      is less than the tolerance.
   return select(sols,t->isCoordinateZero(t,k,tol));
 )
-
-
 
 --##########################################################################--
 -- DOCUMENTATION
