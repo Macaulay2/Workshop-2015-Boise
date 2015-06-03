@@ -1,5 +1,9 @@
 beginDocumentation()
 
+------------
+-- Tensor --
+------------
+
 doc ///
 Key
   Tensor
@@ -35,7 +39,9 @@ Description
      
 ///
 
-
+------------------
+-- TensorModule --
+------------------
 doc ///
 Key
   TensorModule
@@ -65,6 +71,9 @@ Description
     
 ///
 
+----------------
+-- makeTensor --
+----------------
 doc ///
 Key
   makeTensor
@@ -121,6 +130,9 @@ Caveat
 
 ///
 
+------------------
+-- tensorModule --
+------------------
 --a.c. incomplete
 doc ///
 Key
@@ -165,6 +177,452 @@ Description
     oo*x*y==0_N
 ///
 
+-------------------------
+-- tensorModuleProduct --
+-------------------------
+--doc ///
+--Key
+
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+----------------
+-- tensorDims --
+----------------
+--doc ///
+--Key
+--  (tensorDims, Module)
+--  (tensorDims, TensorModule)
+--  tensorDims
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+---------------------------------
+-- genericTensor --
+---------------------------------
+--doc ///
+--Key
+--  (genericTensor, Ring, ZZ, List)
+--  (genericTensor, Ring, List)
+--  (genericTensor, Ring, RingElement, List)
+--  genericTensor
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+
+--///  
+
+------------------
+-- randomTensor --
+------------------
+--doc ///
+--Key
+--  (randomTensor, Ring, List)
+--  (randomTensor, Ring, Thing, List)
+--  randomTensor
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+--------------------------
+-- indexedTensorProduct --
+--------------------------
+--doc ///
+--Key
+
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+-----------------
+-- einsteinSum --
+-----------------
+--doc ///
+--Key
+
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+----------------
+-- symmetrize --
+----------------
+--doc ///
+--Key
+--  (symmetrize, Tensor)
+--  (symmetrize, Tensor, List)
+--  symmetrize
+--Headline
+ 
+--Usage
+
+--Inputs
+ 
+--Outputs
+ 
+--Description
+  
+--  Example
+
+--///
+
+-----------------
+-- isSymmetric --
+-----------------
+--doc ///
+--Key
+--  (isSymmetric, Tensor)
+--  isSymmetric
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+-- Description
+ 
+--  Exmaple
+  
+--///
+
+------------------------
+-- tensorToPolynomial --
+------------------------
+--doc ///
+--Key
+--  (tensorToPolynomial, Tensor, Symbol)
+--  (tensorToPolynomial, Tensor, Ring)
+--  (tensorToPolynomial, Tensor, Ring, RingElement)
+--  tensorToPolynomial
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+-- Description
+ 
+--  Example
+  
+--///
+
+-----------------------------
+-- tensorToMultilinearForm --
+-----------------------------
+--doc ///
+--Key
+--  (tensorToMultilinearForm, Tensor, Ring)
+--  (tensorToMultilinearForm, Tensor, Ring, RingElement)
+--  (tensorToMultilinearForm, Tensor, Symbol)
+--  tensorToMultilinearForm
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+------------------------
+-- polynomialToTensor --
+------------------------
+--doc ///
+--Key
+--  (polynomialToTensor, RingElement)
+--  polynomialToTensor
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+--------------------------
+-- multiplicationTensor --
+--------------------------
+--doc ///
+--Key
+
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+--------------------------------
+-- matrixMultiplicationTensor --
+--------------------------------
+--doc ///
+--Key
+
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+------------------------
+-- tensorEigenvectors --
+------------------------
+--doc ///
+--Key
+--  (tensorEigenvectors, Tensor, ZZ, Ring, RingElement)
+--  (tensorEigenvectors, Tensor, ZZ, Ring)
+--  (tensorEigenvectors, Tensor, ZZ, Symbol)
+--  tensorEigenvectors
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+  
+--  Example
+  
+--///
+
+-----------------------
+-- eigenDiscriminant --
+-----------------------
+--doc///
+--Key
+--  (eigenDiscriminant, ZZ, ZZ, Ring)
+--  eigenDiscriminant
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+-----------------------------------
+-- tensorEigenvectorsCoordinates --
+-----------------------------------
+--doc///
+--Key
+--  (tensorEigenvectorsCoordinates, Tensor, ZZ, Symbol)
+--  tensorEigenvectorsCoordinates
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+----------------------
+-- tensorFromSlices --
+----------------------
+--doc///
+--Key
+--  (tensorFromSlices, List)
+--  tensorFromSlices
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+------------------
+--flattenTensor --
+------------------
+--doc///
+--Key
+--  (flattenTensor, Tensor, List)
+--  flattenTensor
+--Headline
+ 
+--Usage
+ 
+-- Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+
+--///
+
+---------------
+-- factorMap --
+---------------
+--doc///
+--Key
+--  (factorMap, Tensor, Matrix, ZZ)
+--  factorMap
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+---------------------
+-- permutationSign --
+---------------------
+--doc///
+--Key
+--  (permutationSign, List)
+--  permutationSign
+--Headline
+ 
+--Usage
+ 
+--Inputs
+ 
+--Outputs
+ 
+--Description
+ 
+--  Example
+  
+--///
+
+---------------------------------
+-- associativeCartesianProduct --
+---------------------------------
+--doc///
+--Key
+--  (associativeCartesianProduct, VisibleList)
+--  associativeCartesianProduct
+--Headline
+
+--Usage
+
+--Inputs
+
+--Outputs
+
+--Description
+
+--  Example
+
+--///
 
 end
 
