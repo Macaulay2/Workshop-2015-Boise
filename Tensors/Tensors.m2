@@ -27,18 +27,20 @@ newPackage(
 ----------------------------------------
 export{Tensor,TensorModule,
      makeTensor,tensorModule,tensorModuleProduct,
-     tensorDims,genericTensor,
+     tensorDims,
+     genericTensor,genericSymmetricTensor,
      randomTensor,
      indexedTensorProduct,einsteinSum,
-     symmetrize, isSymmetric,
+     symmetrize, isSymmetric, Antisymmetrize,
      tensorToPolynomial, tensorToMultilinearForm, polynomialToTensor,
      multiplicationTensor, matrixMultiplicationTensor,
      tensorEigenvectors, eigenDiscriminant, tensorEigenvectorsCoordinates,
      tensorFromSlices,
      flattenTensor,
-     factorMap
+     factorMap,
+     permutationSign,
+     associativeCartesianProduct
      }
-export{associativeCartesianProduct}
 
 -------------------------
 --Symbol methods
@@ -373,6 +375,9 @@ net Tensor := memoize tensorNet;
 ---------------------------
 --Tensor operations
 ---------------------------
+Tensor == Tensor := (v,w) -> (
+    class v == class w and entries v == entries w
+    )
 Tensor + Tensor := (v,w) -> (
      if not class v === class w then error "Tensor+Tensor not from the same TensorModule";
      tensor(class v,(vector v)+(vector w))
@@ -452,28 +457,72 @@ Tensor_List := (t,l) -> (
      )
  
 ---------------------
---More Tensor Operations
+--Contracting, symmetrizing, flattening
 --------------------- 
-symmetrize = method()
-symmetrize (Tensor) := (T) -> symmetrize(T,toList (0..#(tensorDims T)-1))
-symmetrize (Tensor,List) := (T,L) -> (
+symmetrize = method(Options=>{Antisymmetrize=>false})
+symmetrize (Tensor) := o -> T -> symmetrize(T,toList (0..#(tensorDims T)-1),Antisymmetrize=>o.Antisymmetrize)
+symmetrize (Tensor,List) := o -> (T,L) -> (
     d := #(tensorDims T);
     R := ring T;
     S := apply(permutations L, p->(
 	    ind := new MutableList from (0..d-1);
 	    scan(#L, j->(ind#(L#j) = p#j));
-	    T@(toList ind)
+	    c := if o.Antisymmetrize then permutationSign p else 1;
+	    c*T@(toList ind)
 	    ));
     (1_R/((#L)!))*(sum S)
     )
 
-isSymmetric = method()
-isSymmetric Tensor := T -> (
+isSymmetric = method(Options=>{Antisymmetrize=>false})
+isSymmetric Tensor := o -> T -> (
     D := tensorDims T;
     if not all(#D, i->D#i == D#0) then return false;
     S := permutations(#D);
-    all(S, s->T@s == T)
+    all(S, s->(
+	    c := if o.Antisymmetrize then permutationSign s else 1;
+	    c*T@s == T
+	    ))
     )
+
+permutationSign = method()
+permutationSign(List) := L -> (
+    if (sum apply(#L-1, i-> number(drop(L,i+1),j-> j<=L#i)) % 2) == 0 then 1 else -1
+    )
+
+--utility function copies from Tensors/gentensors.m2
+getIndex := (R,x) -> (
+     M := try monoid R else error "expected a polynomial ring or quotient of one";
+     if class x =!= R then error "expected an element of the ring";
+     x = try baseName x else error "expected a variable of the ring";
+     M.index#x)
+
+genericSymmetricTensor = method(Options=>{Antisymmetrize=>false})
+genericSymmetricTensor (Ring,ZZ,List) := o -> (R,i,dims) ->(
+    n := dims#0;
+    d := #dims;
+    k := if o.Antisymmetrize then binomial(n,d) else binomial(n+d-1,d);
+    varList := flatten entries genericMatrix(R,R_i,1,k);
+    H := new MutableHashTable;
+    s := 0;
+    ents := for ind in (#dims:0)..<(toSequence dims) list (
+	sind := sort toList ind;
+	c := if o.Antisymmetrize then permutationSign toList ind else 1;
+    	ent := if H#?sind then c*H#sind 
+	else if o.Antisymmetrize and #(unique ind) < #ind then 0_R
+	else (
+	    s = s+1; 
+	    c*varList#(s-1)
+	    );
+	H#(toList ind) = ent;
+	ent
+	);
+    M := tensorModule(R,dims);
+    new M from vector ents
+    )
+genericSymmetricTensor(Ring,List) := o -> (R,dims) -> genericSymmetricTensor(R,0,dims,Antisymmetrize=>o.Antisymmetrize)
+genericSymmetricTensor(Ring,RingElement,List) := o -> (R,x,dims) -> 
+     genericSymmetricTensor(R,getIndex(R,x),dims,Antisymmetrize=>o.Antisymmetrize)
+
 
 contract (Tensor,List,List) := (T,K,L) -> (
     D := tensorDims T;
@@ -555,12 +604,12 @@ tensorToPolynomial (Tensor,Symbol) := (T,x) -> (
     tensorToPolynomial(T,S,S_0)
     );
 tensorToPolynomial (Tensor,Ring) := (T,S) -> tensorToPolynomial(T,S,S_0)
-tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
+tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> tensorToPolynomial(T,S,getIndex(S,x))
+tensorToPolynomial (Tensor,Ring,ZZ) := (T,S,x) -> (
     R := ring T;
     D := tensorDims T;
     n := D#0;
-    xpos := position(gens S, y->y==x);
-    xTen := makeTensor(take(gens S,{xpos,xpos+n-1}));
+    xTen := makeTensor(take(gens S,{x,x+n-1}));
     U := xTen ^** #D;
     L := toList (0..#D-1);
     contract(sub(T,S),U,L,L)
@@ -568,14 +617,14 @@ tensorToPolynomial (Tensor,Ring,RingElement) := (T,S,x) -> (
 
 tensorToMultilinearForm = method()
 tensorToMultilinearForm (Tensor,Ring) := (T,S) -> tensorToMultilinearForm(T,S,S_0)
-tensorToMultilinearForm (Tensor,Ring,RingElement) := (T,S,x) -> (
+tensorToMultilinearForm (Tensor,Ring,RingElement) := (T,S,x) -> tensorToMultilinearForm(T,S,getIndex(S,x))
+tensorToMultilinearForm (Tensor,Ring,ZZ) := (T,S,x) -> (
     D := tensorDims T;
-    xpos := position(gens S, y->y==x);
     U := null;
     for n in D do (
-	u := makeTensor(take(gens S, {xpos, xpos + n -1}));
+	u := makeTensor(take(gens S, {x, x + n -1}));
 	if U === null then U = u else U = U**u;
-	xpos = xpos + n;
+	x = x + n;
 	);
     L := toList (0..#D-1);
     contract(sub(T,S),U,L,L)
@@ -607,18 +656,16 @@ polynomialToTensor (RingElement ) := (f) -> (
 --Eigenvector and signular value tuples
 --------------------- 
 tensorEigenvectors = method()
-tensorEigenvectors (Tensor,ZZ,Ring,RingElement) := (T,k,S,x) -> (
+tensorEigenvectors (Tensor,ZZ,Ring,RingElement) := (T,k,S,x) -> tensorEigenvectors(T,k,S,getIndex(S,x))
+tensorEigenvectors (Tensor,ZZ,Ring,ZZ) := (T,k,S,x) -> (
     R := ring T;
-    d := tensorDims T;
-    n := d#0;
-    xpos := position(gens S, y->y==x);
-    v := new MutableList from (n:0_S);
-    for ind in (#d:0)..(#d:n-1) do (
-	monList := toList apply(#ind, j->(if j != k then S_(xpos + ind#j) else 1_S));
-	mon := product monList;
-	v#(ind#k) = v#(ind#k) + sub(T_ind,S)*mon;
-	);
-    minors(2, matrix{toList v, take(gens S,{xpos,xpos + numgens S - 1})})
+    D := tensorDims T;
+    n := D#0;
+    xTen := makeTensor(take(gens S,{x,x+n-1}));
+    U := xTen^**(#D-1);
+    L := toList (0..#D-1);
+    V := contract(sub(T,S),U,drop(L,{k,k}),drop(L,-1));
+    minors(2, matrix{entries V, entries xTen})
     );
 tensorEigenvectors (Tensor,ZZ,Ring) := (T,k,S) -> tensorEigenvectors (T,k,S,S_0)
 tensorEigenvectors (Tensor,ZZ,Symbol) := (T,k,x) -> (
