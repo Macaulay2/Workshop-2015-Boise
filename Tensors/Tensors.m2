@@ -77,7 +77,7 @@ allInstances (VisibleList,HashTable) := (things,type) -> (
 --------------------------------------------
 --Load part 1 (minimize dependence on this)
 --------------------------------------------
-load "./tensors/cartesian-list-methods.m2"
+load "./Tensors/cartesian-list-methods.m2"
 
 inserts=method()
 inserts(VisibleList,VisibleList,VisibleList):=(locs,things,host)->(
@@ -798,8 +798,8 @@ diff(Tensor,RingElement) := (t,r) -> t/(i->diff(i,r))
 ---------------------
 --Load part 3
 ---------------------
-load "./tensors/gentensors.m2"
-load "./tensors/indexedtensors.m2"
+load "./Tensors/gentensors.m2"
+load "./Tensors/indexedtensors.m2"
 
 --
 
@@ -808,8 +808,8 @@ TEST  ///
 
 ///
 
-load "./tensors/tensors-documentation.m2"
 
+load "./Tensors/tensors-documentation.m2"
 end
 
 restart
