@@ -1082,6 +1082,139 @@ doc ///
 	    splineModule(V,F,E,1)
     Caveat
         I'm not sure if this is fully documented yet.
+	
+	
+///
+
+doc ///
+    Key
+        splineDimTable
+	(splineDimTable,ZZ,ZZ,Module)
+	(splineDimTable,ZZ,ZZ,List,ZZ)
+    Headline
+        a table with the dimensions of the graded pieces of a graded module
+    Usage
+        T=splineDimTable(a,b,M)
+	T=splineDimTable(a,b,L,r)
+    Inputs
+        a:ZZ
+	    a= lowest degree in the table
+	b:ZZ
+	    b= largest degree in the table
+	N:Module
+	    M= graded module
+	L:List
+	    L= a list {V,F,E} of the vertices, faces and edges of a polyhedral complex
+	r:ZZ
+	    r= degree of smoothnes 
+
+    Outputs
+        T:Table
+	    T= table with the dimensions of the graded pieces of M in the range a,b
+    Description
+        Text
+	    The output table gives you the dimensions of the graded pieces
+	    of the module M where the degree is between a and b. 
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}}
+	    F = {{0,1,2},{0,2,3}}
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
+	    M=splineModule(V,F,E,2)
+	    splineDimTable(0,8,M)
+	Text
+	    You may instead input the list L={V,F,E} of the vertices, faces and edges of the spline.
+	Example
+	    L = {V,F,E};
+	    splineDimTable(0,8,L,2)
+	
+      
+///
+
+doc ///
+    Key
+        hilbertPolyEval
+	(hilbertPolyEval,ZZ,Module)
+    Headline
+        a function to evaluate the hilbertPolynomial of a graded module at an integer
+    Usage
+        v = hilbertPolyEval(a,M)
+    Inputs
+        a:ZZ
+	    a= integer at which you will evaluate the hilbertPolynomial of the graded module M
+	M:Module
+	    M= graded module
+    Outputs
+        v:ZZ
+	    v= hilbertPolynomial of the graded module M evaluated at a
+    Description
+        Text
+            For any graded module M and any integer a, you may evaluate the hilberPolynomial of M
+	    at a.
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}};
+	    F = {{0,1,2},{0,2,3}};
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
+	    M = splineModule(V,F,E,2)
+	    hilbertPolyEval(2,M)
+	    
+///
+
+doc ///
+    Key
+        posNum
+	(posNum,Module)
+    Headline
+        computes the largest degree at which the hilbert function of the graded module M is not equal to the hilbertPolynomial
+    Usage
+        v = posNum(M)
+    Inputs
+        M:Module
+	    M= graded module
+    Outputs
+        v:ZZ
+	    v= largest degree at which the hilbert function of the graded module M is not equal to the hilbertPolynomial
+    Description
+        Text
+	    This function computes the postulation number of M which is defined as the
+	    largest degree at which the hilbert function of the graded module M is not equal to the hilbertPolynomial
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}};
+	    F = {{0,1,2},{0,2,3}};
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
+	    M = splineModule(V,F,E,2)
+	    posNum(M)
+	    
+///
+        
+
+doc ///
+    Key
+        hilbertCTable
+	(hilbertCTable,ZZ,ZZ,Module)
+    Headline
+        a table to compare the values of the hilbertFunction and hilbertPolynomial of a graded module
+    Usage
+        T = hilbertCTable(a,b,M)
+    Inputs
+        a:ZZ
+	    a= lowest degree in the  table
+	b:ZZ
+	    b= largest degree in the table
+	M:Module
+	    M= graded module
+    Outputs        
+	T:Table
+	    T= table with the degrees and values of the hilbertFunction and hilbertPolynomial
+    Description
+        Text
+	    The first row of the output table contains the degrees, the second row contains the 
+	    values of the hilbertFunction, the third row contains the values of the hilbertPolynomial
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}}
+	    F = {{0,1,2},{0,2,3}}
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
+	    hilbertCTable(0,8,splineModule(V,F,E,1))
+
 ///
 
 doc ///
