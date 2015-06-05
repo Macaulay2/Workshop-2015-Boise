@@ -14,13 +14,17 @@ newPackage(
 
 export{
 "characteristicPoly",
+"doBlackbox",
 "doMonodromy",
 "doMultiMonodromy",
 "getCoefficients",
 "makeMultiIdentifiabilitySystem",
+"maxAlgInd",
 "NumLoops",
 "pullCoefficients",
 "restrictRing",
+"strIdentPolys",
+"Tolerance",
 "tryEvalSol"
 }
 
@@ -289,27 +293,13 @@ strIdentPolys (Matrix, List, List) := (A,I,J) ->(
     return({maxAlgInd(F),oldPolys});
   );
 )
-
-R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
-Ex2=matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
-strIdentPolys(Ex2,{0},{0})
-
-R := CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44];
-Ex1:=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}};
-STRI := strIdentPolys(Ex1,{0},{0,1});
-print "Blackbox"
-print doBlackbox(STRI#0)
-print "MultiMono"
-print doMultiMonodromy (STRI#0, STRI#1)
-print "END"
 --##########################################################################--
 -- TESTS
 --##########################################################################
-end
+
 TEST/// 
   R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
   Ex2 = matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
-  print pullCoefficients(Ex2)
   System = getCoefficients(Ex2,{0},{0})
   sol=doMonodromy(System)
 ///;
@@ -323,3 +313,18 @@ TEST///
   System = delete(System#(4),System)
   sol=doMonodromy(System)
 ///;
+
+TEST///
+  R = CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44]
+  Ex2=matrix{{a11,a12,a13},{a21,-(a12+a32),0},{0,a32,-a13}}
+  stri := strIdentPolys(Ex2,{0},{0})
+  print doBlackbox(stri#0)
+///;
+
+TEST///
+  R := CC[a11,a12,a13,a14,a21,a22,a23,a24,a31,a32,a33,a34,a41,a42,a43,a44];
+  Ex1:=matrix{{a11,a12,a13},{a21,a22,0},{0,a32,-a13}};
+  STRI := strIdentPolys(Ex1,{0},{0,1});
+  print doMultiMonodromy (STRI#0,STRI#1)
+///;
+end
