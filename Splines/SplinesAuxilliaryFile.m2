@@ -3,41 +3,28 @@ loadPackage("AlgebraicSplines")
 V={{-1, -1, -1}, {3, -1, -1}, {-1, 3, -1}, {-1, -1, 3}, {8, 8, 8}, {-24, 8, 8}, {8, -24, 8}, {8, 8, -24}};
 F ={{0, 1, 2, 3}, {0, 5, 6, 7}, {1, 4, 6, 7}, {2, 4, 5, 7}, {3, 4, 5, 6}, {1, 2, 3, 4}, {0, 2, 3, 5}, {0, 1, 3, 6}, {0, 1, 2, 7}, {0, 1, 6, 7}, {0, 2, 5, 7}, {0, 3, 5, 6}, {1, 2, 4, 7}, {1, 3, 4, 6}, {2, 3, 4, 5}};
 E={{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}, {0, 5, 6}, {0, 5, 7}, {0, 6, 7}, {5, 6, 7}, {1, 4, 6}, {1, 4, 7}, {1, 6, 7}, {4, 6, 7}, {2, 4, 5}, {2, 4, 7}, {2, 5, 7}, {4, 5, 7}, {3, 4, 5}, {3, 4, 6}, {3, 5, 6}, {4, 5, 6}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4}, {0, 2, 5}, {0, 3, 5}, {2, 3, 5}, {0, 1, 6}, {0, 3, 6}, {1, 3, 6}, {0, 1, 7}, {0, 2, 7}, {1, 2, 7}};
+C2=getCodimDIntersections(F,2);
+G=C2_0
+Eint=interiorFaces(F,E);
+
+codim1Cont(Eint,Eint_2)
+Gpos=codim1Cont(Eint,G)
+
+fL=formsList(V,Eint,0);
+
+orient sub(transpose jacobian ideal(fL_Gpos),ZZ)
+
+
+
 A=splineMatrix(V,F,0);
 
 
-CCSS=idealsBoundaryComplex(V,F,1);
-M=splineModule(V,F,1);
-CCSS.dd#2
-T={0,1};
-simpBoundary(F,E)
-faceForms(V,F,T,2)
-issimplicial(V,F)
 
-r=0;
-d=3;
-S=QQ[t_0..t_d];
-boundaryF = boundaryComplex(F)
-	C = apply(d+1, i-> getCodimDFacesSimplicial(F,i))
-	boundaryC = join({{}},apply(d, i-> getCodimDFacesSimplicial(boundaryF,i)))
-    	intC = apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)))
-    	intformslist = formsList(V,intC_1,r)
-	fullmodulelist:= apply(#intC,i->directSum apply(intC_i,e->(
-		CE := positions(intC_1,f->subsetL(e,f));
-		sub(image mingens ideal (intformslist_CE),S)
-		)))
-    	CCSS :=chainComplex(reverse apply(#intC-1, c-> (
-		    inducedMap(fullmodulelist_(c+1),fullmodulelist_c,(simpBoundary(intC_c,intC_(c+1)))**S)
-		    ))
-	    );
+--centrally triangulated octahedron--
+V={{0,0,0},{1,0,0},{0,1,0},{0,0,1},{0,-1,0},{0,0,-1},{-1,0,0}};
+F={{0,1,2,3},{0,1,3,4},{0,1,4,5},{0,1,2,5},{0,6,2,3},{0,6,3,4},{0,6,4,5},{0,6,2,5}};
+E={{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}, {0, 1, 4}, {0, 3, 4}, {1, 3, 4}, {0, 1, 5}, {0, 4, 5}, {1, 4, 5}, {0, 2, 5}, {1, 2, 5}, {0, 6, 2}, {0, 6, 3}, {6, 2, 3}, {0, 6, 4}, {6, 3, 4}, {0, 6, 5}, {6, 4, 5}, {6, 2, 5}};
 
-
-	i=1
-	apply(intC_i,e->(
-		CE := codim1Containment(F,e);
-		module ideal (intformslist_CE)
-		))
-CE:=codim1Containment(F,{1,2,7})
 
 
 subsetL:=(L1,L2)->(
