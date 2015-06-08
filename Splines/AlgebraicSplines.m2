@@ -46,10 +46,13 @@ export {
    "splines",
    "Spline",
    "spline",
+   "isTPure",
+   "getDim",
    "formsList",
    "splineMatrix",
    "splineModule",
    "InputType",
+   "RingType",
    "ByFacets",
    "ByLinearForms",
    "isHereditary",
@@ -125,52 +128,47 @@ spline(Splines,List) := (S,L) -> (
 ------------------------------------------
 ------------------------------------------
 
+
 ------------------------------------------
+subsetL=method()
 ------------------------------------------
-isHereditary= method()
-------------------------------------------
-------------------------------------------
--- This method checks if the polyhedral
--- complex with facets and edges (F,E)
--- is hereditary.
-------------------------------------------
---Inputs: 
-------------------------------------------
---F = ordered lists of facets
---E = list of edges
-------------------------------------------
+--Containment function for lists--
+
+subsetL(List,List):=List=>(L1,L2)->(
+    all(L1,f->member(f,L2))
+    )
+
+-----------------------------------------
+isTPure=method()
+-----------------------------------------
+--Inputs:
+--V = list of vertices
+--F = list of facets
+-----------------------------------------
 --Outputs:
---Boolean, if complex is hereditary
-------------------------------------------
+--True, if every facet has same dimension
+--AS THE AMBIENT SPACE
+--False, if some facets have dimension different
+--from the ambient space
+-----------------------------------------
 
-isHereditary(List,List) := Boolean => (F,E) -> (
-    V := unique flatten join F;
-    dualV := toList(0..#F-1);
-    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
-    if not all(dualE,e-> #e <= 2) then (
-	false -- Checks pseudo manifold condition
-      ) else (
-      dualG := graph(dualE,EntryMode=>"edges");
-      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
-      -- Checks if the link of each vertex is connected.
-      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
-      )
-)
+isTPure(List,List):= Boolean =>(V,F)->(
+    d := #(first V);
+    V = apply(V,v->prepend(1,v));
+    if all(F,f->((rank matrix(V_f))==d+1)) then (true) else (false)
+    )
 
-isHereditary(List) := Boolean => F -> (
-    V := unique flatten join F;
-    E := getCodimDFacesSimplicial(F,1);
-    dualV := toList(0..#F-1);
-    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
-    if not all(dualE,e-> #e <= 2) then (
-	false -- Checks pseudo manifold condition
-      ) else (
-      dualG := graph(dualE,EntryMode=>"edges");
-      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
-      -- Checks if the link of each vertex is connected.
-      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
-      )
-)
+-----------------------------------------
+getDim=method()
+-----------------------------------------
+--Input: V= list of vertices
+-----------------------------------------
+--Output: Dimension of affine span of V
+-----------------------------------------
+getDim(List):=ZZ=> V ->(
+    V=apply(V,v->prepend(1,v));
+    (rank matrix V)-1
+    )
 
 
 -----------------------------------------
@@ -208,19 +206,19 @@ getCodim1Intersections = method(Options=>{
 ------------------------------------------
 --Inputs: 
 ------------------------------------------
---F = list of facets of a pure, hereditary,
--- polytopal complex or a simplicial complex
+--F = list of facets of a polytopal 
+--or a simplicial complex
 ------------------------------------------
 --Outputs:
 -----------------------------------------
---E = list of (interior) codim 1 faces
+--E = largest (under containment) intersections
+--of facets.  If input is hereditary, this is
+--the list of interior codim 1 intersections
 -----------------------------------------
 
 getCodim1Intersections(List) := List => opts -> F ->(
      n := #F;
     if opts.InputType==="Polyhedral" then(
-    	--This part ASSUMES that the inputted polytopal 
-    	--complex is hereditary.
     	--For each pair of facets, take their intersection:
      	intersectFacets := unique flatten apply(#F-1, i-> 
     	    apply(toList(i+1..#F-1), 
@@ -239,7 +237,7 @@ getCodim1Intersections(List) := List => opts -> F ->(
     	codim1int=sort flatten apply(#codim1faces, i -> 
 	    select(codim1faces_i, 
 	    	s -> any(F_{i+1..n-1}, 
-		    f-> all(s, v-> member(v,f)))))
+		    f-> subsetL(s,f))));
 	);
     codim1int
 )
@@ -297,6 +295,84 @@ getCodimDFacesSimplicial(List,ZZ) := List => (F,D) -> (
     d := #first(F);
     unique flatten apply(F, f-> subsets(f,d-D))
     )
+
+------------------------------------------
+verifyComplex= method()
+------------------------------------------
+-- This method should check everything.
+------------------------------------------
+--Inputs:
+--V = list of vertices
+--F = list of facets
+------------------------------------------
+--Outputs:
+--True or false
+--Also should pinpoint what the problem is.
+--This won't detect everything... the user
+--can't screw up too much...
+------------------------------------------
+
+verifyComplex(List,List):=Boolean=>(V,F)->(
+    --Check that (V,F) is pure of correct dim
+    --Check that intersections of facets have correct dimension
+    --Limited Check that facets don't overlap (check along codim 1 intersections)
+    --Check hereditary
+    )
+
+------------------------------------------
+------------------------------------------
+isHereditary= method()
+------------------------------------------
+------------------------------------------
+-- This method checks if the PURE polyhedral
+-- complex with vertices V and facets F
+-- is hereditary.  Dimension of polyhedral
+-- complex must be same as ambient dimension.
+-- Needs correction for 3 dim and higher!
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = ordered lists of facets
+------------------------------------------
+--Outputs:
+--Boolean, if complex is hereditary
+------------------------------------------
+
+isHereditary(List,List) := Boolean => (V,F) -> (
+    d := #(first V);
+    -- Checks that all maximal intersections of facets have dimension d-1
+    E := getCodim1Intersections(F);
+    if any(E,e->(getDim(V_e)!= d-1)) then (
+	bool:=false
+	) else (
+        -- Checks non-branching condition: all codim 1 faces are in two facets
+	dualE := apply(E,e->select(#F,f->subsetL(e,F_f)));
+	if any(dualE,f->(#f>2)) then (
+	    bool = false
+	    )else (
+	    dualG := graph(dualE,EntryMode=>"edges");
+	    linkH := hashTable apply(#V, v-> v=>select(#F, f -> member(v,F_f)));
+	    -- Checks if the link of each vertex is connected. Note: need to extend
+	    -- this to link of every face... my bad (Mike D.)
+	    bool = all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+	    ));
+    bool
+)
+
+isHereditary(List) := Boolean => F -> (
+    V := unique flatten join F;
+    E := getCodimDFacesSimplicial(F,1);
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e <= 2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
 
 -----------------------------------------
 
@@ -681,7 +757,10 @@ hilbertPolyEval(ZZ,Module):=(i,M)->(
 
 ------------------------------------------
 
-generalizedSplines = method()
+generalizedSplines = method(Options=>{
+	symbol RingType => "Ambient"
+	}
+    )
 ------------------------------------------
 ------------------------------------------
 -- This method computes the generalized spline module
@@ -691,17 +770,37 @@ generalizedSplines = method()
 ------------------------------------------
 --E = list of edges. Each edge is a list with two vertices.
 ----The set of vertices must be the integers 0..n-1.
---ideals = list of ideals that label the edges. 
-----Ideals must be entered in same order as corresponding edges in E.
-----Note that ambient ring must already be defined so that ideals can
-----be entered.
+--ideals = list of ideals that label the edges. Ideals must 
+--be entered in same order as corresponding edges in E.
+--If RingType is an integer,n, then this can be a list 
+--of integers that label the edges.
+-------------------------------------------------
+--if RingType is an integer, n, then the ring is defined 
+--internally as ZZ/n.
+--If RingType is "Ambient", an ambient ring must already 
+--be defined so that ideals can be entered.
 ------------------------------------------
 --Outputs:
 ------------------------------------------
 --Module of generalized splines on the graph given by the edgelist.
 ------------------------------------------
-generalizedSplines(List,List) := Module => (E,ideals) ->(
+
+generalizedSplines(List,List) := Module => opts -> (E,ideals) ->(
+    if opts.RingType === "Ambient" then(
     S := ring first ideals;
+    --make sure ideals all lie in same ambient ring--
+    ideals = apply(ideals, I->sub(I,S));
+    ) else if toString(class(opts.RingType))==="ZZ" then(
+       m := opts.RingType;
+       if m==0 then(
+	   S = ZZ;
+	   ideals = apply(ideals,i-> ideal(i_S));
+       ) else (
+       	   R := ZZ[{}];
+	   S = R/ideal(m_R);
+	   ideals = apply(ideals,i-> ideal(i_S));
+       )
+    );
     --assume vertices are 0,...,n-1
     vertices := unique flatten E;
     n := #vertices;
@@ -712,8 +811,8 @@ generalizedSplines(List,List) := Module => (E,ideals) ->(
 	    v->if(v===first e) then 1
 	    else if(v===last e) then -1
 	    else 0));
-   ker(map(T,S^n,sub(M,S)))
-);
+    ker(map(T,S^n,sub(M,S)))
+)
 
 
 ------------------------------------------
@@ -873,15 +972,6 @@ polyBoundary(List,List,List):=Matrix=>(V,L2,L1)->(
     )
 
 ------------------------------------------
-subsetL=method()
-------------------------------------------
---Containment function for lists--
-
-subsetL(List,List):=List=>(L1,L2)->(
-    all(L1,f->member(f,L2))
-    )
-
-------------------------------------------
 
 boundaryComplex = method()
 ------------------------------------------
@@ -898,16 +988,6 @@ boundaryComplex(List) := List => F -> (
     codim1faces := unique flatten apply(n,i-> subsets(F_i,d-1));
     select(codim1faces, f-> number(F, g-> all(f, v-> member(v,g))) === 1)
     )
-------------------------------------------
---Input:
---PC= a polyhedral complex which is a 
---pseudomanifold (Important!)
-------------------------------------------
---Output:
---A polyhedral complex which is the boundary
---of the input polyhedral complex
-------------------------------------------
-
 
 ------------------------------------------------
 

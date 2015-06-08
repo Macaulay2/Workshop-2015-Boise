@@ -1,50 +1,20 @@
 path=append(path,"GitHub/Workshop-2015-Boise/Splines/")
 loadPackage("AlgebraicSplines")
---testing for polyOrient function
 
 --Example from Ziegler's Lecture's on Polytopes.  Pyramid w square base reflected across--
 V={{0,0,-1},{-1,-1,-2},{1,-1,-2},{1,1,-2},{-1,1,-2},{0,0,1},{-1,-1,2},{1,-1,2},{1,1,2},{-1,1,2}};
 F={{0,1,2,3,4},{0,1,4,5,6,9},{0,1,2,5,6,7},{0,2,3,5,7,8},{0,3,4,5,8,9},{5,6,7,8,9}};
 E={{0,1,2},{0,2,3},{0,3,4},{0,1,4},{0,1,5,6},{0,2,5,7},{0,3,5,8},{0,4,5,9},{5,6,7},{5,7,8},{5,6,9},{5,8,9}};
 
-d=3;
---Construct list whose ith element is intersections of codim i--
-current=F;
-Ints={current};
-scan(d,i->(
-	current=getCodim1Intersections(current);
-	Ints=append(Ints,current)
-	)
-    )
---get the forms defining codimension 1 faces--
-fList=formsList(V,Ints_1,0);
---define the ambient ring--
-S=ring first fList;
---create a list whose ith element is ideals of codim i faces--
-idList={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
-scan(d-1,i->(
-	idList=append(idList,apply(Ints_(i+2),G->(
-		ind:=codim1Cont(Ints_1,G);
-		ideal fList_ind
-		)
-	    )
-	)
-    ));
-
-H=Ints_1_4;
-IH=idList_1_4;
-OH=orient IH;
-G=Ints_2_4;
-IG=idList_2_4;
-OG=orient IG;
-
-
 --centrally triangulated octahedron--
 V={{0,0,0},{1,0,0},{0,1,0},{0,0,1},{0,-1,0},{0,0,-1},{-1,0,0}};
 F={{0,1,2,3},{0,1,3,4},{0,1,4,5},{0,1,2,5},{0,6,2,3},{0,6,3,4},{0,6,4,5},{0,6,2,5}};
 E={{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}, {0, 1, 4}, {0, 3, 4}, {1, 3, 4}, {0, 1, 5}, {0, 4, 5}, {1, 4, 5}, {0, 2, 5}, {1, 2, 5}, {0, 6, 2}, {0, 6, 3}, {6, 2, 3}, {0, 6, 4}, {6, 3, 4}, {0, 6, 5}, {6, 4, 5}, {6, 2, 5}};
 
-
+--3D Morgan Scot--
+V={{-1, -1, -1}, {3, -1, -1}, {-1, 3, -1}, {-1, -1, 3}, {8, 8, 8}, {-24, 8, 8}, {8, -24, 8}, {8, 8, -24}};
+F ={{0, 1, 2, 3}, {0, 5, 6, 7}, {1, 4, 6, 7}, {2, 4, 5, 7}, {3, 4, 5, 6}, {1, 2, 3, 4}, {0, 2, 3, 5}, {0, 1, 3, 6}, {0, 1, 2, 7}, {0, 1, 6, 7}, {0, 2, 5, 7}, {0, 3, 5, 6}, {1, 2, 4, 7}, {1, 3, 4, 6}, {2, 3, 4, 5}};
+E={{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}, {0, 5, 6}, {0, 5, 7}, {0, 6, 7}, {5, 6, 7}, {1, 4, 6}, {1, 4, 7}, {1, 6, 7}, {4, 6, 7}, {2, 4, 5}, {2, 4, 7}, {2, 5, 7}, {4, 5, 7}, {3, 4, 5}, {3, 4, 6}, {3, 5, 6}, {4, 5, 6}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4}, {0, 2, 5}, {0, 3, 5}, {2, 3, 5}, {0, 1, 6}, {0, 3, 6}, {1, 3, 6}, {0, 1, 7}, {0, 2, 7}, {1, 2, 7}};
 
 subsetL:=(L1,L2)->(
     all(L1,f->member(f,L2))
