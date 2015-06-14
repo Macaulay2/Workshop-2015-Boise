@@ -60,6 +60,7 @@ export {
   "nonZeroFilter",
   "numericalIrreducibleDecomposition",
   "numThreads",
+  "randomSeed",
   "refineSolutions",
   "seeProgress",
   "solveRationalSystem",
@@ -917,7 +918,7 @@ refineSolutions (List,List,ZZ) := o-> (f,sols,dp) -> (
 -- SOLVE SYSTEM --
 ------------------
 
-solveSystem = method(TypicalValue => List, Options => {Verbose => false, numThreads=>0})
+solveSystem = method(TypicalValue => List, Options => {Verbose => false, numThreads=>0, randomSeed => -1})
 solveSystem  List := List =>  o->system -> (
   -- IN:  system = list of polynomials with complex coeffiecients, 
   -- i.e. the system to solved 
@@ -964,7 +965,10 @@ solveSystem  List := List =>  o->system -> (
   systemToFile(system,infile);
 
   -- launching blackbox solver:
-  execstr := PHCexe|" -b "|(if o.numThreads > 1 then ("-t"|o.numThreads|" ") else "")|infile|" "|outfile;
+  execstr := PHCexe|" -b "
+    |(if o.numThreads > 1 then ("-t"|o.numThreads|" ") else "")
+    |(if o.randomSeed > -1 then ("-0"|o.randomSeed|" ") else "")
+    |infile|" "|outfile;
   ret := run(execstr);
   if ret =!= 0 then 
     error "error occurred while executing PHCpack command: phc -b";
@@ -1533,4 +1537,3 @@ w#IsIrreducible
 R = ring rationalSystem_0
 PD = primaryDecomposition ideal rationalSystem
 for I in PD list << "(dim=" << dim I << ", deg=" << degree I << ") " 
-
