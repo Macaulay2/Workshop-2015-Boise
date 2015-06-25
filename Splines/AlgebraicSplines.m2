@@ -1080,13 +1080,14 @@ cellularComplex(List) := ChainComplex => opts -> (F) -> (
 ------------------------------------------------
 ---Outputs: The cellular chain complex whose homology
 --- is the homology of the simplicial or polyhedral complex relative
---- to its boundary.  There is a bug in the polyhedral case
---- where boundary faces appear as intersections of codim 1
--- faces.  The following input will give the wrong complex, and also
--- shows that the polyhedral boundary map can take awhile to compute.
+--- to its boundary.
+--To verify working correctly, try the following input.
 --Cube and Octahedron--
 --V={{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {-2, -2, -2}, {-2, 2, -2}, {2, 2, -2}, {2, -2, -2}, {-2, -2, 2}, {-2, 2, 2}, {2, 2, 2}, {2, -2, 2}};
 --F={{0, 1, 2, 3, 4, 5}, {0, 8, 9, 12, 13}, {1, 6, 7, 10, 11}, {2, 7, 8, 11, 12}, {3, 6, 9, 10, 13}, {4, 10, 11, 12, 13}, {5, 6, 7, 8, 9}, {0, 2, 8, 12}, {0, 3, 9, 13}, {0, 4, 12, 13}, {0, 5, 8, 9}, {1, 2, 7, 11}, {1, 3, 6, 10}, {1, 4, 10, 11}, {1, 5, 6, 7}, {2, 4, 11, 12}, {3, 4, 10, 13}, {3, 5, 6, 9}, {2, 5, 7, 8}, {0, 2, 4, 12}, {0, 2, 5, 8}, {0, 3, 4, 13}, {0, 3, 5, 9}, {1, 2, 4, 11}, {1, 2, 5, 7}, {1, 3, 4, 10}, {1, 3, 5, 6}};
+--------------------------------------------------
+--With this input, minimal associated primes of HH_2 should be
+--ideals of every vertex in V along with ideals of the x,y, and z-axes
 --------------------------------------------------
 
 cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
