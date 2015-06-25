@@ -11,7 +11,7 @@
 
 if version#"VERSION" <= "1.4" then (
     needsPackage "Graphs",
-    needsPackage "Polyhedra"
+    needsPackage "FourierMotzkin"
     )
 
 newPackage select((
@@ -28,13 +28,13 @@ newPackage select((
         Configuration => {},
         DebuggingMode => true,
         if version#"VERSION" > "1.4" then PackageExports => {
-	    "Polyhedra",
+	    "FourierMotzkin",
 	    "Graphs"
 	    }
         ), x -> x =!= null)
 
 if version#"VERSION" <= "1.4" then (
-    needsPackage "Polyhedra",
+    needsPackage "FourierMotzkin",
     needsPackage "Graphs"
     )
 
@@ -989,6 +989,45 @@ boundaryComplex(List) := List => F -> (
     select(codim1faces, f-> number(F, g-> all(f, v-> member(v,g))) === 1)
     )
 
+
+------------------------------------------
+--Input:
+--V= vertex list
+--F= list of facets of a complex (polyhedral or simplicial)
+------------------------------------------------
+--Output:
+--A list of codim one faces on the boundary
+------------------------------------------------
+boundaryComplex(List,List):= List => (V,F)-> (
+    candidateList := flatten apply(F,f->facetsN(V,f));
+    select(candidateList, f->#(positions(candidateList,l->l==f))==1)
+    )
+
+facetsN = method()
+------------------------------------------------
+--Input:
+--V=vertex list
+--(Optional) F=list of indices of V to take for convex hull
+------------------------------------------------
+--Output: List of facets of convex hull of V_F
+------------------------------------------------
+facetsN(List,List):= List => (V,L)->(
+    V = apply(V_L,v->prepend(1,v));
+    --get minimal list of inequalities defining the conical hull of V
+    H := fourierMotzkin transpose matrix V;
+    halfspaces := H#0;
+    --apply inequalities to vertex list to see which vertices are contained in faces
+    M := (transpose halfspaces)*(transpose matrix V); 
+    facetList := apply(numrows M, i->select(numcols M,j-> M_(i,j)==0));
+    --label facet indices by elements of the list L
+    apply(facetList,l->L_l)
+    )
+
+facetsN(List):= List => V ->(
+    n := #V;
+    F := toList(0..n-1);
+    facetsN(V,F)
+    )
 ------------------------------------------------
 
 cellularComplex = method(
@@ -1041,7 +1080,13 @@ cellularComplex(List) := ChainComplex => opts -> (F) -> (
 ------------------------------------------------
 ---Outputs: The cellular chain complex whose homology
 --- is the homology of the simplicial or polyhedral complex relative
---- to its boundary.
+--- to its boundary.  There is a bug in the polyhedral case
+--- where boundary faces appear as intersections of codim 1
+-- faces.  The following input will give the wrong complex, and also
+-- shows that the polyhedral boundary map can take awhile to compute.
+--Cube and Octahedron--
+--V={{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {-2, -2, -2}, {-2, 2, -2}, {2, 2, -2}, {2, -2, -2}, {-2, -2, 2}, {-2, 2, 2}, {2, 2, 2}, {2, -2, 2}};
+--F={{0, 1, 2, 3, 4, 5}, {0, 8, 9, 12, 13}, {1, 6, 7, 10, 11}, {2, 7, 8, 11, 12}, {3, 6, 9, 10, 13}, {4, 10, 11, 12, 13}, {5, 6, 7, 8, 9}, {0, 2, 8, 12}, {0, 3, 9, 13}, {0, 4, 12, 13}, {0, 5, 8, 9}, {1, 2, 7, 11}, {1, 3, 6, 10}, {1, 4, 10, 11}, {1, 5, 6, 7}, {2, 4, 11, 12}, {3, 4, 10, 13}, {3, 5, 6, 9}, {2, 5, 7, 8}, {0, 2, 4, 12}, {0, 2, 5, 8}, {0, 3, 4, 13}, {0, 3, 5, 9}, {1, 2, 4, 11}, {1, 2, 5, 7}, {1, 3, 4, 10}, {1, 3, 5, 6}};
 --------------------------------------------------
 
 cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
@@ -1060,11 +1105,12 @@ cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
     	intC := apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)));
     	chain := chainComplex(reverse apply(#intC-1, c-> simpBoundary(intC_c,intC_(c+1))))
 	) else (
-	--Construct list whose ith element is intersections of codim i--
+	bComp := boundaryComplex(V,F);
+	--Construct list whose ith element is interior intersections of codim i--
 	current :=F;
 	intC ={current};
 	scan(d,i->(
-		current=getCodim1Intersections(current);
+		current=select(getCodim1Intersections(current),f->(not any(bComp,F->subsetL(f,F))));
 		intC =append(intC,current)
 	));
     	--get the forms defining codimension 1 faces--
@@ -1139,10 +1185,12 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 		    ))
 	    )
     	) else (
+	bComp := boundaryComplex(V,F);
+	--Construct list whose ith element is interior intersections of codim i--
 	current :=F;
 	intC ={current};
 	scan(d,i->(
-		current=getCodim1Intersections(current);
+		current=select(getCodim1Intersections(current),f->(not any(bComp,F->subsetL(f,F))));
 		intC =append(intC,current)
 	));
     	--get the forms defining codimension 1 faces--
@@ -1230,10 +1278,12 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 		    ))
 	    );
     	) else (
+	bComp := boundaryComplex(V,F);
+	--Construct list whose ith element is interior intersections of codim i--
 	current :=F;
 	intC ={current};
 	scan(d,i->(
-		current=getCodim1Intersections(current);
+		current=select(getCodim1Intersections(current),f->(not any(bComp,F->subsetL(f,F))));
 		intC =append(intC,current)
 	));
     	--get the forms defining codimension 1 faces--
@@ -1390,6 +1440,7 @@ doc ///
         compute matrix giving adjacent regions and continuity level
     Usage
     	S = splineMatrix(V,F,E,r)
+	S = splineMatrix(V,F,r)
 	S = splineMatrix(B,L,r)
     Inputs
     	V:List
@@ -1532,7 +1583,7 @@ doc ///
 	    a= lowest degree in the table
 	b:ZZ
 	    b= largest degree in the table
-	N:Module
+	M:Module
 	    M= graded module
 	L:List
 	    L= a list {V,F,E} of the vertices, faces and edges of a polyhedral complex
