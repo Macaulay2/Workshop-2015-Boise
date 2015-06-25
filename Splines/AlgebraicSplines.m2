@@ -352,7 +352,7 @@ isHereditary(List,List) := Boolean => (V,F) -> (
 	    )else (
 	    dualG := graph(dualE,EntryMode=>"edges");
 	    linkH := hashTable apply(#V, v-> v=>select(#F, f -> member(v,F_f)));
-	    -- Checks if the link of each vertex is connected. Note: need to extend
+	    -- Checks if the dual graph of the star of each each vertex is connected. Note: need to extend
 	    -- this to link of every face... my bad (Mike D.)
 	    bool = all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
 	    ));
