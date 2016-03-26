@@ -769,9 +769,14 @@ generalizedSplines = method(Options=>{
 --Inputs: 
 ------------------------------------------
 --E = list of edges. Each edge is a list with two vertices.
-----The set of vertices must be the integers 0..n-1.
+--OR
+--G=graph object
 --ideals = list of ideals that label the edges. Ideals must 
---be entered in same order as corresponding edges in E.
+--be entered in same order as corresponding edges in E, or if
+--a graph G is entered, in the same order as the edges are listed
+--in edges(G).  The default order for edges(G) is lexicographic.
+--If a list of ring elements is entered, it is assumed these are 
+--generators for principal ideals.
 --If RingType is an integer,n, then this can be a list 
 --of integers that label the edges.
 -------------------------------------------------
@@ -790,31 +795,31 @@ generalizedSplines(List,List) := Module => opts -> (E,ideals) ->(
     S := ring first ideals;
     --make sure ideals all lie in same ambient ring--
     ideals = apply(ideals, I->sub(I,S));
+    --make sure ideals list consists of ideals.  If ring elements are
+    --entered will automatically make these ideals.
+    ideals = apply(ideals, I->(if class(I)===S then(ideal I)else(I)))
     ) else if toString(class(opts.RingType))==="ZZ" then(
        m := opts.RingType;
-       if m==0 then(
-	   S = ZZ;
-	   ideals = apply(ideals,i-> ideal(i_S));
-       ) else (
-       	   R := ZZ[{}];
-	   S = R/ideal(m_R);
-	   ideals = apply(ideals,i-> ideal(i_S));
-       )
-    );
-    --assume vertices are 0,...,n-1
-    vertices := unique flatten E;
-    n := #vertices;
+       R := ZZ[{}];
+       S = R/ideal(m_R);
+       ideals = apply(ideals,i-> ideal(i_S));
+       );
+    vert := sort unique flatten E;
+    n := #vert;
     T := directSum(apply(ideals,I->coker gens I));
 --Boundary Map from Edges to vertices (this encodes spline conditions)
     M := matrix apply(E,
-	e->apply(n,
+	e->apply(vert,
 	    v->if(v===first e) then 1
 	    else if(v===last e) then -1
 	    else 0));
     ker(map(T,S^n,sub(M,S)))
 )
 
-
+generalizedSplines(Graph,List) := Module => opts -> (G,ideals) ->(
+E:=apply(edges G,e->elements e);
+generalizedSplines(E,ideals,opts)
+)
 ------------------------------------------
 simpBoundary = method()
 ------------------------------------------
@@ -1040,7 +1045,7 @@ cellularComplex = method(
     )
 ------------------------------------------------
 ---This method computes the cellular chain complex of a simplicial or
----complex with coefficients in a polynomial
+---polyhedral complex with coefficients in a polynomial
 ---ring, modulo the boundary
 ------------------------------------------------
 ---Inputs (if simplicial): A list of facets
@@ -1172,6 +1177,8 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	C := apply(d+1, i-> getCodimDFacesSimplicial(F,i));
 	boundaryC := join({{}},apply(d, i-> getCodimDFacesSimplicial(boundaryF,i)));
 	intC := apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)));
+	--if there are no interior faces of large codimension, get rid of the empty lists
+	intC = select(intC,L->( (length L)>0));
 	--list of forms defining codim 1 interior faces
 	intformslist := formsList(V,intC_1,r,opts);
 	--list of modules which will define chain complex--
@@ -1193,11 +1200,13 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 		current=select(getCodim1Intersections(current),f->(not any(bComp,F->subsetL(f,F))));
 		intC =append(intC,current)
 	));
+    	--if there are no intersections of larger codimension, get rid of the empty lists
+	intC = select(intC,L->((length L)>0));    	
     	--get the forms defining codimension 1 faces--
 	fList :=formsList(V,intC_1,0,opts);
-    	--create a list whose ith element is ideals of codim i faces--
+	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
-	scan(d-1,i->(
+	scan(#intC-2,i->(
 		idList=append(idList,apply(intC_(i+2),G->(
 			    ind:=codim1Cont(intC_1,G);
 			    sub(ideal fList_ind,S)
@@ -1272,6 +1281,8 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	C := apply(d+1, i-> getCodimDFacesSimplicial(F,i));
 	boundaryC := join({{}},apply(d, i-> getCodimDFacesSimplicial(boundaryF,i)));
 	intC := apply(#C, i -> select(C_i, f -> not member(f,boundaryC_i)));
+	--if there are no interior faces of large codimension, get rid of the empty lists
+	intC = select(intC,L->( (length L)>0));
 	--list of forms defining codim 1 interior faces
 	intformslist := formsList(V,intC_1,r,opts);
 	--list of modules which will define chain complex--
@@ -1297,11 +1308,13 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 		current=select(getCodim1Intersections(current),f->(not any(bComp,F->subsetL(f,F))));
 		intC =append(intC,current)
 	));
+    	--if there are no intersections of larger codimension, get rid of the empty lists
+	intC = select(intC,L->((length L)>0));
     	--get the forms defining codimension 1 faces--
 	fList :=formsList(V,intC_1,0,opts);
     	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
-	scan(d-1,i->(
+	scan(#intC-2,i->(
 		idList=append(idList,apply(intC_(i+2),G->(
 			    ind:=codim1Cont(intC_1,G);
 			    sub(ideal fList_ind,S)
@@ -1567,14 +1580,17 @@ doc ///
 	    M = module of splines on $\Delta$
     Description
         Text
-	    This is some text.
+	    This method returns the spline module.  It is presented as the image of a matrix
+	    whose columns generate splines as a module over the polynomial ring.  Each column
+	    represents a spline whose entries are the polynomials restricted to the facets of the
+	    complex $\Delta$.
 	Example
 	    V = {{0,0},{1,0},{1,1},{0,1}}
 	    F = {{0,1,2},{0,2,3}}
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
 	    splineModule(V,F,E,1)
-    Caveat
-        I'm not sure if this is fully documented yet.
+    SeeAlso
+    	splineMatrix
 	
 	
 ///
@@ -1707,6 +1723,237 @@ doc ///
 	    F = {{0,1,2},{0,2,3}}
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
 	    hilbertCTable(0,8,splineModule(V,F,E,1))
+
+///
+
+doc ///
+    Key
+    	generalizedSplines
+	(generalizedSplines,List,List)
+    Headline
+    	the module of generalized splines associated to a graph and edge labelling
+    Usage
+    	M = generalizedSplines(E,I)
+	M = generalizedSplines(G,I)
+    Inputs
+    	E:List
+	    E = list of edges of a graph
+	G:Graph
+	    G = graph
+	I:List
+	    I = list of ideals in a ring
+    Outputs
+    	M:Module
+	    M = module of generalized splines on the graph G with edge labels I
+    Description
+    	Text
+	    This method returns the module of generalized splines on a graph G with v vertices 
+	    whose edges are labelled by ideals of some ring R.  By definition this is the 
+	    submodule of $R^v$ consisting of tuples of polynomials such that the difference of
+	    polynomials corresponding to adjacent vertices are congruent module the ideal labelling
+	    the edge between them.
+	Example
+	    S = QQ[x_0,x_1,x_2]; --the underlying ring
+	    E = {{0,1},{1,2},{2,3}} --edges of the graph (in this case a triangle)
+	    I = {x_0-x_1,x_1-x_2,x_2-x_0} --ideals of S (elements of S are interpreted as principal ideals)
+	    generalizedSplines(E,I) --in this case this is the module of derivations on the $A_2$ arrangement
+	Text
+	    The input can also be a graph.  Care must be taken that ideals in the list I are listed in the
+	    same order as edges(G).
+	Example
+	    G = completeGraph(4);
+	    S = QQ[apply(vertices G,i->x_i)];
+	    I = apply(edges G,e->(E=elements(e); x_(E_0)-x_(E_1)) );
+	    generalizedSplines(G,I) --module of derivations on $A_3$
+	Text
+	    If edge labels are integers, generalizedSplines is computed as a ZZ module by default.
+	Example
+	    G=cycleGraph(4);
+	    I={3,4,5,6};
+	    generalizedSplines(G,I)
+	Text
+	    The above splines may also be computed over ZZ modulo some integer.
+	Example
+	    G=cycleGraph(4);
+	    I={3,4,5,6};
+	    generalizedSplines(G,I,RingType=>9) --computes spline module with underlying ring ZZ/9
+	Text
+	    Arbitrary ideals may also be entered as edge labels.
+	Example
+	    S=QQ[x,y,z]
+	    E={{1,2},{2,3},{3,4}}
+	    I={ideal(x,y),ideal(y),ideal(z)}
+	    generalizedSplines(E,I)
+	    
+///
+
+doc ///
+    Key
+    	cellularComplex
+	(cellularComplex,List,List)
+    Headline
+    	create the cellular chain complex whose homologies are the singular homologies of the complex $\Delta$ relative to its boundary
+    Usage
+    	C = cellularComplex(V,F)
+    Inputs
+    	V:List
+	    V = list of coordinates of vertices
+	F:List
+	    F = list of facets
+    Outputs
+    	C:ChainComplex
+	    C = cellular chain complex of $\Delta$ relative to its boundary
+    Description
+    	Text
+	    This method returns the cellular chain complex of $\Delta$ relative to its
+	    boundary.  If $\Delta$ is homeomorphic to a disk, the homologies will vanish
+	    except for the top dimension.
+	Example
+	    V = {{0,0},{1,0},{0,1},{-1,-1}};
+     	    F = {{0,1,2},{0,2,3},{0,1,3}};
+	    C = cellularComplex(V,F)
+	    prune HH C
+	Text
+	    If the complex is simplicial, there is no need for a vertex list.
+	Example
+	    F = {{0,1,2},{0,1,3},{0,2,3}};
+	    C = cellularComplex(F,InputType=>"Simplicial")
+	Text
+	    Arbitrary dimensions and polyhedral input are allowed.
+	Example
+	    V = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {-2, -2, -2}, {-2, 2, -2}, {2, 2, -2}, {2, -2, -2}, {-2, -2, 2}, {-2, 2, 2}, {2, 2, 2}, {2, -2, 2}};
+	    F = {{0, 1, 2, 3, 4, 5}, {0, 8, 9, 12, 13}, {1, 6, 7, 10, 11}, {2, 7, 8, 11, 12}, {3, 6, 9, 10, 13}, {4, 10, 11, 12, 13}, {5, 6, 7, 8, 9}, {0, 2, 8, 12}, {0, 3, 9, 13}, {0, 4, 12, 13}, {0, 5, 8, 9}, {1, 2, 7, 11}, {1, 3, 6, 10}, {1, 4, 10, 11}, {1, 5, 6, 7}, {2, 4, 11, 12}, {3, 4, 10, 13}, {3, 5, 6, 9}, {2, 5, 7, 8}, {0, 2, 4, 12}, {0, 2, 5, 8}, {0, 3, 4, 13}, {0, 3, 5, 9}, {1, 2, 4, 11}, {1, 2, 5, 7}, {1, 3, 4, 10}, {1, 3, 5, 6}};
+	    C = cellularComplex(V,F);
+	    prune HH C
+    SeeAlso
+        idealsComplex
+	splineComplex
+ 
+ ///
+ 
+ 
+doc ///
+    Key
+    	idealsComplex
+	(idealsComplex, List,List,ZZ)
+    Headline
+    	creates the Schenck-Stillman chain complex of ideals
+    Usage
+    	C = idealsComplex(V,F,r)
+    Inputs
+    	V:List
+	    V = list of vertex coordinates
+	F:List
+	    F = list of facets
+	r:ZZ
+	    r = integer, desired degree of smoothness
+    Outputs
+    	C:ChainComplex
+	    C = Schenck-Stillman chain complex of ideals
+    Description
+    	Text
+	    This method returns the Schenck-Stillman chain complex of ideals whose
+	    top homology is the module of non-trivial splines on $\Delta$.
+	Example
+	    V = {{0,0},{1,0},{0,1},{-1,-1}};
+	    F = {{0,1,2},{0,2,3},{0,1,3}};
+	    C = idealsComplex(V,F,1);
+	    prune HH C
+	Text
+	    The output from the above example shows that there is only one nonvanishing
+	    homology, and it is free as a module over the polynomial ring in three variables.
+	Example
+	    V = {{-1,-1},{1,-1},{0,1},{-2,-2},{2,-2},{0,2}};
+	    F = {{0,1,2},{0,1,3,4},{1,2,4,5},{0,2,3,5}};
+	    C = idealsComplex(V,F,1);
+	    prune HH C
+	Text
+	    The output from the above example shows that there are two nonvanishing homologies,
+	    but the spline module, which is (almost) the homology HH_1, is still free.  This shows
+	    that freeness of the spline module does not depend on vanishing of lower homologies if
+	    the underlying complex is polyhedral.
+    SeeAlso
+	cellularComplex
+	splineComplex
+
+///
+
+doc ///
+    Key
+    	splineComplex
+	(splineComplex, List,List,ZZ)
+    Headline
+    	creates the Schenck-Stillman chain complex
+    Usage
+    	C = splineComplex(V,F,r)
+    Inputs
+    	V:List
+	    V = list of vertex coordinates
+	F:List
+	    F = list of facets
+	r:ZZ
+	    r = integer, desired degree of smoothness
+    Outputs
+    	C:ChainComplex
+	    C = Schenck-Stillman spline complex
+    Description
+    	Text
+	    This method returns the Schenck-Stillman chain complex whose
+	    top homology is the module of splines on $\Delta$.
+	Example
+	    V = {{0,0},{1,0},{0,1},{-1,-1}};
+	    F = {{0,1,2},{0,2,3},{0,1,3}};
+	    C = splineComplex(V,F,1);
+	    prune HH C
+	Text
+	    The output from the above example shows that there is only one nonvanishing
+	    homology, and it is free as a module over the polynomial ring in three variables.
+	    Notice that the rank is one more than the corresponding nonvanishing homology given
+	    by idealsComplex.
+	Example
+	    V = {{-1,-1},{1,-1},{0,1},{-2,-2},{2,-2},{0,2}};
+	    F = {{0,1,2},{0,1,3,4},{1,2,4,5},{0,2,3,5}};
+	    C = splineComplex(V,F,1);
+	    prune HH C
+	Text
+	    The output from the above example shows that there are two nonvanishing homologies,
+	    but the spline module, which is (almost) the homology HH_1, is still free.  This shows
+	    that freeness of the spline module does not depend on vanishing of lower homologies if
+	    the underlying complex is polyhedral.
+	Example
+	    V = {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{0,-10}};
+	    V'= {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{1,-10}};
+	    F = {{0,1,2},{2,3,4},{0,4,5},{1,3,5},{1,2,3},{0,2,4},{0,1,5}};
+	    C = splineComplex(V,F,1);
+	    C' = splineComplex(V',F,1);
+	    prune HH C
+	    prune HH C'
+	Text
+	    The above example is known as the Morgan-Scot partition.  It shows
+	    how subtle spline calculations can be.  Note that the spline module over
+	    the symmetric Morgan-Scot partition above (vertices V) is not free,
+	    while the spline module over the non-symmetric Morgan-Scot partition is free.
+	Example
+	    V = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {-2, -2, -2}, {-2, 2, -2}, {2, 2, -2}, {2, -2, -2}, {-2, -2, 2}, {-2, 2, 2}, {2, 2, 2}, {2, -2, 2}};
+	    F = {{0, 1, 2, 3, 4, 5}, {0, 8, 9, 12, 13}, {1, 6, 7, 10, 11}, {2, 7, 8, 11, 12}, {3, 6, 9, 10, 13}, {4, 10, 11, 12, 13}, {5, 6, 7, 8, 9}, {0, 2, 8, 12}, {0, 3, 9, 13}, {0, 4, 12, 13}, {0, 5, 8, 9}, {1, 2, 7, 11}, {1, 3, 6, 10}, {1, 4, 10, 11}, {1, 5, 6, 7}, {2, 4, 11, 12}, {3, 4, 10, 13}, {3, 5, 6, 9}, {2, 5, 7, 8}, {0, 2, 4, 12}, {0, 2, 5, 8}, {0, 3, 4, 13}, {0, 3, 5, 9}, {1, 2, 4, 11}, {1, 2, 5, 7}, {1, 3, 4, 10}, {1, 3, 5, 6}};
+	    C = splineComplex(V,F,1);
+	    associatedPrimes annihilator HH_2 C
+	Text
+	    The above example showcases a fairly complex three dimensional polyhedral complex.
+	    It is a three-dimensional analog of the Morgan-Scot partition in the sense that
+	    it consists of an octahedron inside of a cube (note these are dual polytopes).  Its
+	    facets consist of the octahedron, twelve tetrahedra coming from joining dual edges on
+	    the cube and the octahedron, and six 'Egyptian pyramids' coming from joining each vertex
+	    of the octahedron to a square face on the cube.  
+	    The homologies of this spline complex
+	    are quite interesting.  The two lower homologies vanish (the lowest always does). 
+	    The top homology (HH_3) is the spline module.  The second homology is nonzero and illustrates 
+	    the fact that the associated primes of the homologies of the spline complex are all linear.
+	    There is an associated prime for every vertex of the complex, plus three more that lie on the
+	    hyperplane at infinity, plus the maximal ideal.
+    SeeAlso
+	cellularComplex
+	idealsComplex
 
 ///
 
