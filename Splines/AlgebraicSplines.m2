@@ -39,15 +39,15 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   "Splines",
-   "VertexCoordinates",
-   "Regions",
-   "SplineModule",
-   "splines",
-   "Spline",
-   "spline",
-   "isTPure",
-   "getDim",
+   --"Splines",
+   --"VertexCoordinates",
+   --"Regions",
+   --"SplineModule",
+   --"splines",
+   --"Spline",
+   --"spline",
+   --"isTPure",
+   --"getDim",
    "formsList",
    "splineMatrix",
    "splineModule",
@@ -1754,7 +1754,7 @@ doc ///
 	    the edge between them.
 	Example
 	    S = QQ[x_0,x_1,x_2]; --the underlying ring
-	    E = {{0,1},{1,2},{2,3}} --edges of the graph (in this case a triangle)
+	    E = {{0,1},{1,2},{0,2}} --edges of the graph (in this case a triangle)
 	    I = {x_0-x_1,x_1-x_2,x_2-x_0} --ideals of S (elements of S are interpreted as principal ideals)
 	    generalizedSplines(E,I) --in this case this is the module of derivations on the $A_2$ arrangement
 	Text
