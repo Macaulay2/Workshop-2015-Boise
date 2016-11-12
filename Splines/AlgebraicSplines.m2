@@ -56,19 +56,19 @@ export {
    "ByFacets",
    "ByLinearForms",
    "isHereditary",
-   "CheckHereditary",
+   "CheckHereditary", --next iteration
    "Homogenize",
    "VariableName",
    "interiorFaces",
    "splineDimTable",
    "posNum",
    "hilbertCTable",
-   "hilbertPolyEval",
    "generalizedSplines",
    "cellularComplex",
    "idealsComplex",
    "splineComplex",
    --get rid of these once testing is done
+   "hilbertPolyEval",
    "getCodim1Intersections",
    "getCodimDIntersections",
    "getCodimDFacesSimplicial",
@@ -375,6 +375,12 @@ isHereditary(List) := Boolean => F -> (
 )
 
 -----------------------------------------
+-----------------------------------------
+--TODO: Add a method to create a spline ring to
+--be reused among spline rings.
+-----------------------------------------
+-----------------------------------------
+
 
 formsList=method(Options=>{
 	symbol InputType => "ByFacets", 
@@ -418,6 +424,7 @@ formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
 	    );
     flatten apply(minorList, m -> (m_(0,0))^(r+1))
 )
+
 
 
 -----------------------------------------
