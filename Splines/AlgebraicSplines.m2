@@ -52,7 +52,7 @@ export {
    "VariableName",
    "interiorFaces",
    "splineDimTable",
-   "posNum",
+   "postulationNumber",
    "hilbertComparisonTable",
 --   "hilbertPolyEval",
    "generalizedSplines",
@@ -553,7 +553,7 @@ splineDimTable(ZZ,ZZ,List,ZZ):= Net => opts->(a,b,L,r)->(
 
 -------------------------------------------
 -------------------------------------------
-posNum=method()
+postulationNumber=method()
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
@@ -565,7 +565,7 @@ posNum=method()
 ------ for which Hilbert function and polynomial 
 ------ of M disagree).
 --------------------------------------------
-posNum(Module):= (N) ->(
+postulationNumber(Module):= (N) ->(
     k := regularity N;
     while hilbertFunction(k,N)==hilbertPolyEval(k,N) do	(k=k-1);
     k
@@ -1477,12 +1477,12 @@ doc ///
 
 doc ///
     Key
-        posNum
-	(posNum,Module)
+        postulationNumber
+	(postulationNumber,Module)
     Headline
         computes the largest degree at which the hilbert function of the graded module M is not equal to the hilbertPolynomial
     Usage
-        v = posNum(M)
+        v = postulationNumber(M)
     Inputs
         M:Module
 	    M= graded module
@@ -1498,7 +1498,7 @@ doc ///
 	    F = {{0,1,2},{0,2,3}};
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
 	    M = splineModule(V,F,E,2)
-	    posNum(M)
+	    postulationNumber(M)
 	    
 ///
         
