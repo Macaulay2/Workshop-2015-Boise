@@ -41,8 +41,6 @@ export {
    "Regions",
    "SplineModule",
    "splines",
-   --"isTPure",
-   --"getDim",
    "formsList",
    "splineMatrix",
    "splineModule",
@@ -55,8 +53,8 @@ export {
    "interiorFaces",
    "splineDimTable",
    "posNum",
-   "hilbertCTable",
-   "hilbertPolyEval",
+   "hilbertComparisonTable",
+--   "hilbertPolyEval",
    "generalizedSplines",
    "cellularComplex",
    "idealsComplex",
@@ -576,7 +574,7 @@ posNum(Module):= (N) ->(
 ------------------------------------------
 -----------------------------------------
 
-hilbertCTable=method()
+hilbertComparisonTable=method()
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
@@ -592,7 +590,7 @@ hilbertCTable=method()
 ------ Hilbert Polynomial
 --------------------------------------------
 
-hilbertCTable(ZZ,ZZ,Module):= (a,b,M) ->(
+hilbertComparisonTable(ZZ,ZZ,Module):= (a,b,M) ->(
     r1:=prepend("Degree",toList(a..b));
     r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
     r3:=prepend("HilbertPoly",apply(toList(a..b),i->hilbertPolyEval(i,M)));
@@ -1507,12 +1505,12 @@ doc ///
 
 doc ///
     Key
-        hilbertCTable
-	(hilbertCTable,ZZ,ZZ,Module)
+        hilbertComparisonTable
+	(hilbertComparisonTable,ZZ,ZZ,Module)
     Headline
         a table to compare the values of the hilbertFunction and hilbertPolynomial of a graded module
     Usage
-        T = hilbertCTable(a,b,M)
+        T = hilbertComparisonTable(a,b,M)
     Inputs
         a:ZZ
 	    a= lowest degree in the  table
@@ -1531,7 +1529,7 @@ doc ///
 	    V = {{0,0},{1,0},{1,1},{0,1}}
 	    F = {{0,1,2},{0,2,3}}
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
-	    hilbertCTable(0,8,splineModule(V,F,E,1))
+	    hilbertComparisonTable(0,8,splineModule(V,F,E,1))
 
 ///
 
