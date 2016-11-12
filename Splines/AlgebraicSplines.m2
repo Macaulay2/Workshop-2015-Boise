@@ -27,8 +27,7 @@ newPackage select((
         Configuration => {},
         DebuggingMode => true,
         if version#"VERSION" > "1.4" then PackageExports => {
-	    "FourierMotzkin",
-	    "Graphs"
+	    "FourierMotzkin"
 	    }
         ), x -> x =!= null)
 
@@ -414,6 +413,7 @@ splineMatrix(List,ZZ) := Matrix => opts -> (L,r) -> (
 -- to facets and linear forms separating facets.
 ------------------------------------------
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+	if opts.InputType === "ByFacets" then (
 	d := # (first V);
 	--Compute which facets are adjacent to each edge:
 	facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
@@ -746,10 +746,11 @@ generalizedSplines(List,List) := Module => opts -> (E,ideals) ->(
     ker(map(T,S^n,sub(M,S)))
 )
 
-generalizedSplines(Graph,List) := Module => opts -> (G,ideals) ->(
-E:=apply(edges G,e->elements e);
-generalizedSplines(E,ideals,opts)
-)
+--generalizedSplines(Graph,List) := Module => opts -> (G,ideals) ->(
+--E:=apply(edges G,e->elements e);
+--generalizedSplines(E,ideals,opts)
+--)
+
 ------------------------------------------
 simpBoundary = method()
 ------------------------------------------
