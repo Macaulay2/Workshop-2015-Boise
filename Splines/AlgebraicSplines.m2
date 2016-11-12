@@ -51,7 +51,7 @@ export {
    "Homogenize",
    "VariableName",
    "interiorFaces",
-   "splineDimTable",
+   "splineDimensionTable",
    "postulationNumber",
    "hilbertComparisonTable",
 --   "hilbertPolyEval",
@@ -482,7 +482,7 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 ------------------------------------------
 -------------------------------------------
 -------------------------------------------
-splineDimTable=method(Options => {
+splineDimensionTable=method(Options => {
 	symbol InputType => "ByFacets"
 	}
     )
@@ -500,7 +500,7 @@ splineDimTable=method(Options => {
 ------ of M in bottom row
 -------------------------------------------
 
-splineDimTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
+splineDimensionTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
     r1:=prepend("Degree",toList(a..b));
     r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
     netList {r1,r2}
@@ -520,9 +520,9 @@ splineDimTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
 ------ of the spline module in the range (a,b)
 -------------------------------------------
 
-splineDimTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
+splineDimensionTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
     M := splineModule(L_0,L_1,L_2,r);
-    splineDimTable(a,b,M)
+    splineDimensionTable(a,b,M)
     )
 
 -------------------------------------------
@@ -545,9 +545,9 @@ splineDimTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
 ------ of the spline module in the range (a,b)
 -------------------------------------------
 
-splineDimTable(ZZ,ZZ,List,ZZ):= Net => opts->(a,b,L,r)->(
+splineDimensionTable(ZZ,ZZ,List,ZZ):= Net => opts->(a,b,L,r)->(
     M := splineModule(L_0,L_1,r,opts);
-    splineDimTable(a,b,M)
+    splineDimensionTable(a,b,M)
     )
 
 
@@ -585,7 +585,7 @@ hilbertComparisonTable=method()
 ------ Outputs:
 --------------------------------------------
 ------ A table whose top two rows are the same as
------- the output of splineDimTable and whose 
+------ the output of splineDimensionTable and whose 
 ------ third row compares the first two to the
 ------ Hilbert Polynomial
 --------------------------------------------
@@ -1404,14 +1404,14 @@ doc ///
 
 doc ///
     Key
-        splineDimTable
-	(splineDimTable,ZZ,ZZ,Module)
-	(splineDimTable,ZZ,ZZ,List,ZZ)
+        splineDimensionTable
+	(splineDimensionTable,ZZ,ZZ,Module)
+	(splineDimensionTable,ZZ,ZZ,List,ZZ)
     Headline
         a table with the dimensions of the graded pieces of a graded module
     Usage
-        T=splineDimTable(a,b,M)
-	T=splineDimTable(a,b,L,r)
+        T=splineDimensionTable(a,b,M)
+	T=splineDimensionTable(a,b,L,r)
     Inputs
         a:ZZ
 	    a= lowest degree in the table
@@ -1436,12 +1436,12 @@ doc ///
 	    F = {{0,1,2},{0,2,3}}
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
 	    M=splineModule(V,F,E,2)
-	    splineDimTable(0,8,M)
+	    splineDimensionTable(0,8,M)
 	Text
 	    You may instead input the list L={V,F,E} of the vertices, faces and edges of the spline.
 	Example
 	    L = {V,F,E};
-	    splineDimTable(0,8,L,2)
+	    splineDimensionTable(0,8,L,2)
 	
       
 ///
