@@ -1427,8 +1427,8 @@ doc ///
         Text
             This package provides methods for computations with piecewise polynomial functions (splines) over
 	    polytopal complexes.
-	Text
-	    @SUBSECTION "Definitions"@
+ 	Text 
+	    "Definitions"
 	Text
 	    Let $\Delta$ be a partition (simplicial,polytopal,cellular,rectilinear, etc.) of a space $\RR^n$.
 	    The spline module $S_d^{r}(\Delta)$ is the module of all functions $f\in C^r(\Delta)$ such that
@@ -1439,8 +1439,8 @@ doc ///
 	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well
 	    as defining new types @TO Splines@ and @TO Spline@ that contain geometric data 
 	    for $\Delta$ (if entered) and details on the associated spline module $S_d^r(\Delta)$.
-        Text
-	    @SUBSECTION "Other acknowledgements"@
+--        Text
+--	    @SUBSECTION "Other acknowledgements"@
             --
             Methods in this package borrows heavily from code written by Hal Schenck
 	    and Mike DiPasquale.
