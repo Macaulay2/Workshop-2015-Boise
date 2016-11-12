@@ -36,13 +36,11 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   --"Splines",
-   --"VertexCoordinates",
-   --"Regions",
-   --"SplineModule",
-   --"splines",
-   --"Spline",
-   --"spline",
+   "Splines",
+   "VertexCoordinates",
+   "Regions",
+   "SplineModule",
+   "splines",
    --"isTPure",
    --"getDim",
    "formsList",
@@ -70,7 +68,6 @@ export {
    "issimplicial",
    "simpBoundary",
    "boundaryComplex",
-   "subsetL",
    "codim1Cont",
    "orient",
    "polyBoundaryPair",
@@ -86,6 +83,7 @@ export {
 --Create an object that gives ALL splines
 --on a given subdivision.
 Splines = new Type of HashTable
+
 splines = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
@@ -104,18 +102,8 @@ splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 	}
 )
 
-
 net Splines := S -> S.SplineModule
-
-Spline = new Type of HashTable
-spline = method()
-
-spline(Splines,List) := (S,L) -> (
-    M := S.SplineModule;
-    )
    
-
-
 ------------------------------------------
 ------------------------------------------
 -- Methods
@@ -127,41 +115,8 @@ spline(Splines,List) := (S,L) -> (
 subsetL=method()
 ------------------------------------------
 --Containment function for lists--
-
-subsetL(List,List):=List=>(L1,L2)->(
+subsetL(List,List):=Boolean=>(L1,L2)->(
     all(L1,f->member(f,L2))
-    )
-
------------------------------------------
-isTPure=method()
------------------------------------------
---Inputs:
---V = list of vertices
---F = list of facets
------------------------------------------
---Outputs:
---True, if every facet has same dimension
---AS THE AMBIENT SPACE
---False, if some facets have dimension different
---from the ambient space
------------------------------------------
-
-isTPure(List,List):= Boolean =>(V,F)->(
-    d := #(first V);
-    V = apply(V,v->prepend(1,v));
-    if all(F,f->((rank matrix(V_f))==d+1)) then (true) else (false)
-    )
-
------------------------------------------
-getDim=method()
------------------------------------------
---Input: V= list of vertices
------------------------------------------
---Output: Dimension of affine span of V
------------------------------------------
-getDim(List):=ZZ=> V ->(
-    V=apply(V,v->prepend(1,v));
-    (rank matrix V)-1
     )
 
 
@@ -1347,7 +1302,7 @@ doc ///
 	
 	Text
 	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well
-	    as defining new types @TO Splines@ and @TO Spline@ that contain geometric data 
+	    as defining new type @TO Splines@ that contain geometric data 
 	    for $\Delta$ (if entered) and details on the associated spline module $S_d^r(\Delta)$.
 --        Text
 --	    @SUBSECTION "Other acknowledgements"@
@@ -1830,10 +1785,7 @@ doc ///
 	    S = splines(V,F,E,1) -- splines in R^2 with smoothness 1
     SeeAlso
         splines
-	Spline
-	spline
 ///
--->>>>>>> origin/master
 
 TEST ///
 V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
