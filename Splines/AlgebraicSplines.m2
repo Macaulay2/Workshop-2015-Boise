@@ -10,6 +10,7 @@
 ------------------------------------------
 
 if version#"VERSION" <= "1.4" then (
+    needsPackage "Graphs",
     needsPackage "FourierMotzkin"
     )
 
@@ -33,6 +34,7 @@ newPackage select((
 
 if version#"VERSION" <= "1.4" then (
     needsPackage "FourierMotzkin",
+    needsPackage "Graphs"
     )
 
 export {
@@ -52,18 +54,20 @@ export {
    "RingType",
    "ByFacets",
    "ByLinearForms",
+   "isHereditary",
+   "CheckHereditary",
    "Homogenize",
    "VariableName",
    "interiorFaces",
    "splineDimTable",
    "posNum",
    "hilbertCTable",
+   "hilbertPolyEval",
    "generalizedSplines",
    "cellularComplex",
    "idealsComplex",
    "splineComplex",
    --get rid of these once testing is done
-   "hilbertPolyEval",
    "getCodim1Intersections",
    "getCodimDIntersections",
    "getCodimDFacesSimplicial",
@@ -88,6 +92,7 @@ export {
 Splines = new Type of HashTable
 splines = method(Options => {
 	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ})
@@ -114,6 +119,7 @@ spline(Splines,List) := (S,L) -> (
     M := S.SplineModule;
     )
    
+
 
 ------------------------------------------
 ------------------------------------------
@@ -289,32 +295,89 @@ getCodimDFacesSimplicial(List,ZZ) := List => (F,D) -> (
     unique flatten apply(F, f-> subsets(f,d-D))
     )
 
+------------------------------------------
+verifyComplex= method()
+------------------------------------------
+-- This method should check everything.
+------------------------------------------
+--Inputs:
+--V = list of vertices
+--F = list of facets
+------------------------------------------
+--Outputs:
+--True or false
+--Also should pinpoint what the problem is.
+--This won't detect everything... the user
+--can't screw up too much...
+------------------------------------------
+
+verifyComplex(List,List):=Boolean=>(V,F)->(
+    --Check that (V,F) is pure of correct dim
+    --Check that intersections of facets have correct dimension
+    --Limited Check that facets don't overlap (check along codim 1 intersections)
+    --Check hereditary
+    )
+
+------------------------------------------
+------------------------------------------
+isHereditary= method()
+------------------------------------------
+------------------------------------------
+-- This method checks if the PURE polyhedral
+-- complex with vertices V and facets F
+-- is hereditary.  Dimension of polyhedral
+-- complex must be same as ambient dimension.
+-- Needs correction for 3 dim and higher!
+------------------------------------------
+--Inputs: 
+------------------------------------------
+--F = ordered lists of facets
+------------------------------------------
+--Outputs:
+--Boolean, if complex is hereditary
+------------------------------------------
+
+isHereditary(List,List) := Boolean => (V,F) -> (
+    d := #(first V);
+    -- Checks that all maximal intersections of facets have dimension d-1
+    E := getCodim1Intersections(F);
+    if any(E,e->(getDim(V_e)!= d-1)) then (
+	bool:=false
+	) else (
+        -- Checks non-branching condition: all codim 1 faces are in two facets
+	dualE := apply(E,e->select(#F,f->subsetL(e,F_f)));
+	if any(dualE,f->(#f>2)) then (
+	    bool = false
+	    )else (
+	    dualG := graph(dualE,EntryMode=>"edges");
+	    linkH := hashTable apply(#V, v-> v=>select(#F, f -> member(v,F_f)));
+	    -- Checks if the dual graph of the star of each each vertex is connected. Note: need to extend
+	    -- this to link of every face... my bad (Mike D.)
+	    bool = all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+	    ));
+    bool
+)
+
+isHereditary(List) := Boolean => F -> (
+    V := unique flatten join F;
+    E := getCodimDFacesSimplicial(F,1);
+    dualV := toList(0..#F-1);
+    dualE := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
+    if not all(dualE,e-> #e <= 2) then (
+	false -- Checks pseudo manifold condition
+      ) else (
+      dualG := graph(dualE,EntryMode=>"edges");
+      linkH := hashTable apply(V, v-> v=>select(#F, f -> member(v,F_f)));
+      -- Checks if the link of each vertex is connected.
+      all(keys linkH, k-> isConnected inducedSubgraph(dualG,linkH#k))
+      )
+)
 
 -----------------------------------------
------------------------------------------
---TODO: Add a method to create a spline ring to
---be reused among spline rings.
------------------------------------------
------------------------------------------
-
---createSplineRing = method(
---    getSymbol "VariableName" => getSymbol "t",
---    getSymbol "CoefficientRing" => QQ,
---    getSymbol "Homogenize" => true
---    )
-
---createSplineRing(ZZ) := d -> (    
---        if opts.Homogenize then (
---	    S := (opts.CoefficientRing)[t_0..t_d];
---	    ) else (
---	    S = (opts.CoefficientRing)[t_1..t_d];
---	    );
---	S
---	)
-
 
 formsList=method(Options=>{
 	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ}
@@ -356,11 +419,11 @@ formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
 )
 
 
-
 -----------------------------------------
 -----------------------------------------
 splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
+	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ})
@@ -413,7 +476,16 @@ splineMatrix(List,ZZ) := Matrix => opts -> (L,r) -> (
 -- to facets and linear forms separating facets.
 ------------------------------------------
 splineMatrix(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+<<<<<<< HEAD
 	if opts.InputType === "ByFacets" then (
+=======
+    if opts.InputType === "ByFacets" then (
+		if opts.CheckHereditary then (
+	    	    if not isHereditary(F,E) then (
+			error "Not hereditary."
+			);
+	    	    );
+>>>>>>> master
 	d := # (first V);
 	--Compute which facets are adjacent to each edge:
 	facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
@@ -493,6 +565,7 @@ splineMatrix(List,List,ZZ) := Matrix => opts -> (V,F,r) ->(
 ------------------------------------------
 splineModule = method(Options => {
 	symbol InputType => "ByFacets",
+	symbol CheckHereditary => false, 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
 	symbol CoefficientRing => QQ}
@@ -1358,8 +1431,8 @@ doc ///
         Text
             This package provides methods for computations with piecewise polynomial functions (splines) over
 	    polytopal complexes.
-	Text
-	    @SUBSECTION "Definitions"@
+ 	Text 
+	    "Definitions"
 	Text
 	    Let $\Delta$ be a partition (simplicial,polytopal,cellular,rectilinear, etc.) of a space $\RR^n$.
 	    The spline module $S_d^{r}(\Delta)$ is the module of all functions $f\in C^r(\Delta)$ such that
@@ -1370,8 +1443,8 @@ doc ///
 	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well
 	    as defining new types @TO Splines@ and @TO Spline@ that contain geometric data 
 	    for $\Delta$ (if entered) and details on the associated spline module $S_d^r(\Delta)$.
-        Text
-	    @SUBSECTION "Other acknowledgements"@
+--        Text
+--	    @SUBSECTION "Other acknowledgements"@
             --
             Methods in this package borrows heavily from code written by Hal Schenck
 	    and Mike DiPasquale.
@@ -1388,6 +1461,7 @@ doc ///
 	(splineMatrix,List,List,ZZ)
 	(splineMatrix,List,List,List,ZZ)
 	InputType
+	CheckHereditary
 	ByFacets
 	ByLinearForms
     Headline
@@ -1407,6 +1481,10 @@ doc ///
 	    degree of desired continuity
 	InputType=>String
 	    either "ByFacets", or "ByLinearForms"
+	CheckHereditary=>Boolean
+	    either "true" or "false", depending on if you want
+	    to check if Delta is hereditary before attempting 
+	    to compute splines.
     Outputs
     	S:Matrix
 	  resulting spline module
@@ -1431,6 +1509,54 @@ doc ///
 
 ///
 
+doc ///
+    Key
+        isHereditary
+	(isHereditary,List,List)
+	(isHereditary,List)
+    Headline
+    	checks if a complex $\Delta$ is hereditary
+    Usage
+    	B = isHereditary(F,E)
+	B = isHereditary(F)
+    Inputs
+    	F:List
+	    list of facets of F
+	E:List
+	    list of codimension 1 faces of F
+    Outputs
+    	B:Boolean
+	    returns true if F is hereditary
+    Description
+        Text
+	    A complex $\Delta$ is hereditary if it is a pseudomanifold (all 
+	    codimention 1 faces are contained in two facets), and the link of 
+	    each vertex is connected.
+	
+	Text
+	    The hereditary check can take both facets and codimension 1 faces:
+	
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    E = {{2,3},{3,4},{4,5},{5,6}}
+	    isHereditary(F,E)
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{5,6,7}}
+	    E = {{2,3},{3,4},{4,5}}
+	    isHereditary(F,E)
+	    
+	Text
+	    Alternately, if the complex is simplicial, codimension 1 faces can
+	    be computed automatically.
+	    
+	Example
+	    F = {{1,2,3},{2,3,4},{3,4,5},{4,5,6}}
+	    isHereditary(F)
+    SeeAlso
+        splineMatrix
+	
+/// 
 
 --<<<<<<< HEAD
 --=======
@@ -1875,6 +2001,7 @@ assert(splineMatrix(V,F,E,1) == matrix {{1, 0, 0, 0, -1, t_2^2, 0, 0, 0, 0}, {1,
       t_1^2-2*t_1*t_2+t_2^2, 0, 0, 0}, {0, 1, -1, 0, 0, 0, 0,
       t_1^2+2*t_1*t_2+t_2^2, 0, 0}, {0, 0, 1, -1, 0, 0, 0, 0,
       t_1^2-4*t_1*t_2+4*t_2^2, 0}, {0, 0, 0, 1, -1, 0, 0, 0, 0, t_1^2}})
+assert(isHereditary(F,E) === true)
 ///
 
 TEST ///
@@ -1915,6 +2042,7 @@ assert(splineMatrix(V,F,E,0,Homogenize=>false) == matrix {{1, -1, 0, 0, 0, 0, 0,
       0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t_1+t_2-3,
       0}, {0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       t_2}})
+assert(isHereditary(F,E) === true)
 ///
 
 
