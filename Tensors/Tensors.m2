@@ -25,21 +25,34 @@ newPackage(
 --Searchable comment legend:
 --a.c. : andrew critch
 ----------------------------------------
-export{Tensor,TensorModule,
-     makeTensor,tensorModule,tensorModuleProduct,
-     tensorDims,
-     genericTensor,genericSymmetricTensor,
-     randomTensor,
-     indexedTensorProduct,einsteinSum,
-     symmetrize, isSymmetric, Antisymmetrize,
-     tensorToPolynomial, tensorToMultilinearForm, polynomialToTensor,
-     multiplicationTensor, matrixMultiplicationTensor,
-     tensorEigenvectors, eigenDiscriminant, tensorEigenvectorsCoordinates,
-     tensorFromSlices,
-     flattenTensor,
-     factorMap,
-     permutationSign,
-     associativeCartesianProduct
+export{
+     "Tensor",
+     "TensorModule",
+     "makeTensor",
+     "tensorModule",
+     "tensorModuleProduct",
+     "tensorDims",
+     "genericTensor",
+     "genericSymmetricTensor",
+     "randomTensor",
+     "indexedTensorProduct",
+     "einsteinSum",
+     "symmetrize",
+     "isSymmetric",
+     "Antisymmetrize",
+     "tensorToPolynomial",
+     "tensorToMultilinearForm",
+     "polynomialToTensor",
+     "multiplicationTensor",
+     "matrixMultiplicationTensor",
+     "tensorEigenvectors",
+     "eigenDiscriminant",
+     "tensorEigenvectorsCoordinates",
+     "tensorFromSlices",
+     "flattenTensor",
+     "factorMap",
+     "permutationSign",
+     "associativeCartesianProduct"
      }
 
 -------------------------
