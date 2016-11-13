@@ -884,13 +884,7 @@ cellularComplex(List) := ChainComplex => opts -> (F) -> (
 	);
     if opts.InputType === "Simplicial" then (
 	d := (# first F)-1;
-	if opts.Homogenize then (
-	    t := opts.VariableName;
-	    S := (opts.CoefficientRing)[t_0..t_d];
-	    ) else (
-	    t = opts.VariableName;
-	    S = (opts.CoefficientRing)[t_1..t_d];
-	    );
+	S := createSplineRing(d,opts);
 	boundaryF := boundaryComplex(F);
 	C := apply(d+1, i-> getCodimDFacesSimplicial(F,i));
 	boundaryC := join({{}},apply(d, i-> getCodimDFacesSimplicial(boundaryF,i)));
@@ -919,13 +913,7 @@ cellularComplex(List) := ChainComplex => opts -> (F) -> (
 
 cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
     d := (# first V);
-    if opts.Homogenize then (
-	t := opts.VariableName;
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	t = opts.VariableName;
-	S = (opts.CoefficientRing)[t_1..t_d];
-	);
+    S := createSplineRing(d,opts);
     if issimplicial(V,F) then (
 	boundaryF := boundaryComplex(F);
 	C := apply(d+1, i-> getCodimDFacesSimplicial(F,i));
@@ -942,7 +930,11 @@ cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
 		intC =append(intC,current)
 	));
     	--get the forms defining codimension 1 faces--
-	fList :=formsList(V,intC_1,0,opts);
+	fList :=formsList(V,intC_1,0,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S);
     	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(d-1,i->(
@@ -988,13 +980,7 @@ idealsComplex=method(Options=>{
 
 idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     d := #(first V);
-    if opts.Homogenize then (
-	t := opts.VariableName;
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	t = opts.VariableName;
-	S = (opts.CoefficientRing)[t_1..t_d];
-	);
+    S := createSplineRing(d,opts);
     if issimplicial(V,F) then (
 	--list of interior faces in order of increasing codimension--
 	boundaryF := boundaryComplex(F);
@@ -1004,7 +990,11 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	--if there are no interior faces of large codimension, get rid of the empty lists
 	intC = select(intC,L->( (length L)>0));
 	--list of forms defining codim 1 interior faces
-	intformslist := formsList(V,intC_1,r,opts);
+	intformslist :=formsList(V,intC_1,r,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S); 
 	--list of modules which will define chain complex--
 	fullmodulelist:= apply(#intC,i->directSum apply(intC_i,e->(
 		CE := positions(intC_1,f->subsetL(e,f));
@@ -1027,7 +1017,11 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     	--if there are no intersections of larger codimension, get rid of the empty lists
 	intC = select(intC,L->((length L)>0));    	
     	--get the forms defining codimension 1 faces--
-	fList :=formsList(V,intC_1,0,opts);
+	fList :=formsList(V,intC_1,0,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S);
 	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(#intC-2,i->(
@@ -1103,7 +1097,11 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	--if there are no interior faces of large codimension, get rid of the empty lists
 	intC = select(intC,L->( (length L)>0));
 	--list of forms defining codim 1 interior faces
-	intformslist := formsList(V,intC_1,r,opts);
+	intformslist := formsList(V,intC_1,r,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S); 
 	--list of modules which will define chain complex--
 	fullmodulelist:= {S^(#F)};
 	scan(#intC-1,i->(
@@ -1134,7 +1132,7 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	    Homogenize => opts.Homogenize,
 	    VariableName => opts.VariableName,
 	    CoefficientRing => opts.CoefficientRing,
-	    BaseRing => S); --COME BACK HERE
+	    BaseRing => S);
     	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(#intC-2,i->(
