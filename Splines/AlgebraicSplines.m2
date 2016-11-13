@@ -40,6 +40,7 @@ export {
    "VertexCoordinates",
    "Regions",
    "SplineModule",
+   "BaseRing",
    "splines",
    "splineMatrix",
    "splineModule",
@@ -56,8 +57,9 @@ export {
    "formsList",
    "cellularComplex",
    "idealsComplex",
-   "splineComplex"
-    }
+   "splineComplex",
+   "createSplineRing"
+   }
 
 
 ------------------------------------------
@@ -74,7 +76,8 @@ splines = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ})
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null})
 
 splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
@@ -84,7 +87,7 @@ splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
 	    symbol VertexCoordinates => V,
 	    symbol Regions => F,
-	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),)
+	    symbol SplineModule => image (gens K)^(toList(0..b-1))
 	}
 )
 
@@ -179,8 +182,8 @@ formsList=method(Options=>{
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ}
-    )
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null})
 ----------------------------------------------------
 --This method returns a list of forms corresponding to codimension one faces
 --------
@@ -194,19 +197,22 @@ formsList=method(Options=>{
 --raised to (r+1) power
 ------------------------------------------------------------
 
-formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
+formsList(List,List,ZZ):= List => opts->(V,E,r)->(
     --To homogenize, we append a 1 as the final coordinate of each vertex coord in list V.
     --If not homogenizing, still need 1s for computing equations
     d := #(first V);
-    t := opts.VariableName;
     V = apply(V, v-> append(v,1));
+    if opts.BaseRing === null then (
+	S := createSplineRing(d,opts);
+	)
+    else (
+	S = opts.BaseRing;
+	);
     if opts.Homogenize then (
-	    S := (opts.CoefficientRing)[t_0..t_d];
-	    varlist := (vars S)_(append(toList(1..d),0));
-	    ) else (
-	    S = (opts.CoefficientRing)[t_1..t_d];
-	    varlist = (vars S)|(matrix {{sub(1,S)}});
-	    );
+	varlist := vars S;
+	) else (
+	varlist = (vars S)|(matrix {{sub(1,S)}});
+	);
     varCol := transpose varlist;
     M := (transpose(matrix(S,V)));
     mM := numrows M;
@@ -217,6 +223,31 @@ formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
     flatten apply(minorList, m -> (m_(0,0))^(r+1))
 )
 
+createSplineRing = method(Options => {
+    	symbol InputType => "ByFacets", 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null
+	}
+    )
+
+
+createSplineRing(ZZ):= PolynomialRing => opts -> (d) -> (
+    t := opts.VariableName;
+    if opts.BaseRing === null then (
+    	if opts.Homogenize then (
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    ) else (
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    );
+	)
+	else (
+	    S = opts.BaseRing
+	);
+    S
+    )
+
 
 -----------------------------------------
 -----------------------------------------
@@ -224,7 +255,8 @@ splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ})
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null})
 ------------------------------------------
 ------------------------------------------
 
@@ -356,7 +388,8 @@ splineModule = method(Options => {
 	symbol InputType => "ByFacets",
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ}
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null}
     )
 ------------------------------------------
 ------------------------------------------
@@ -411,10 +444,7 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 ------------------------------------------
 -------------------------------------------
 -------------------------------------------
-splineDimensionTable=method(Options => {
-	symbol InputType => "ByFacets"
-	}
-    )
+splineDimensionTable=method()
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
@@ -832,7 +862,8 @@ cellularComplex = method(
 	    symbol InputType => "Polyhedral",
 	    symbol Homogenize => true, 
 	    symbol VariableName => getSymbol "t",
-	    symbol CoefficientRing => QQ
+	    symbol CoefficientRing => QQ,
+	    symbol BaseRing => null
 	    }
     )
 ------------------------------------------------
@@ -853,13 +884,7 @@ cellularComplex(List) := ChainComplex => opts -> (F) -> (
 	);
     if opts.InputType === "Simplicial" then (
 	d := (# first F)-1;
-	if opts.Homogenize then (
-	    t := opts.VariableName;
-	    S := (opts.CoefficientRing)[t_0..t_d];
-	    ) else (
-	    t = opts.VariableName;
-	    S = (opts.CoefficientRing)[t_1..t_d];
-	    );
+	S := createSplineRing(d,opts);
 	boundaryF := boundaryComplex(F);
 	C := apply(d+1, i-> getCodimDFacesSimplicial(F,i));
 	boundaryC := join({{}},apply(d, i-> getCodimDFacesSimplicial(boundaryF,i)));
@@ -888,13 +913,7 @@ cellularComplex(List) := ChainComplex => opts -> (F) -> (
 
 cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
     d := (# first V);
-    if opts.Homogenize then (
-	t := opts.VariableName;
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	t = opts.VariableName;
-	S = (opts.CoefficientRing)[t_1..t_d];
-	);
+    S := createSplineRing(d,opts);
     if issimplicial(V,F) then (
 	boundaryF := boundaryComplex(F);
 	C := apply(d+1, i-> getCodimDFacesSimplicial(F,i));
@@ -911,7 +930,11 @@ cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
 		intC =append(intC,current)
 	));
     	--get the forms defining codimension 1 faces--
-	fList :=formsList(V,intC_1,0,opts);
+	fList :=formsList(V,intC_1,0,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S);
     	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(d-1,i->(
@@ -939,7 +962,8 @@ cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
 idealsComplex=method(Options=>{
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null
     }
     )
 ------------------------------------------
@@ -956,13 +980,7 @@ idealsComplex=method(Options=>{
 
 idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     d := #(first V);
-    if opts.Homogenize then (
-	t := opts.VariableName;
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	t = opts.VariableName;
-	S = (opts.CoefficientRing)[t_1..t_d];
-	);
+    S := createSplineRing(d,opts);
     if issimplicial(V,F) then (
 	--list of interior faces in order of increasing codimension--
 	boundaryF := boundaryComplex(F);
@@ -972,7 +990,11 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	--if there are no interior faces of large codimension, get rid of the empty lists
 	intC = select(intC,L->( (length L)>0));
 	--list of forms defining codim 1 interior faces
-	intformslist := formsList(V,intC_1,r,opts);
+	intformslist :=formsList(V,intC_1,r,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S); 
 	--list of modules which will define chain complex--
 	fullmodulelist:= apply(#intC,i->directSum apply(intC_i,e->(
 		CE := positions(intC_1,f->subsetL(e,f));
@@ -995,7 +1017,11 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     	--if there are no intersections of larger codimension, get rid of the empty lists
 	intC = select(intC,L->((length L)>0));    	
     	--get the forms defining codimension 1 faces--
-	fList :=formsList(V,intC_1,0,opts);
+	fList :=formsList(V,intC_1,0,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S);
 	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(#intC-2,i->(
@@ -1030,7 +1056,8 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 splineComplex=method(Options=>{
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null
     }
     )
 
@@ -1060,13 +1087,7 @@ splineComplex=method(Options=>{
 
 splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     d := #(first V);
-    if opts.Homogenize then (
-	t := opts.VariableName;
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	t = opts.VariableName;
-	S = (opts.CoefficientRing)[t_1..t_d];
-	);
+    S := createSplineRing(d,opts);
     if issimplicial(V,F) then (
 	--list of interior faces in order of increasing codimension--
 	boundaryF := boundaryComplex(F);
@@ -1076,7 +1097,11 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 	--if there are no interior faces of large codimension, get rid of the empty lists
 	intC = select(intC,L->( (length L)>0));
 	--list of forms defining codim 1 interior faces
-	intformslist := formsList(V,intC_1,r,opts);
+	intformslist := formsList(V,intC_1,r,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S); 
 	--list of modules which will define chain complex--
 	fullmodulelist:= {S^(#F)};
 	scan(#intC-1,i->(
@@ -1103,7 +1128,11 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     	--if there are no intersections of larger codimension, get rid of the empty lists
 	intC = select(intC,L->((length L)>0));
     	--get the forms defining codimension 1 faces--
-	fList :=formsList(V,intC_1,0,opts);
+	fList :=formsList(V,intC_1,0,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S);
     	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(#intC-2,i->(
