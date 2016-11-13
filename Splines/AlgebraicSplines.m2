@@ -41,7 +41,6 @@ export {
    "Regions",
    "SplineModule",
    "splines",
-   "formsList",
    "splineMatrix",
    "splineModule",
    "InputType",
@@ -50,27 +49,16 @@ export {
    "ByLinearForms",
    "Homogenize",
    "VariableName",
-   "interiorFaces",
    "splineDimensionTable",
    "postulationNumber",
    "hilbertComparisonTable",
---   "hilbertPolyEval",
    "generalizedSplines",
+   "formsList",
    "cellularComplex",
    "idealsComplex",
-   "splineComplex",
-   --get rid of these once testing is done
-   "getCodim1Intersections",
-   "getCodimDIntersections",
-   "getCodimDFacesSimplicial",
-   "issimplicial",
-   "simpBoundary",
-   "boundaryComplex",
-   "codim1Cont",
-   "orient",
-   "polyBoundaryPair",
-   "polyBoundary"
+   "splineComplex"
     }
+
 
 ------------------------------------------
 ------------------------------------------
@@ -115,32 +103,6 @@ subsetL=method()
 --Containment function for lists--
 subsetL(List,List):=Boolean=>(L1,L2)->(
     all(L1,f->member(f,L2))
-    )
-
-
------------------------------------------
------------------------------------------
-interiorFaces = method()
------------------------------------------
------------------------------------------
---Inputs: 
------------------------------------------
---F = list of facets
---E = list of codimension 1 faces
--- (possibly including non-interior)
------------------------------------------
------------------------------------------
---Outputs:
------------------------------------------
---E' = list of interior codimension 1 faces
------------------------------------------
-interiorFaces(List,List) := List => (F,E) -> (
-    --Compute which facets are adjacent to each edge:
-    facetEdgeH := apply(#E, e-> positions(F, f-> all(E_e,v-> member(v,f))));
-    --Compute indices of interior edges, and replace edge list and 
-    --facet adjacencies to only include these interior edges:
-    indx := positions(facetEdgeH, i-> #i === 2);
-    E_indx
     )
 
 ------------------------------------------
@@ -189,40 +151,7 @@ getCodim1Intersections(List) := List => opts -> F ->(
     codim1int
 )
 
-------------------------------------------
-------------------------------------------
-getCodimDIntersections = method(Options=>{
-	symbol InputType => "Polyhedral"
-	}
-    )
-------------------------------------------
-------------------------------------------
---Inputs: 
-------------------------------------------
---F = list of faces of a polytope
---d = desired codimesion
-------------------------------------------
---Outputs:
------------------------------------------
---E = list of (interior) codim d faces
------------------------------------------
-getCodimDIntersections(List,ZZ) := List => opts->(F,d) ->(
-    if opts.InputType === "Polyhedral" then(
-    	Fcodim := F;
-    	--Iteratively compute intersections up to codim d --
-    	apply(d, i-> Fcodim = getCodim1Intersections(Fcodim))
-    ) else if opts.InputType === "Simplicial" then(
-	--Get all faces of codimension d--
-	Fcodim = getCodimDFacesSimplicial(F,d);
-	--Get boundary faces of codimension d--
-	boundaryF := boundaryComplex(F);
-	boundaryCodim := getCodimDFacesSimplicial(boundaryF,d);
-	--Select nonBoundary faces of codimension d--
-	Fcodim = select(Fcodim, f-> not member(f, boundaryCodim)
-	    )
-    	);
-    Fcodim
-    )
+
 
 ------------------------------------------
 ------------------------------------------
@@ -1441,7 +1370,7 @@ doc ///
 	    You may instead input the list L={V,F,E} of the vertices, faces and edges of the spline.
 	Example
 	    L = {V,F,E};
-	    splineDimensionTable(0,8,L,2)
+	    (0,8,L,2)
 	
       
 ///
