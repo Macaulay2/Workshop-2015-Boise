@@ -235,10 +235,15 @@ createSplineRing = method(Options => {
 
 createSplineRing(ZZ):= PolynomialRing => opts -> (d) -> (
     t := opts.VariableName;
-    if opts.Homogenize then (
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	S = (opts.CoefficientRing)[t_1..t_d];
+    if opts.BaseRing === null then (
+    	if opts.Homogenize then (
+	    S := (opts.CoefficientRing)[t_0..t_d];
+	    ) else (
+	    S = (opts.CoefficientRing)[t_1..t_d];
+	    );
+	)
+	else (
+	    S = opts.BaseRing
 	);
     S
     )
@@ -1088,13 +1093,7 @@ splineComplex=method(Options=>{
 
 splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     d := #(first V);
-    if opts.Homogenize then (
-	t := opts.VariableName;
-	S := (opts.CoefficientRing)[t_0..t_d];
-	) else (
-	t = opts.VariableName;
-	S = (opts.CoefficientRing)[t_1..t_d];
-	);
+    S := createSplineRing(d,opts);
     if issimplicial(V,F) then (
 	--list of interior faces in order of increasing codimension--
 	boundaryF := boundaryComplex(F);
@@ -1131,7 +1130,11 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
     	--if there are no intersections of larger codimension, get rid of the empty lists
 	intC = select(intC,L->((length L)>0));
     	--get the forms defining codimension 1 faces--
-	fList :=formsList(V,intC_1,0,opts);
+	fList :=formsList(V,intC_1,0,
+	    Homogenize => opts.Homogenize,
+	    VariableName => opts.VariableName,
+	    CoefficientRing => opts.CoefficientRing,
+	    BaseRing => S); --COME BACK HERE
     	--create a list whose ith element is ideals of codim i faces--
 	idList :={apply(F,f->ideal(0_S)),apply(fList,f->ideal f)};
 	scan(#intC-2,i->(
