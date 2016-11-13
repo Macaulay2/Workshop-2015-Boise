@@ -56,7 +56,9 @@ export {
    "formsList",
    "cellularComplex",
    "idealsComplex",
-   "splineComplex"
+   "splineComplex",
+   "createSplineRing",
+   "BaseRing"
     }
 
 
@@ -74,7 +76,8 @@ splines = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ})
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null})
 
 splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
     	AD := splineMatrix(V,F,E,r,opts);
@@ -84,7 +87,7 @@ splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
 	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
 	    symbol VertexCoordinates => V,
 	    symbol Regions => F,
-	    symbol SplineModule => image submatrix(gens K, toList(0..b-1),)
+	    symbol SplineModule => image (gens K)^(toList(0..b-1))
 	}
 )
 
@@ -179,8 +182,8 @@ formsList=method(Options=>{
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ}
-    )
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null})
 ----------------------------------------------------
 --This method returns a list of forms corresponding to codimension one faces
 --------
@@ -194,19 +197,22 @@ formsList=method(Options=>{
 --raised to (r+1) power
 ------------------------------------------------------------
 
-formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
+formsList(List,List,ZZ):=List =>opts->(V,E,r)->(
     --To homogenize, we append a 1 as the final coordinate of each vertex coord in list V.
     --If not homogenizing, still need 1s for computing equations
     d := #(first V);
-    t := opts.VariableName;
     V = apply(V, v-> append(v,1));
+    if opts.BaseRing === null then (
+	S := createSplineRing(d,opts);
+	)
+    else (
+	S = opts.BaseRing;
+	);
     if opts.Homogenize then (
-	    S := (opts.CoefficientRing)[t_0..t_d];
-	    varlist := (vars S)_(append(toList(1..d),0));
-	    ) else (
-	    S = (opts.CoefficientRing)[t_1..t_d];
-	    varlist = (vars S)|(matrix {{sub(1,S)}});
-	    );
+	varlist := vars S;
+	) else (
+	varlist = (vars S)|(matrix {{sub(1,S)}});
+	);
     varCol := transpose varlist;
     M := (transpose(matrix(S,V)));
     mM := numrows M;
@@ -217,6 +223,26 @@ formsList(List,List,ZZ):=List=>opts->(V,E,r)->(
     flatten apply(minorList, m -> (m_(0,0))^(r+1))
 )
 
+createSplineRing = method(Options => {
+    	symbol InputType => "ByFacets", 
+	symbol Homogenize => true, 
+	symbol VariableName => getSymbol "t",
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null
+	}
+    )
+
+
+createSplineRing(ZZ):= PolynomialRing => opts -> (d) -> (
+    t := opts.VariableName;
+    if opts.Homogenize then (
+	S := (opts.CoefficientRing)[t_0..t_d];
+	) else (
+	S = (opts.CoefficientRing)[t_1..t_d];
+	);
+    S
+    )
+
 
 -----------------------------------------
 -----------------------------------------
@@ -224,7 +250,8 @@ splineMatrix = method(Options => {
 	symbol InputType => "ByFacets", 
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ})
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null})
 ------------------------------------------
 ------------------------------------------
 
@@ -356,7 +383,8 @@ splineModule = method(Options => {
 	symbol InputType => "ByFacets",
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ}
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null}
     )
 ------------------------------------------
 ------------------------------------------
@@ -411,10 +439,7 @@ splineModule(List,List,ZZ) := Matrix => opts -> (V,F,r) -> (
 ------------------------------------------
 -------------------------------------------
 -------------------------------------------
-splineDimensionTable=method(Options => {
-	symbol InputType => "ByFacets"
-	}
-    )
+splineDimensionTable=method()
 -------------------------------------------
 -----Inputs:
 -------------------------------------------
