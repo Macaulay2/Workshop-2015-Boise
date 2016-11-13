@@ -40,6 +40,7 @@ export {
    "VertexCoordinates",
    "Regions",
    "SplineModule",
+   "BaseRing",
    "splines",
    "splineMatrix",
    "splineModule",
@@ -57,9 +58,8 @@ export {
    "cellularComplex",
    "idealsComplex",
    "splineComplex",
-   "createSplineRing",
-   "BaseRing"
-    }
+   "createSplineRing"
+   }
 
 
 ------------------------------------------
@@ -197,7 +197,7 @@ formsList=method(Options=>{
 --raised to (r+1) power
 ------------------------------------------------------------
 
-formsList(List,List,ZZ):=List =>opts->(V,E,r)->(
+formsList(List,List,ZZ):= List => opts->(V,E,r)->(
     --To homogenize, we append a 1 as the final coordinate of each vertex coord in list V.
     --If not homogenizing, still need 1s for computing equations
     d := #(first V);
@@ -857,7 +857,8 @@ cellularComplex = method(
 	    symbol InputType => "Polyhedral",
 	    symbol Homogenize => true, 
 	    symbol VariableName => getSymbol "t",
-	    symbol CoefficientRing => QQ
+	    symbol CoefficientRing => QQ,
+	    symbol BaseRing => null
 	    }
     )
 ------------------------------------------------
@@ -964,7 +965,8 @@ cellularComplex(List,List) := ChainComplex => opts -> (V,F) -> (
 idealsComplex=method(Options=>{
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null
     }
     )
 ------------------------------------------
@@ -1055,7 +1057,8 @@ idealsComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 splineComplex=method(Options=>{
 	symbol Homogenize => true, 
 	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ
+	symbol CoefficientRing => QQ,
+	symbol BaseRing => null
     }
     )
 
