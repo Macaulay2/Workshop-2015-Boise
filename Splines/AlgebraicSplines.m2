@@ -60,7 +60,7 @@ export {
    "splineComplex",
    "createSplineRing",
    --to remove when testing is done
-   "polyBoundaryPair"
+   "polyBoundaryPair",
    "polyBoundary",
    "orient"
    }
