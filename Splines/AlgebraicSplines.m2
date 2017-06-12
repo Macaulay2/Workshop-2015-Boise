@@ -58,7 +58,11 @@ export {
    "cellularComplex",
    "idealsComplex",
    "splineComplex",
-   "createSplineRing"
+   "createSplineRing",
+   --to remove when testing is done
+   "polyBoundaryPair"
+   "polyBoundary",
+   "orient"
    }
 
 
