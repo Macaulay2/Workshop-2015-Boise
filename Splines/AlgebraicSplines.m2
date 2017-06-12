@@ -1509,21 +1509,21 @@ doc ///
     	generalizedSplines
 	(generalizedSplines,List,List)
     Headline
-    	the module of generalized splines associated to a graph and edge labelling
+    	the module of generalized splines associated to a simple graph with an edge labelling
     Usage
     	M = generalizedSplines(E,I)
-	M = generalizedSplines(G,I)
+--	M = generalizedSplines(G,I)
     Inputs
     	E:List
-	    E = list of edges of a graph
+	    E = list of edges of a graph (an edge is represented as a list with two elements)
 	I:List
 	    I = list of ideals in a ring
     Outputs
     	M:Module
-	    M = module of generalized splines on the graph G with edge labels I
+	    M = module of generalized splines on the graph with edges E and edge labels I
     Description
     	Text
-	    This method returns the module of generalized splines on a graph G with v vertices 
+	    This method returns the module of generalized splines on a graph with edgeset E on v vertices,
 	    whose edges are labelled by ideals of some ring R.  By definition this is the 
 	    submodule of $R^v$ consisting of tuples of polynomials such that the difference of
 	    polynomials corresponding to adjacent vertices are congruent module the ideal labelling
@@ -1533,9 +1533,9 @@ doc ///
 	    E = {{0,1},{1,2},{0,2}} --edges of the graph (in this case a triangle)
 	    I = {x_0-x_1,x_1-x_2,x_2-x_0} --ideals of S (elements of S are interpreted as principal ideals)
 	    generalizedSplines(E,I) --in this case this is the module of derivations on the $A_2$ arrangement
-	Text
-	    The input can also be a graph.  Care must be taken that ideals in the list I are listed in the
-	    same order as edges(G).
+--	Text
+--	    The input can also be a graph.  Care must be taken that ideals in the list I are listed in the
+--	    same order edges(G).
 --	Example
 --	    G = completeGraph(4);
 --	    S = QQ[apply(vertices G,i->x_i)];
@@ -1543,16 +1543,16 @@ doc ///
 --	    generalizedSplines(G,I) --module of derivations on $A_3$
 	Text
 	    If edge labels are integers, generalizedSplines is computed as a ZZ module by default.
---	Example
---	    G=cycleGraph(4);
---	    I={3,4,5,6};
---	    generalizedSplines(G,I)
+	Example
+	    E={{0,1},{1,2},{2,3},{0,3}};
+	    I={3,4,5,6};
+	    generalizedSplines(G,I)
 	Text
 	    The above splines may also be computed over ZZ modulo some integer.
---	Example
---	    G=cycleGraph(4);
---	    I={3,4,5,6};
---	    generalizedSplines(G,I,RingType=>9) --computes spline module with underlying ring ZZ/9
+	Example
+	    E={{0,1},{1,2},{2,3},{0,3}};
+	    I={3,4,5,6};
+	    generalizedSplines(G,I,RingType=>9) --computes spline module with underlying ring ZZ/9
 	Text
 	    Arbitrary ideals may also be entered as edge labels.
 	Example
