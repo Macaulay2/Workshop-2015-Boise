@@ -730,8 +730,15 @@ polyBoundaryPair(List,List,List):=ZZ=>(V,L2,L1)->(
 	IH:=sub(L2_1,S);
 	OH:=apply(L2_2,var->sub(var,S));
 	--get a vertex of H that is not a vertex of G--
-	testVindex :=select(1,H,v->not member(v,G));
-	testV := transpose matrix({append(flatten V_testVindex,1)});
+	--if homogenized, append 1
+	if (numcols vars S)==(#(V_0)+1) then(
+	    testVindex :=select(1,H,v->not member(v,G));
+	    testV := transpose matrix({append(flatten V_testVindex,1)})
+	    --else, don't append 1--
+	    ) else (
+	    testVindex = select(1,H,v->not member(v,G));
+	    testV = transpose matrix(V_testVindex)
+	    );
 	--get a generator of IG that is not a generator of IH--
 	outVect :=first select(1,flatten entries gens IG,f->(f%IH!=0));
 	--get row vector whose entries are coefficients of outVect
