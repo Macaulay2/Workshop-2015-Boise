@@ -36,12 +36,9 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   "Splines",
-   "VertexCoordinates",
    "Regions",
    "SplineModule",
    "BaseRing",
-   "splines",
    "splineMatrix",
    "splineModule",
    "InputType",
@@ -68,30 +65,32 @@ export {
 ------------------------------------------
 ------------------------------------------
 
+--may include the following in a future iteration
+
 --Create an object that gives ALL splines
 --on a given subdivision.
-Splines = new Type of HashTable
+--Splines = new Type of HashTable
 
-splines = method(Options => {
-	symbol InputType => "ByFacets", 
-	symbol Homogenize => true, 
-	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ,
-	symbol BaseRing => null})
+--splines = method(Options => {
+--	symbol InputType => "ByFacets", 
+--	symbol Homogenize => true, 
+--	symbol VariableName => getSymbol "t",
+--	symbol CoefficientRing => QQ,
+--	symbol BaseRing => null})
 
-splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
-    	AD := splineMatrix(V,F,E,r,opts);
-	K := ker AD;
-	b := #F;
-    	new Splines from {
-	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
-	    symbol VertexCoordinates => V,
-	    symbol Regions => F,
-	    symbol SplineModule => image (gens K)^(toList(0..b-1))
-	}
-)
+--splines(List,List,List,ZZ) := Matrix => opts -> (V,F,E,r) -> (
+--    	AD := splineMatrix(V,F,E,r,opts);
+--	K := ker AD;
+--	b := #F;
+--  	new Splines from {
+--	    symbol cache => new CacheTable from {"name" => "Unnamed Spline"},
+--	    symbol VertexCoordinates => V,
+--	    symbol Regions => F,
+--	    symbol SplineModule => image (gens K)^(toList(0..b-1))
+--	}
+--)
 
-net Splines := S -> S.SplineModule
+--net Splines := S -> S.SplineModule
    
 ------------------------------------------
 ------------------------------------------
@@ -1470,35 +1469,6 @@ doc ///
 
 doc ///
     Key
-        hilbertPolyEval
-	(hilbertPolyEval,ZZ,Module)
-    Headline
-        a function to evaluate the hilbertPolynomial of a graded module at an integer
-    Usage
-        v = hilbertPolyEval(a,M)
-    Inputs
-        a:ZZ
-	    a= integer at which you will evaluate the hilbertPolynomial of the graded module M
-	M:Module
-	    M= graded module
-    Outputs
-        v:ZZ
-	    v= hilbertPolynomial of the graded module M evaluated at a
-    Description
-        Text
-            For any graded module M and any integer a, you may evaluate the hilberPolynomial of M
-	    at a.
-	Example
-	    V = {{0,0},{1,0},{1,1},{0,1}};
-	    F = {{0,1,2},{0,2,3}};
-	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
-	    M = splineModule(V,F,E,2)
-	    hilbertPolyEval(2,M)
-	    
-///
-
-doc ///
-    Key
         postulationNumber
 	(postulationNumber,Module)
     Headline
@@ -1848,29 +1818,6 @@ doc ///
 
 ///
 
-doc ///
-    Key
-        Splines
-	VertexCoordinates
-	Regions
-	SplineModule
-    Headline
-    	a class for splines (piecewise polynomial functions on subdivisions)
-    Description
-    	Text
-	    This class is a type of @TO "HashTable"@ that stores information on
-	    a subdivision $\Delta$ of ${\mathbb R}^n$, given by a set of vertex
-	    coordinates and a list of facets (and possibly edges), along with a
-	    module of all splines on $\Delta$ of continuity $r$.
-	Example
-	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};
-	    F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};
-	    E = {{0,1},{0,2},{0,3},{0,4},{0,5}};
-	    S = splines(V,F,E,1) -- splines in R^2 with smoothness 1
-    SeeAlso
-        splines
-///
-
 TEST ///
 V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}}
 F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}}
@@ -1930,3 +1877,57 @@ assert(splineMatrix(V,F,E,0,Homogenize=>false) == matrix {{1, -1, 0, 0, 0, 0, 0,
 
 end
 
+--may restore to documentation in future iterations
+
+--doc ///
+--    Key
+--        hilbertPolyEval
+--	(hilbertPolyEval,ZZ,Module)
+--    Headline
+--        a function to evaluate the hilbertPolynomial of a graded module at an integer
+--    Usage
+--        v = hilbertPolyEval(a,M)
+--    Inputs
+--        a:ZZ
+--	    a= integer at which you will evaluate the hilbertPolynomial of the graded module M
+--	M:Module
+--	    M= graded module
+--    Outputs
+--        v:ZZ
+--	    v= hilbertPolynomial of the graded module M evaluated at a
+--    Description
+--        Text
+--            For any graded module M and any integer a, you may evaluate the hilberPolynomial of M
+--	    at a.
+--	Example
+--	    V = {{0,0},{1,0},{1,1},{0,1}};
+--	    F = {{0,1,2},{0,2,3}};
+--	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
+--	    M = splineModule(V,F,E,2)
+--	    hilbertPolyEval(2,M)
+--	    
+--///
+
+
+--doc ///
+--    Key
+--        Splines
+--	VertexCoordinates
+--	Regions
+--	SplineModule
+--    Headline
+--    	a class for splines (piecewise polynomial functions on subdivisions)
+--    Description
+--    	Text
+--	    This class is a type of @TO "HashTable"@ that stores information on
+--	    a subdivision $\Delta$ of ${\mathbb R}^n$, given by a set of vertex
+--	    coordinates and a list of facets (and possibly edges), along with a
+--	    module of all splines on $\Delta$ of continuity $r$.
+--	Example
+--	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};
+--	    F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};
+--	    E = {{0,1},{0,2},{0,3},{0,4},{0,5}};
+--	    S = splines(V,F,E,1) -- splines in R^2 with smoothness 1
+--    SeeAlso
+--        splines
+--///
