@@ -1281,6 +1281,7 @@ doc ///
         splineMatrix
 	(splineMatrix,List,List,ZZ)
 	(splineMatrix,List,List,List,ZZ)
+	(splineMatrix,List,ZZ)
 	InputType
 	ByFacets
 	ByLinearForms
@@ -1292,7 +1293,8 @@ doc ///
     Usage
     	S = splineMatrix(V,F,E,r)
 	S = splineMatrix(V,F,r)
-	S = splineMatrix(B,L,r)
+	S = splineMatrix(L,r)
+	S = splineMatrix(B,H,r)
     Inputs
     	V:List
 	    list of coordinates of vertices of $\Delta$
@@ -1302,6 +1304,10 @@ doc ///
 	    list of codimension one faces of $\Delta$ (interior or not); each codimension one face is recorded as a list of indices of vertices taken from V
 	r:ZZ
 	    degree of desired continuity
+	L:List
+	    list $\{V,F,E\}$ of vertices, facets, and codimension one faces of $\Delta$
+	H:List
+	    list of forms defining codimension one faces of $\Delta$
 	InputType=>String
 	
 	BaseRing=>Ring
@@ -1330,7 +1336,7 @@ doc ///
 	Example
 	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
             F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
-    	    splineMatrix(V,F,E,1)
+    	    splineMatrix(V,F,1)
 	Text
 	    Splines are automatically computed on the cone over the given complex $\Delta$.  If the user desires splines over $\Delta$,
 	    use the option Homogenize=>false.
@@ -1354,8 +1360,8 @@ doc ///
 	Example
 	    R = QQ[x,y]
 	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}
-	    L = {x-y,y,x,y-2*x,x+y}
-	    splineMatrix(B,L,1,InputType=>"ByLinearForms")
+	    H = {x-y,y,x,y-2*x,x+y}
+	    splineMatrix(B,H,1,InputType=>"ByLinearForms")
 
 ///
 
@@ -1371,13 +1377,13 @@ doc ///
 	M = splineModule(V,F,r)
     Inputs
         V:List
-	    V = list of coordinates of vertices of $\Delta$
+	    list of coordinates of vertices of $\Delta$
 	F:List
 	    list of facets of $\Delta$; each facet is recorded as a list of indices of vertices taken from V
 	E:List
 	    list of codimension one faces of $\Delta$ (interior or not); each codimension one face is recorded as a list of indices of vertices taken from V
 	r:ZZ
-	    r = desired degree of smoothness
+	    desired degree of smoothness
 	BaseRing=>Ring
 	    
 	Homogenize=>Boolean
@@ -1390,7 +1396,7 @@ doc ///
 	
     Outputs
         M:Module
-	    M = module of splines on $\Delta$
+	    module of splines on $\Delta$
     Description
         Text
 	    This method returns the spline module.  It is presented as the image of a matrix
@@ -1420,15 +1426,15 @@ doc ///
 	T=splineDimensionTable(a,b,L,r)
     Inputs
         a:ZZ
-	    a= lowest degree in the table
+	    lowest degree in the table
 	b:ZZ
-	    b= largest degree in the table
+	    largest degree in the table
 	M:Module
-	    M= graded module
+	    graded module
 	L:List
-	    L= a list {V,F,E} of the vertices, facets and codimension one faces of a polyhedral complex
+	    a list {V,F,E} of the vertices, facets and codimension one faces of a polyhedral complex
 	r:ZZ
-	    r= degree of smoothnes 
+	    degree of smoothnes 
 
     Outputs
         T:Table
@@ -1478,10 +1484,10 @@ doc ///
         v = postulationNumber(M)
     Inputs
         M:Module
-	    M= graded module
+	    graded module
     Outputs
         v:ZZ
-	    v= largest degree at which the hilbert function of the graded module M is not equal to the hilbertPolynomial
+	    largest degree at which the hilbert function of the graded module M is not equal to the hilbertPolynomial
     Description
         Text
 	    This function computes the postulation number of M which is defined as the
@@ -1506,14 +1512,14 @@ doc ///
         T = hilbertComparisonTable(a,b,M)
     Inputs
         a:ZZ
-	    a= lowest degree in the  table
+	    lowest degree in the  table
 	b:ZZ
-	    b= largest degree in the table
+	    largest degree in the table
 	M:Module
-	    M= graded module
+	    graded module
     Outputs        
 	T:Table
-	    T= table with the degrees and values of the hilbertFunction and hilbertPolynomial
+	    table with the degrees and values of the hilbertFunction and hilbertPolynomial
     Description
         Text
 	    The first row of the output table contains the degrees, the second row contains the 
@@ -1575,11 +1581,11 @@ doc ///
     	L = formsList(V,E,r)
     Inputs
     	V:List
-	    V = list of coordinates of vertices
+	    list of coordinates of vertices
 	E:List
-	    E = list of codimension 1 faces (each codimension 1 face is recorded as a list of indices of vertices taken from V)
+	    list of codimension 1 faces (each codimension 1 face is recorded as a list of indices of vertices taken from V)
 	r:ZZ
-	    r = desired degree of smoothness
+	    desired degree of smoothness
 	BaseRing=>Ring
 	    
 	Homogenize=>Boolean
@@ -1618,14 +1624,14 @@ doc ///
 --	M = generalizedSplines(G,I)
     Inputs
     	E:List
-	    E = list of edges of a graph (an edge is represented as a list with two elements)
+	    list of edges of a graph (an edge is represented as a list with two elements)
 	I:List
-	    I = list of ideals in a ring
+	    list of ideals in a ring
 	RingType=>ZZ
 	
     Outputs
     	M:Module
-	    M = module of generalized splines on the graph with edges E and edge labels I
+	    module of generalized splines on the graph with edges E and edge labels I
     Description
     	Text
 	    This method returns the module of generalized splines on a graph with edgeset E on v vertices,
@@ -1672,15 +1678,17 @@ doc ///
     Key
     	cellularComplex
 	(cellularComplex,List,List)
+	(cellularComplex,List)
     Headline
     	create the cellular chain complex whose homologies are the singular homologies of the complex $\Delta$ relative to its boundary
     Usage
+    	C = cellularComplex(F,InputType=>Simplicial)  --for use only if $\Delta$ is simplicial
     	C = cellularComplex(V,F)
     Inputs
     	V:List
-	    V = list of coordinates of vertices of $\Delta$
+	    list of coordinates of vertices of $\Delta$
 	F:List
-	    F = list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
+	    list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	BaseRing=>Ring
 	    
 	Homogenize=>Boolean
@@ -1689,9 +1697,11 @@ doc ///
 	
 	VariableName=>Symbol
 	
+	InputType=>String
+	
     Outputs
     	C:ChainComplex
-	    C = cellular chain complex of $\Delta$ relative to its boundary
+	    cellular chain complex of $\Delta$ relative to its boundary
     Description
     	Text
 	    This method returns the cellular chain complex of $\Delta$ relative to its
@@ -1726,16 +1736,16 @@ doc ///
     	idealsComplex
 	(idealsComplex, List,List,ZZ)
     Headline
-    	creates the Schenck-Stillman chain complex of ideals
+    	creates the Billera-Schenck-Stillman chain complex of ideals
     Usage
     	C = idealsComplex(V,F,r)
     Inputs
     	V:List
-	    V = list of vertex coordinates of $\Delta$
+	    list of vertex coordinates of $\Delta$
 	F:List
-	    F = list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
+	    list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	r:ZZ
-	    r = integer, desired degree of smoothness
+	    integer, desired degree of smoothness
 	BaseRing=>Ring
 	    
 	Homogenize=>Boolean
@@ -1746,10 +1756,10 @@ doc ///
 	
     Outputs
     	C:ChainComplex
-	    C = Schenck-Stillman chain complex of ideals
+	    Billera-Schenck-Stillman chain complex of ideals
     Description
     	Text
-	    This method returns the Schenck-Stillman chain complex of ideals whose
+	    This method returns the Billera-Schenck-Stillman chain complex of ideals whose
 	    top homology is the module of non-trivial splines on $\Delta$.
 	Example
 	    V = {{0,0},{1,0},{0,1},{-1,-1}};
@@ -1785,11 +1795,11 @@ doc ///
     	C = splineComplex(V,F,r)
     Inputs
     	V:List
-	    V = list of vertex coordinates of $\Delta$
+	    list of vertex coordinates of $\Delta$
 	F:List
-	    F = list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
+	    list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	r:ZZ
-	    r = integer, desired degree of smoothness
+	    integer, desired degree of smoothness
 	BaseRing=>Ring
 	    
 	Homogenize=>Boolean
@@ -1800,7 +1810,7 @@ doc ///
 	
     Outputs
     	C:ChainComplex
-	    C = Billera-Schenck-Stillman spline complex
+	    Billera-Schenck-Stillman spline complex
     Description
     	Text
 	    This method returns the Billera-Schenck-Stillman chain complex whose
