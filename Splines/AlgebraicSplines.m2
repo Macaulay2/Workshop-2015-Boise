@@ -36,8 +36,6 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
-   "Regions",
-   "SplineModule",
    "BaseRing",
    "splineMatrix",
    "splineModule",
@@ -54,8 +52,7 @@ export {
    "formsList",
    "cellularComplex",
    "idealsComplex",
-   "splineComplex",
-   "createSplineRing"
+   "splineComplex"
    }
 
 
@@ -1259,9 +1256,7 @@ doc ///
 	Text
 	    Let $\Delta$ be a partition (simplicial,polytopal,cellular,rectilinear, etc.) of a space $\RR^n$.
 	    The spline module $S_d^{r}(\Delta)$ is the module of all functions $f\in C^r(\Delta)$ such that
-	    $f$ is a polynomial of degree $d$ when restricted to each face $\sigma\in\Delta$.
-	Text
-	
+	    $f$ is a polynomial of degree $d$ when restricted to each facet $\sigma\in\Delta$.
 	Text
 	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well as the Billera-Schenck-Stillman
 	    @TO splineComplex@ of $\Delta$.
@@ -1288,19 +1283,22 @@ doc ///
 	InputType
 	ByFacets
 	ByLinearForms
+	Homogenize
+	BaseRing
+	VariableName
     Headline
-        compute matrix giving adjacent regions and continuity level
+        compute matrix whose kernel is the module of $C^r$ splines on $\Delta$
     Usage
     	S = splineMatrix(V,F,E,r)
 	S = splineMatrix(V,F,r)
 	S = splineMatrix(B,L,r)
     Inputs
     	V:List
-	    list of coordinates of vertices of Delta
+	    list of coordinates of vertices of $\Delta$
 	F:List
-	    list of facets of Delta
+	    list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	E:List
-	    list of edges of Delta
+	    list of codimension one faces of $\Delta$ (interior or not); each codimension one face is recorded as a list of indices of vertices taken from V
 	r:ZZ
 	    degree of desired continuity
 	InputType=>String
@@ -1372,11 +1370,11 @@ doc ///
 	M = splineModule(V,F,r)
     Inputs
         V:List
-	    V = list of coordinates of vertices
+	    V = list of coordinates of vertices of $\Delta$
 	F:List
-	    F = list of facets
+	    list of facets of $\Delta$; each facet is recorded as a list of indices of vertices taken from V
 	E:List
-	    E = list of codimension 1 faces (interior or not)
+	    list of codimension one faces of $\Delta$ (interior or not); each codimension one face is recorded as a list of indices of vertices taken from V
 	r:ZZ
 	    r = desired degree of smoothness
 	BaseRing=>Ring
@@ -1386,6 +1384,8 @@ doc ///
 	CoefficientRing=>Ring
 	
 	VariableName=>Symbol
+	
+	InputType=>String
 	
     Outputs
         M:Module
@@ -1425,7 +1425,7 @@ doc ///
 	M:Module
 	    M= graded module
 	L:List
-	    L= a list {V,F,E} of the vertices, faces and edges of a polyhedral complex
+	    L= a list {V,F,E} of the vertices, facets and codimension one faces of a polyhedral complex
 	r:ZZ
 	    r= degree of smoothnes 
 
@@ -1446,7 +1446,7 @@ doc ///
 	    The table above records the dimensions dim$S^2_d(\Delta)$ (i.e. splines on $\Delta$ of smoothness 2
 	    and degree at most d) for $d=$0,..,8.
 	Text
-	    You may instead input the list L={V,F,E} (or L={V,F}) of the vertices, faces and edges of the complex $\Delta$.
+	    You may instead input the list L={V,F,E} (or L={V,F}) of the vertices, facets and codimension one faces of the complex $\Delta$.
 	Example
 	    V = {{0,0},{1,0},{1,1},{0,1}};
 	    F = {{0,1,2},{0,2,3}};
@@ -1566,8 +1566,50 @@ doc ///
 
 doc ///
     Key
+    	formsList
+	(formsList,List,List,ZZ)
+    Headline
+    	list of powers of (affine) linear forms cutting out a specified list of codimension one faces.
+    Usage
+    	L = formsList(V,E,r)
+    Inputs
+    	V:List
+	    V = list of coordinates of vertices
+	E:List
+	    E = list of codimension 1 faces (each codimension 1 face is recorded as a list of indices of vertices taken from V)
+	r:ZZ
+	    r = desired degree of smoothness
+	BaseRing=>Ring
+	    
+	Homogenize=>Boolean
+	
+	CoefficientRing=>Ring
+	
+	VariableName=>Symbol
+	
+	InputType=>String
+
+    Outputs
+    	L:List
+	    L = list of (affine) linear forms cutting out codimension one
+	    faces specified by E, raised to the power (r+1)
+    Description
+    	Text
+	    This method returns a list of (affine) linear forms cutting out codimension one faces, raised to the power (r+1).
+	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}};
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
+	    formsList(V,E,0)
+	    S=QQ[x,y];--can specify the polynomial ring to use, and whether to homogenize
+	    formsList(V,E,0,BaseRing=>S,Homogenize=>false)
+
+///
+
+doc ///
+    Key
     	generalizedSplines
 	(generalizedSplines,List,List)
+	RingType
     Headline
     	the module of generalized splines associated to a simple graph with an edge labelling
     Usage
@@ -1578,6 +1620,8 @@ doc ///
 	    E = list of edges of a graph (an edge is represented as a list with two elements)
 	I:List
 	    I = list of ideals in a ring
+	RingType=>ZZ
+	
     Outputs
     	M:Module
 	    M = module of generalized splines on the graph with edges E and edge labels I
@@ -1633,9 +1677,9 @@ doc ///
     	C = cellularComplex(V,F)
     Inputs
     	V:List
-	    V = list of coordinates of vertices
+	    V = list of coordinates of vertices of $\Delta$
 	F:List
-	    F = list of facets
+	    F = list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	BaseRing=>Ring
 	    
 	Homogenize=>Boolean
@@ -1686,9 +1730,9 @@ doc ///
     	C = idealsComplex(V,F,r)
     Inputs
     	V:List
-	    V = list of vertex coordinates
+	    V = list of vertex coordinates of $\Delta$
 	F:List
-	    F = list of facets
+	    F = list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	r:ZZ
 	    r = integer, desired degree of smoothness
 	BaseRing=>Ring
@@ -1740,9 +1784,9 @@ doc ///
     	C = splineComplex(V,F,r)
     Inputs
     	V:List
-	    V = list of vertex coordinates
+	    V = list of vertex coordinates of $\Delta$
 	F:List
-	    F = list of facets
+	    F = list of facets of $\Delta$ (each facet is recorded as a list of indices of vertices taken from V)
 	r:ZZ
 	    r = integer, desired degree of smoothness
 	BaseRing=>Ring
