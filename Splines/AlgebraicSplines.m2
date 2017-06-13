@@ -1171,12 +1171,13 @@ splineComplex(List,List,ZZ):=ChainComplex => opts -> (V,F,r)->(
 
 
 ------------------------------------------
-splineComplexMap=method(Options=>{
-	symbol Homogenize => true, 
-	symbol VariableName => getSymbol "t",
-	symbol CoefficientRing => QQ
-    }
-    )
+--may be included in future iteration
+--splineComplexMap=method(Options=>{
+--	symbol Homogenize => true, 
+--	symbol VariableName => getSymbol "t",
+--	symbol CoefficientRing => QQ
+--    }
+--    )
 ------------------------------------------
 --Builds the three complexes idealsComplex,
 --cellularComplex, splineComplex, along with
@@ -1191,8 +1192,8 @@ splineComplexMap=method(Options=>{
 --maps between them
 ------------------------------------------
 
-splineComplexMap(List,List,ZZ):=List=>opts->(V,F,r)->(
-    )
+--splineComplexMap(List,List,ZZ):=List=>opts->(V,F,r)->(
+--    )
 	    
 
 ------------------------------------------
@@ -1779,7 +1780,7 @@ doc ///
     	splineComplex
 	(splineComplex, List,List,ZZ)
     Headline
-    	creates the Schenck-Stillman chain complex
+    	creates the Billera-Schenck-Stillman chain complex
     Usage
     	C = splineComplex(V,F,r)
     Inputs
@@ -1799,10 +1800,10 @@ doc ///
 	
     Outputs
     	C:ChainComplex
-	    C = Schenck-Stillman spline complex
+	    C = Billera-Schenck-Stillman spline complex
     Description
     	Text
-	    This method returns the Schenck-Stillman chain complex whose
+	    This method returns the Billera-Schenck-Stillman chain complex whose
 	    top homology is the module of splines on $\Delta$.
 	Example
 	    V = {{0,0},{1,0},{0,1},{-1,-1}};
@@ -1825,7 +1826,7 @@ doc ///
 	    that freeness of the spline module does not depend on vanishing of lower homologies if
 	    the underlying complex is polyhedral.
 	Example
-	    R = QQ[x,y,z];
+	    R = (ZZ/4021)[x,y,z];
 	    V = {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{0,-10}};
 	    V'= {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{1,-10}};
 	    F = {{0,1,2},{2,3,4},{0,4,5},{1,3,5},{1,2,3},{0,2,4},{0,1,5}};
@@ -1838,6 +1839,18 @@ doc ///
 	    how subtle spline calculations can be.  Note that the spline module over
 	    the symmetric Morgan-Scot partition above (vertices V) is not free,
 	    while the spline module over the non-symmetric Morgan-Scot partition is free.
+	Example
+	    R = QQ[x,y,z];
+	    V = {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{0,-10}};
+	    F = {{0,1,2},{2,3,4},{0,4,5},{1,3,5},{1,2,3},{0,2,4},{0,1,5}};
+	    Id = idealsComplex(V,F,1,BaseRing=>R);
+	    C = cellularComplex(V,F,BaseRing=>R);
+	    phi = inducedMap(C,Id);
+	    SC = splineComplex(V,F,1,BaseRing=>R);
+	    SC == (coker phi)
+	Text
+	    The above example shows that the Billera-Schenck-Stillman spline complex is the cokernel of the natural map between the complex
+	    of ideals (given by idealsComplex) and the cellular chain complex of $\Delta$ relative to its boundary.
 	Example
 	    V = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {-2, -2, -2}, {-2, 2, -2}, {2, 2, -2}, {2, -2, -2}, {-2, -2, 2}, {-2, 2, 2}, {2, 2, 2}, {2, -2, 2}};
 	    F = {{0, 1, 2, 3, 4, 5}, {0, 8, 9, 12, 13}, {1, 6, 7, 10, 11}, {2, 7, 8, 11, 12}, {3, 6, 9, 10, 13}, {4, 10, 11, 12, 13}, {5, 6, 7, 8, 9}, {0, 2, 8, 12}, {0, 3, 9, 13}, {0, 4, 12, 13}, {0, 5, 8, 9}, {1, 2, 7, 11}, {1, 3, 6, 10}, {1, 4, 10, 11}, {1, 5, 6, 7}, {2, 4, 11, 12}, {3, 4, 10, 13}, {3, 5, 6, 9}, {2, 5, 7, 8}, {0, 2, 4, 12}, {0, 2, 5, 8}, {0, 3, 4, 13}, {0, 3, 5, 9}, {1, 2, 4, 11}, {1, 2, 5, 7}, {1, 3, 4, 10}, {1, 3, 5, 6}};
