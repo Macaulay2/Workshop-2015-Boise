@@ -58,13 +58,7 @@ export {
    "cellularComplex",
    "idealsComplex",
    "splineComplex",
-   "createSplineRing",
-   --to remove when testing is done
-   "polyBoundaryPair",
-   "polyBoundary",
-   "orient",
-   "getCodim1Intersections",
-   "subsetL"
+   "createSplineRing"
    }
 
 
@@ -465,7 +459,7 @@ splineDimensionTable=method()
 ------ of M in bottom row
 -------------------------------------------
 
-splineDimensionTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
+splineDimensionTable(ZZ,ZZ,Module):=Net=>(a,b,M)->(
     r1:=prepend("Degree",toList(a..b));
     r2:=prepend("Dimension",apply(toList(a..b),i->hilbertFunction(i,M)));
     netList {r1,r2}
@@ -485,7 +479,7 @@ splineDimensionTable(ZZ,ZZ,Module):=Net=>opts->(a,b,M)->(
 ------ of the spline module in the range (a,b)
 -------------------------------------------
 
-splineDimensionTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
+splineDimensionTable(ZZ,ZZ,List,ZZ):= Net=>(a,b,L,r)->(
     M := splineModule(L_0,L_1,L_2,r);
     splineDimensionTable(a,b,M)
     )
@@ -510,7 +504,7 @@ splineDimensionTable(ZZ,ZZ,List,ZZ):= Net=>opts->(a,b,L,r)->(
 ------ of the spline module in the range (a,b)
 -------------------------------------------
 
-splineDimensionTable(ZZ,ZZ,List,ZZ):= Net => opts->(a,b,L,r)->(
+splineDimensionTable(ZZ,ZZ,List,ZZ):= Net => (a,b,L,r)->(
     M := splineModule(L_0,L_1,r,opts);
     splineDimensionTable(a,b,M)
     )
@@ -1270,9 +1264,11 @@ doc ///
 	Text
 	
 	Text
-	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well
-	    as defining new type @TO Splines@ that contain geometric data 
-	    for $\Delta$ (if entered) and details on the associated spline module $S_d^r(\Delta)$.
+	    This package computes the @TO splineModule@ and @TO splineMatrix@ of $\Delta$, as well as the Billera-Schenck-Stillman
+	    @TO splineComplex@ of $\Delta$.
+--	    , as well
+--	    as defining new type @TO Splines@ that contain geometric data 
+--	    for $\Delta$ (if entered) and details on the associated spline module $S_d^r(\Delta)$.
 --        Text
 --	    @SUBSECTION "Other acknowledgements"@
             --
@@ -1309,10 +1305,18 @@ doc ///
 	r:ZZ
 	    degree of desired continuity
 	InputType=>String
-	    either "ByFacets", or "ByLinearForms"
+	
+	BaseRing=>Ring
+	    
+	Homogenize=>Boolean
+	
+	CoefficientRing=>Ring
+	
+	VariableName=>Symbol
+	
     Outputs
     	S:Matrix
-	  resulting spline module
+	  resulting matrix whose kernel is the spline module
     Description
         Text
 	    This creates the basic spline matrix that has splines as
@@ -1320,12 +1324,35 @@ doc ///
 	Example
 	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
             F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
-            E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges in graph
+            E = {{0,1},{0,2},{0,3},{0,4},{0,5}};   -- list of edges
     	    splineMatrix(V,F,E,1)
         Text
-            Alternately, spline matrices can be created directly from the
+	    If each codimension one face of $\Delta$ is the intersection of exactly two facets, then the list of
+	    edges is unnecessary.
+	Example
+	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
+            F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
+    	    splineMatrix(V,F,E,1)
+	Text
+	    Splines are automatically computed on the cone over the given complex $\Delta$.  If the user desires splines over $\Delta$,
+	    use the option Homogenize=>false.
+	Example
+	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
+            F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
+    	    splineMatrix(V,F,1,Homogenize=>false)
+	Text
+	    If the user would like to define the underlying ring (e.g. for later reference), this may be done
+	    using the option BaseRing=>R, where R is a polynomial ring defined by the user.
+	Example
+	    V = {{0,0},{1,0},{1,1},{-1,1},{-2,-1},{0,-1}};-- the coordinates of vertices
+            F = {{0,2,1},{0,2,3},{0,3,4},{0,4,5},{0,1,5}};  -- a list of facets (pure complex)
+	    R = QQ[x,y] --desired polynomial ring
+    	    splineMatrix(V,F,1,Homogenize=>false,BaseRing=>R)
+	Text
+            Alternately, the spline matrix can be created directly from the
 	    dual graph (with edges labeled by linear forms).  Note: This way of
-	    entering data requires the ambient polynomial ring to be defined.
+	    entering data requires the ambient polynomial ring to be defined.  See also
+	    the @TO generalizedSplines@ method.
 	Example
 	    R = QQ[x,y]
 	    B = {{0,1},{1,2},{2,3},{3,4},{4,0}}
@@ -1353,6 +1380,14 @@ doc ///
 	    E = list of codimension 1 faces (interior or not)
 	r:ZZ
 	    r = desired degree of smoothness
+	BaseRing=>Ring
+	    
+	Homogenize=>Boolean
+	
+	CoefficientRing=>Ring
+	
+	VariableName=>Symbol
+	
     Outputs
         M:Module
 	    M = module of splines on $\Delta$
@@ -1403,11 +1438,11 @@ doc ///
 	    The output table gives you the dimensions of the graded pieces
 	    of the module M where the degree is between a and b. 
 	Example
-	    V = {{0,0},{1,0},{1,1},{0,1}}
-	    F = {{0,1,2},{0,2,3}}
-	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
-	    M=splineModule(V,F,E,2)
-	    splineDimensionTable(0,8,M)
+	    V = {{0,0},{1,0},{1,1},{0,1}};
+	    F = {{0,1,2},{0,2,3}};
+	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
+	    M=splineModule(V,F,E,2);
+	    splineDimensionTable(0,8,M);
 	Text
 	    You may instead input the list L={V,F,E} of the vertices, faces and edges of the spline.
 	Example
@@ -1546,13 +1581,13 @@ doc ///
 	Example
 	    E={{0,1},{1,2},{2,3},{0,3}};
 	    I={3,4,5,6};
-	    generalizedSplines(G,I)
+	    generalizedSplines(E,I)
 	Text
 	    The above splines may also be computed over ZZ modulo some integer.
 	Example
 	    E={{0,1},{1,2},{2,3},{0,3}};
 	    I={3,4,5,6};
-	    generalizedSplines(G,I,RingType=>9) --computes spline module with underlying ring ZZ/9
+	    generalizedSplines(E,I,RingType=>9) --computes spline module with underlying ring ZZ/9
 	Text
 	    Arbitrary ideals may also be entered as edge labels.
 	Example
@@ -1576,6 +1611,14 @@ doc ///
 	    V = list of coordinates of vertices
 	F:List
 	    F = list of facets
+	BaseRing=>Ring
+	    
+	Homogenize=>Boolean
+	
+	CoefficientRing=>Ring
+	
+	VariableName=>Symbol
+	
     Outputs
     	C:ChainComplex
 	    C = cellular chain complex of $\Delta$ relative to its boundary
@@ -1623,6 +1666,14 @@ doc ///
 	    F = list of facets
 	r:ZZ
 	    r = integer, desired degree of smoothness
+	BaseRing=>Ring
+	    
+	Homogenize=>Boolean
+	
+	CoefficientRing=>Ring
+	
+	VariableName=>Symbol
+	
     Outputs
     	C:ChainComplex
 	    C = Schenck-Stillman chain complex of ideals
@@ -1669,6 +1720,14 @@ doc ///
 	    F = list of facets
 	r:ZZ
 	    r = integer, desired degree of smoothness
+	BaseRing=>Ring
+	    
+	Homogenize=>Boolean
+	
+	CoefficientRing=>Ring
+	
+	VariableName=>Symbol
+	
     Outputs
     	C:ChainComplex
 	    C = Schenck-Stillman spline complex
@@ -1697,11 +1756,12 @@ doc ///
 	    that freeness of the spline module does not depend on vanishing of lower homologies if
 	    the underlying complex is polyhedral.
 	Example
+	    R = QQ[x,y,z];
 	    V = {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{0,-10}};
 	    V'= {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{1,-10}};
 	    F = {{0,1,2},{2,3,4},{0,4,5},{1,3,5},{1,2,3},{0,2,4},{0,1,5}};
-	    C = splineComplex(V,F,1);
-	    C' = splineComplex(V',F,1);
+	    C = splineComplex(V,F,1,BaseRing=>R);
+	    C' = splineComplex(V',F,1,BaseRing=>R);
 	    prune HH C
 	    prune HH C'
 	Text
