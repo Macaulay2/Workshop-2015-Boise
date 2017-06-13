@@ -505,7 +505,7 @@ splineDimensionTable(ZZ,ZZ,List,ZZ):= Net=>(a,b,L,r)->(
 -------------------------------------------
 
 splineDimensionTable(ZZ,ZZ,List,ZZ):= Net => (a,b,L,r)->(
-    M := splineModule(L_0,L_1,r,opts);
+    M := splineModule(L_0,L_1,r);
     splineDimensionTable(a,b,M)
     )
 
@@ -1255,8 +1255,8 @@ doc ///
         Text
             This package provides methods for computations with piecewise polynomial functions (splines) over
 	    polytopal complexes.
- 	Text 
-	    "Definitions"
+-- 	Text 
+--	    "Definitions"
 	Text
 	    Let $\Delta$ be a partition (simplicial,polytopal,cellular,rectilinear, etc.) of a space $\RR^n$.
 	    The spline module $S_d^{r}(\Delta)$ is the module of all functions $f\in C^r(\Delta)$ such that
@@ -1442,14 +1442,30 @@ doc ///
 	    F = {{0,1,2},{0,2,3}};
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}};
 	    M=splineModule(V,F,E,2);
-	    splineDimensionTable(0,8,M);
+	    splineDimensionTable(0,8,M)
+    	Text
+	    The table above records the dimensions dim$S^2_d(\Delta)$ (i.e. splines on $\Delta$ of smoothness 2
+	    and degree at most d) for $d=$0,..,8.
 	Text
-	    You may instead input the list L={V,F,E} of the vertices, faces and edges of the spline.
+	    You may instead input the list L={V,F,E} (or L={V,F}) of the vertices, faces and edges of the complex $\Delta$.
 	Example
+	    V = {{0,0},{1,0},{1,1},{0,1}};
+	    F = {{0,1,2},{0,2,3}};
 	    L = {V,F,E};
-	    (0,8,L,2)
-	
-      
+	    splineDimensionTable(0,8,L,2)
+	Text
+	    The following complex, known as the Morgan-Scot partition, illustrates the subtle changes in dimension of spline spaces 
+	    which may occur depending on geometry.
+    	Example
+	    V = {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{0,-10}};
+	    V'= {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{1,-10}};
+	    F = {{0,1,2},{2,3,4},{0,4,5},{1,3,5},{1,2,3},{0,2,4},{0,1,5}};
+	    M = splineModule(V,F,1);
+	    M' = splineModule(V',F,1);
+	    splineDimensionTable(0,4,M)
+	    splineDimensionTable(0,4,M')
+	Text
+	    Notice that the dimension of the space of $C^1$ quadratic splines changes depending on the geometry of $\Delta$.
 ///
 
 doc ///
@@ -1530,13 +1546,52 @@ doc ///
     Description
         Text
 	    The first row of the output table contains the degrees, the second row contains the 
-	    values of the hilbertFunction, the third row contains the values of the hilbertPolynomial
+	    values of the hilbertFunction, the third row contains the values of the hilbertPolynomial.
+	    In the following example, the hilbertFunction and polynomial always agree.
 	Example
 	    V = {{0,0},{1,0},{1,1},{0,1}}
 	    F = {{0,1,2},{0,2,3}}
 	    E = {{0,1},{0,2},{0,3},{1,2},{2,3}}
 	    hilbertComparisonTable(0,8,splineModule(V,F,E,1))
-
+    	Text
+	    The dimension of splines of degree at most d on a complex $\Delta$ is eventually given by a polynomial in d,
+	    which is the Hilbert polynomial of the spline module.  Below we illustrate with the Morgan-Scot partition.  Notice
+	    that the Hilbert polynomial for the symmetric Morgan-Scot partition and the asymmetric Morgan-Scot partition are the
+	    same, however the Hilbert functions disagree in degree 2.
+	Example
+	    V = {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{0,-10}};
+	    V'= {{-1,-1},{1,-1},{0,1},{10,10},{-10,10},{1,-10}};
+	    F = {{0,1,2},{2,3,4},{0,4,5},{1,3,5},{1,2,3},{0,2,4},{0,1,5}};
+	    M = splineModule(V,F,1);
+	    hilbertPolynomial(M,Projective=>false)
+	    M' = splineModule(V',F,1);
+	    hilbertPolynomial(M',Projective=>false)
+	    hilbertComparisonTable(0,4,M)
+	    postulationNumber(M) --final integer for which hilbert function and polynomial disagree
+	    hilbertComparisonTable(0,4,M')
+	    postulationNumber(M')
+    	Text
+	    In the following example, we compare the hilbert polynomial and hilbert function of splines over a centrally triangulated
+	    octahedron; the behavior is very similar to the Morgan-Scot partition, except there is an extra degree of symmetry 
+	    available which alters the Hilbert polynomials.  Notice the use of the option Homogenize=>false to consider splines 
+	    of degree precisely d instead of splines of degree at most d.
+	Example
+	    V={{0,0,0},{1,0,0},{0,1,0},{0,0,1},{-1,0,0},{0,-1,0},{0,0,-1}}; --most symmetric variant
+	    V'={{0,0,0},{0,2,-1},{-1,-1,-1},{1,-1,-1},{0,-2,2},{1,1,2},{-1,1,2}}; --somewhat symmetric variant
+	    V''={{0,0,0},{10,1,1},{-1,10,1},{-1,1,10},{-10,1,-1},{1,-10,1},{-1,-1,-10}}; --asymmetric variant
+	    F={{0,1,2,3},{0,1,2,6},{0,1,3,5},{0,1,5,6},{0,2,3,4},{0,2,4,6},{0,3,4,5},{0,4,5,6}};
+	    M=splineModule(V,F,1,Homogenize=>false);
+	    hilbertPolynomial(M,Projective=>false)
+	    M'=splineModule(V',F,1,Homogenize=>false);
+	    hilbertPolynomial(M',Projective=>false)
+	    M''=splineModule(V'',F,1,Homogenize=>false);
+	    hilbertPolynomial(M'',Projective=>false)
+	    hilbertComparisonTable(0,6,M)
+	    postulationNumber(M) --largest integer for which hilbert function and polynomial disagree
+	    hilbertComparisonTable(0,6,M')
+	    postulationNumber(M')
+	    hilbertComparisonTable(0,6,M'')
+	    postulationNumber(M'')
 ///
 
 doc ///
